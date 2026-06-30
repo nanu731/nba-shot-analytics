@@ -26,8 +26,9 @@ notebook.
 SHOT_TYPE column from the raw data is used as the final arbiter for whether 
 a shot is a 2-point attempt or 3-point attempt at zone boundaries — 
 coordinates alone are not sufficient. Corner 3 zones sit at 22 feet, 
-above-break 3 zones at 23.75 feet, with the baseline boundary at 7.8 feet. 
-No zone overlaps between 2-point and 3-point territory.
+above-break 3 zones at 23.75 feet, with the baseline boundary at approximately 
+8.95 feet, calculated as the square root of (23.75 squared minus 22 squared) 
+per standard NBA court geometry.
 
 ## Shot selection score
 Each qualifying player receives a single summary score equal to the weighted 
@@ -114,12 +115,11 @@ and data/processed/zone_stats_2025_26.csv. Partially built — must be
 reviewed and rebuilt around PPS only with all eFG% references removed.
 
 Notebook 03 — Shot charts: builds draw_court() in src/court.py, produces 
-make/miss scatter chart and PPS hex-bin chart using Stephen Curry as the 
-test case. Partially built — hex-bin chart has a coordinate mismatch bug 
-where all hexagons cluster near the basket. This must be diagnosed and 
-fixed as part of the checks and balances review. The fix must align the 
-hexbin coordinate space exactly with the draw_court() coordinate system 
-before any coloring logic is applied.
+a make/miss scatter chart and a zone overlay chart using Stephen Curry as 
+the test case. The zone overlay chart draws each of the 11 named zones 
+as filled polygons colored by PPS, built as a reusable function 
+draw_zone_overlay() in src/zones.py so later notebooks can call it for 
+any qualifying player. There is no hex-bin chart in this project.
 
 Notebook 04 — Hot zones: zone efficiency grid and hot zone overlay charts 
 for any qualifying player on demand, league-wide zone summary. Not yet 
