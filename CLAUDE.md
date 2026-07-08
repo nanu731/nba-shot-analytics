@@ -122,8 +122,9 @@ draw_zone_overlay() in src/zones.py so later notebooks can call it for
 any qualifying player. There is no hex-bin chart in this project.
 
 Notebook 04 — Hot zones: zone efficiency grid and hot zone overlay charts 
-for any qualifying player on demand, league-wide zone summary. Not yet 
-built.
+for any qualifying player on demand using draw_zone_overlay() from 
+src/zones.py, league-wide zone summary showing the most and least 
+efficient zones across all qualifying players. Not yet built.
 
 Notebook 05 — Tendency vs efficiency: frequency vs PPS scatter, shot 
 selection score computation, full player ranking, mismatch story 
