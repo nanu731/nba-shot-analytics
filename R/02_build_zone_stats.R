@@ -42,9 +42,23 @@ EXPECTED <- list(
     after_anomaly    = 219102,
     players_all      = 582,
     players_qualify  = 318,
-    qualifying_shots = 194967
+    qualifying_shots = 194967,
+    grid_rows        = 4452,
+    cells_ge1        = 4184,
+    cells_eq1        = 228,
+    cells_le3        = 629
   )
 )
+
+# season lives in the directory name rather than in the file, matching data/raw/shots.
+# Reading with hive_partitioning = 1 puts the column back.
+write_season_table <- function(df, table_name, season) {
+  dir <- glue("data/processed/{table_name}/season={season}")
+  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+  path <- glue("{dir}/{table_name}.parquet")
+  write_parquet(select(df, -season), path)
+  path
+}
 
 check <- function(label, actual, expected, strict) {
   if (is.null(expected)) {
@@ -142,10 +156,80 @@ build_zone_stats <- function(season) {
 
   cat("zones used by qualifying players\n")
   print(count(qualified, zones_used), n = Inf)
-  cat("\ntop 5 by attempts\n")
-  print(arrange(qualified, desc(total_attempts)) |> head(5))
+  cat("\n")
 
-  invisible(list(con = con, qualified = qualified))
+  cells <- dbGetQuery(con, 'SELECT PLAYER_ID, "zone",
+      COUNT(*) AS attempts, SUM(SHOT_MADE_FLAG) AS makes
+    FROM clean_shots GROUP BY 1, 2') |> as_tibble()
+
+  # Every zone a player could have shot from, not only the ones he used. Zero-attempt
+  # cells stay because low volume in a zone is the signal the metric measures, and the
+  # stage 3 prior supplies a value there without needing a special case.
+  zone_stats <- qualified |>
+    select(PLAYER_ID, PLAYER_NAME, total_attempts) |>
+    cross_join(select(ZONE_REF, zone, zone_value, zone_order)) |>
+    left_join(cells, by = c("PLAYER_ID", "zone")) |>
+    mutate(
+      across(c(makes, attempts), \(x) coalesce(x, 0)),
+      fg_pct    = if_else(attempts > 0, makes / attempts, NA_real_),
+      pps_raw   = zone_value * fg_pct,
+      shot_freq = attempts / total_attempts,
+      season    = .env$season
+    ) |>
+    arrange(PLAYER_NAME, zone_order) |>
+    select(season, PLAYER_ID, PLAYER_NAME, zone, zone_value,
+           makes, attempts, fg_pct, pps_raw, shot_freq)
+
+  cat("grid\n")
+  check("rows", nrow(zone_stats), nrow(qualified) * nrow(ZONE_REF), TRUE)
+  check("attempts across grid", sum(zone_stats$attempts), exp$qualifying_shots, strict)
+  if (anyNA(zone_stats$makes) || anyNA(zone_stats$attempts)) {
+    stop("NA in makes or attempts: the zero fill did not cover every cell", call. = FALSE)
+  }
+
+  drift <- zone_stats |>
+    summarise(total = sum(shot_freq), .by = PLAYER_ID) |>
+    pull(total) |>
+    (\(x) max(abs(x - 1)))()
+  if (drift > 1e-9) stop(glue("shot_freq does not sum to 1: drift {drift}"), call. = FALSE)
+  cat(glue("  {format('shot_freq sums to 1, max drift', width = 34)} {signif(drift, 3)}"), "\n")
+
+  used <- filter(zone_stats, attempts > 0)
+  check("cells with 1+ attempts", nrow(used), exp$cells_ge1, strict)
+  check("cells with exactly 1 attempt", sum(used$attempts == 1), exp$cells_eq1, strict)
+  check("cells with 3 or fewer", sum(used$attempts <= 3), exp$cells_le3, strict)
+
+  # zones_used was counted independently in SQL, so a disagreement means the cross join
+  # or the zero fill went wrong rather than the count being merely stale.
+  recount <- count(used, PLAYER_ID, name = "from_grid")
+  if (!all(arrange(recount, PLAYER_ID)$from_grid == arrange(qualified, PLAYER_ID)$zones_used)) {
+    stop("zones_used disagrees with the grid", call. = FALSE)
+  }
+  cat(glue("  {format('zones_used agrees with grid', width = 34)} all {nrow(qualified)} players"), "\n\n")
+
+  player_scores <- mutate(qualified, season = .env$season, .before = 1)
+
+  cat("written\n")
+  for (path in c(write_season_table(zone_stats, "zone_stats", season),
+                 write_season_table(player_scores, "player_scores", season))) {
+    cat(glue("  {path}  {round(file.size(path) / 1024, 1)} KB"), "\n")
+  }
+
+  readback <- dbGetQuery(con, "
+    SELECT season, COUNT(*) AS rows, COUNT(DISTINCT PLAYER_ID) AS players
+    FROM read_parquet('data/processed/zone_stats/**/*.parquet', hive_partitioning = 1)
+    GROUP BY season ORDER BY season")
+  cat("\nread back from the partitioned store\n")
+  print(as_tibble(readback))
+
+  cat("\nStephen Curry\n")
+  zone_stats |>
+    filter(PLAYER_NAME == "Stephen Curry") |>
+    mutate(across(c(fg_pct, pps_raw, shot_freq), \(x) round(x, 3))) |>
+    select(zone, zone_value, makes, attempts, fg_pct, pps_raw, shot_freq) |>
+    print(n = Inf)
+
+  invisible(list(zone_stats = zone_stats, player_scores = player_scores))
 }
 
 if (sys.nframe() == 0L) build_zone_stats("2025-26")
