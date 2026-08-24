@@ -45,12 +45,21 @@ validate <- function(season) {
   cat("\n-- check 5: score vs restricted-area frequency (free-throw proxy) --\n")
   cat(glue("  r = {round(cor(d$score_pooled, d$ra_freq), 4)}"), "\n")
 
-  cat("\n-- Herfindahl vs score (the four-quadrant structure) --\n")
+  cat("\n-- Herfindahl vs score (redundant; see Section 8) --\n")
   cat(glue("  r = {round(cor(d$score_pooled, d$herfindahl), 4)}"), "\n")
+
+  # Section 8a's axis. The gradient is the reason volume replaced concentration.
+  cat("\n-- score vs shot volume (Section 8a primary axis) --\n")
+  cat(glue("  r = {round(cor(d$score_pooled, d$total_attempts), 4)}"), "\n")
+  print(d |> mutate(vol = cut(total_attempts, c(249, 400, 600, 900, Inf),
+                              labels = c("250-400","400-600","600-900","900+"))) |>
+          summarise(n = n(), mean_score = round(mean(score_pooled), 4), .by = vol) |>
+          arrange(vol))
 
   invisible(list(season = season, r_zones = r3,
                  r_ra = cor(d$score_pooled, d$ra_freq),
                  r_h  = cor(d$score_pooled, d$herfindahl),
+                 r_vol = cor(d$score_pooled, d$total_attempts),
                  r2_pos = summary(fit)$r.squared, by_pos = by_pos, d = d))
 }
 
@@ -80,6 +89,7 @@ if (sys.nframe() == 0L) {
   print(map_dfr(res, \(r) tibble(season = r$season, r_zones_used = round(r$r_zones, 3),
                                  r_ra_freq = round(r$r_ra, 3),
                                  r_herfindahl = round(r$r_h, 3),
+                                 r_volume = round(r$r_vol, 3),
                                  pos_r2 = round(r$r2_pos, 3))))
   within_position(res[[5]]$d)
 }
