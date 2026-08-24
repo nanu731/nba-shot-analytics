@@ -56,7 +56,26 @@ validate <- function(season) {
           summarise(n = n(), mean_score = round(mean(score_pooled), 4), .by = vol) |>
           arrange(vol))
 
+  cat("\n-- score vs volume WITHIN volume quartiles --\n")
+  # Restricting to a quartile narrows the range of total_attempts, which attenuates r
+  # for purely mechanical reasons. The slope does not suffer that, so it is the figure
+  # to read: a gradient that persists inside quartiles is continuous, one that flattens
+  # means the leaderboard is largely an artifact of the 250-attempt gate.
+  qd <- d |> mutate(vq = ntile(total_attempts, 4))
+  print(qd |>
+    summarise(n = n(),
+              lo = min(total_attempts), hi = max(total_attempts),
+              r = round(cor(score_pooled, total_attempts), 3),
+              slope_per_1000 = round(coef(lm(score_pooled ~ total_attempts))[2] * 1000, 4),
+              .by = vq) |> arrange(vq))
+  full_slope <- coef(lm(score_pooled ~ total_attempts, data = d))[2] * 1000
+  cat(glue("  pooled slope across all players = {round(full_slope, 4)} per 1000 attempts"), "\n")
+
   invisible(list(season = season, r_zones = r3,
+                 vq = qd |> summarise(r = cor(score_pooled, total_attempts),
+                                      slope = coef(lm(score_pooled ~ total_attempts))[2] * 1000,
+                                      .by = vq) |> arrange(vq),
+                 full_slope = full_slope,
                  r_ra = cor(d$score_pooled, d$ra_freq),
                  r_h  = cor(d$score_pooled, d$herfindahl),
                  r_vol = cor(d$score_pooled, d$total_attempts),
