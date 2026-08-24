@@ -4,7 +4,7 @@ library(glue)
 library(jsonlite)
 
 SEASONS <- c("2021-22", "2022-23", "2023-24", "2024-25", "2025-26")
-OUT     <- "export/data/shot_selection.json"
+OUT_DIR <- "export/data"
 
 # Rule A16: derived aggregates only. Nothing here reaches below the player-zone cell, and
 # no shot-level column (LOC_X, LOC_Y, GAME_ID, ACTION_TYPE) is exported.
@@ -67,7 +67,7 @@ season_block <- function(season, zidx) {
   )
 }
 
-export_json <- function(seasons = SEASONS, path = OUT) {
+export_json <- function(seasons = SEASONS, dir = OUT_DIR) {
   zidx <- zone_index()
   blocks <- set_names(map(seasons, \(s) {
     b <- season_block(s, zidx)
@@ -75,8 +75,7 @@ export_json <- function(seasons = SEASONS, path = OUT) {
     b
   }), seasons)
 
-  out <- list(
-    meta = list(
+  meta <- list(
       generated = format(Sys.Date()),
       seasons = seasons,
       eligibility = list(min_games = 20, min_attempts = 250),
@@ -88,20 +87,32 @@ export_json <- function(seasons = SEASONS, path = OUT) {
         note = "zone fields index into meta.zones. fg_pct and pps are null where attempts = 0."
       ),
       zones = zidx |> transmute(index = idx, zone, value)
-    ),
-    seasons = blocks
-  )
+    )
 
-  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  write_json(out, path, auto_unbox = TRUE, null = "null", na = "null", pretty = FALSE)
-  size <- file.size(path)
-  cat(glue("\n  {path}  {round(size / 1024^2, 2)} MB ({format(size, big.mark = ',')} bytes)"), "\n")
+  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+  write <- function(x, file) {
+    path <- file.path(dir, file)
+    write_json(x, path, auto_unbox = TRUE, null = "null", na = "null", pretty = FALSE)
+    path
+  }
 
-  back <- fromJSON(path, simplifyVector = FALSE)
-  cat(glue("  reads back: {length(back$seasons)} seasons, ",
-           "{length(back$meta$zones)} zones, ",
-           "{sum(map_int(back$seasons, \\(s) length(s$players)))} player-seasons"), "\n")
-  invisible(path)
+  # meta is its own file so the site loads zone definitions and eligibility once rather
+  # than repeating them in every season payload.
+  paths <- c(write(meta, "meta.json"),
+             imap_chr(blocks, \(b, s) write(c(list(season = s), b), glue("season-{s}.json"))))
+
+  cat("\n")
+  for (path in paths) {
+    cat(glue("  {path}  {round(file.size(path) / 1024, 1)} KB"), "\n")
+  }
+  cat(glue("  total {round(sum(file.size(paths)) / 1024^2, 2)} MB across {length(paths)} files"), "\n")
+
+  m <- fromJSON(file.path(dir, "meta.json"), simplifyVector = FALSE)
+  one <- fromJSON(file.path(dir, glue("season-{seasons[length(seasons)]}.json")), simplifyVector = FALSE)
+  cat(glue("  reads back: meta has {length(m$zones)} zones and {length(m$seasons)} seasons; ",
+           "{one$season} has {length(one$players)} players, ",
+           "{length(one$players[[1]]$zones)} zone rows on the first"), "\n")
+  invisible(paths)
 }
 
 if (sys.nframe() == 0L) export_json()
