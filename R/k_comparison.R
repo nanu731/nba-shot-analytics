@@ -16,7 +16,11 @@ source("R/03_compute_scores.R")
 
 SEASON  <- "2025-26"
 SPLITS  <- 200                      # random halvings; one split is far too noisy
-K_GRID  <- c(seq(5, 100, 5), seq(110, 400, 10), seq(425, 1200, 25))
+# The grid runs to 20,000 because two three-point zones pinned at the old 1,200 ceiling.
+# A minimum at an endpoint is not an estimate, so the grid has to be wide enough to show
+# whether one exists at all.
+K_GRID  <- c(seq(5, 100, 5), seq(110, 400, 10), seq(425, 1200, 25),
+             seq(1300, 3000, 100), seq(3250, 8000, 250), seq(8500, 20000, 500))
 set.seed(20260824)
 
 # Method 2. Halve each player's attempts in a zone at random, correlate the two halves,
@@ -70,9 +74,12 @@ k_cross_validated <- function(makes, attempts, grid = K_GRID) {
     -sum(x_test * log(p) + (n_test - x_test) * log(1 - p))
   })
   best <- grid[which.min(loss)]
-  # A minimum sitting at an endpoint means the curve never turned: the data cannot
-  # identify k, which is a finding rather than an estimate.
-  list(k = best, flat = best %in% range(grid))
+  # The interval over which held-out loss stays within 0.01% of its minimum. A wide
+  # interval means the surface is genuinely flat and k is not identified, as opposed to
+  # the minimum simply lying beyond an earlier grid ceiling.
+  within <- grid[loss <= min(loss) * (1 + 1e-4)]
+  list(k = best, flat = best %in% range(grid),
+       flat_lo = min(within), flat_hi = max(within))
 }
 
 compare_k <- function(season = SEASON) {
@@ -90,7 +97,8 @@ compare_k <- function(season = SEASON) {
       cells       = sum(attempts > 0),
       median_att  = median(attempts[attempts > 0]),
       .by = zone) |>
-    mutate(k_cv = map_dbl(cv, "k"), cv_flat = map_lgl(cv, "flat")) |>
+    mutate(k_cv = map_dbl(cv, "k"), cv_flat = map_lgl(cv, "flat"),
+           cv_lo = map_dbl(cv, "flat_lo"), cv_hi = map_dbl(cv, "flat_hi")) |>
     select(-cv) |>
     arrange(zone_order)
 
@@ -103,8 +111,9 @@ compare_k <- function(season = SEASON) {
               k_mle = round(k_mle), k_split = round(k_split), k_cv = round(k_cv),
               ratio_split = round(k_split / k_mle, 2),
               ratio_cv = round(k_cv / k_mle, 2),
-              flags = str_c(if_else(converged, "", "MoM "), if_else(cv_flat, "cv-flat", ""))),
-    n = Inf, width = 200)
+              cv_flat_range = glue("{round(cv_lo)}-{round(cv_hi)}"),
+              flags = str_c(if_else(converged, "", "MoM "), if_else(cv_flat, "at-edge", ""))),
+    n = Inf, width = 220)
 
   cat("\nagreement\n")
   for (pair in list(c("k_split", "k_mle"), c("k_cv", "k_mle"), c("k_cv", "k_split"))) {
@@ -120,4 +129,66 @@ compare_k <- function(season = SEASON) {
   invisible(out)
 }
 
-if (sys.nframe() == 0L) compare_k()
+
+# Turns "the shrinkage choice matters at p90" into a measurement: rebuild every player's
+# score under each of the three k vectors and see what actually moves. The zone prior mean
+# is held at the MLE's fitted value throughout, so k is the only thing varying.
+score_sensitivity <- function(season = SEASON, ks = NULL) {
+  if (is.null(ks)) ks <- compare_k(season)
+  zs <- read_processed("zone_stats", season)
+  base <- read_processed("player_scores", season)
+
+  priors <- read_processed("zone_priors", season) |> select(zone, prior_mean)
+
+  rebuild <- function(k_col) {
+    zs |>
+      select(PLAYER_ID, PLAYER_NAME, zone, zone_value, makes, attempts, shot_freq, freq_pooled) |>
+      left_join(priors, by = "zone") |>
+      left_join(select(ks, zone, k = all_of(k_col)), by = "zone") |>
+      mutate(pps_shrunk = zone_value * (makes + prior_mean * k) / (attempts + k)) |>
+      summarise(score = sum((shot_freq - freq_pooled) * pps_shrunk), .by = c(PLAYER_ID, PLAYER_NAME))
+  }
+
+  variants <- c(mle = "k_mle", split = "k_split", cv = "k_cv")
+  scores <- imap(variants, \(col, nm) rebuild(col) |> rename_with(\(x) nm, "score")) |>
+    reduce(left_join, by = c("PLAYER_ID", "PLAYER_NAME")) |>
+    mutate(across(all_of(names(variants)), \(x) rank(-x), .names = "rank_{.col}"))
+
+  cat(glue("\n\n=== selection score under three shrinkage weights, {season} ==="), "\n")
+  cat(glue("n = {nrow(scores)} qualifying players; league SD of the production score = ",
+           "{round(sd(base$score_pooled), 4)}"), "\n\n")
+
+  sd_league <- sd(base$score_pooled)
+  pairs <- list(c("mle","split"), c("mle","cv"), c("split","cv"))
+
+  cat("ranking agreement\n")
+  for (p in pairs) {
+    a <- scores[[p[1]]]; b <- scores[[p[2]]]
+    ra <- scores[[glue("rank_{p[1]}")]]; rb <- scores[[glue("rank_{p[2]}")]]
+    cat(glue("  {p[1]} vs {p[2]}:  r = {round(cor(a, b), 4)}   ",
+             "rank r = {round(cor(a, b, method = 'spearman'), 4)}   ",
+             "moved >1 SD: {sum(abs(a - b) > sd_league)}   ",
+             "moved >10 places: {sum(abs(ra - rb) > 10)}"), "\n")
+  }
+
+  cat(glue("\n  largest single-player score shift across the three: ",
+           "{round(max(pmax(abs(scores$mle - scores$split), abs(scores$mle - scores$cv), abs(scores$split - scores$cv))), 4)}"), "\n")
+
+  cat("\ntop five under each weighting\n")
+  ends <- function(col, n = 5, bottom = FALSE) {
+    d <- arrange(scores, if (bottom) .data[[col]] else desc(.data[[col]]))
+    head(d$PLAYER_NAME, n)
+  }
+  for (nm in names(variants)) cat(glue("  {format(nm, width = 6)} {str_c(ends(nm), collapse = ', ')}"), "\n")
+  cat("\nbottom five under each weighting\n")
+  for (nm in names(variants)) cat(glue("  {format(nm, width = 6)} {str_c(ends(nm, bottom = TRUE), collapse = ', ')}"), "\n")
+
+  same_top <- length(unique(map(names(variants), \(nm) sort(ends(nm))))) == 1
+  same_bot <- length(unique(map(names(variants), \(nm) sort(ends(nm, bottom = TRUE))))) == 1
+  cat(glue("\n  top five identical across all three:    {if (same_top) 'YES' else 'NO'}"), "\n")
+  cat(glue("  bottom five identical across all three: {if (same_bot) 'YES' else 'NO'}"), "\n")
+
+  invisible(scores)
+}
+
+if (sys.nframe() == 0L) score_sensitivity()

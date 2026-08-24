@@ -220,14 +220,27 @@ being broadly good, they reach it by concentrating on their best zone. It also m
 score-against-concentration scatter is close to a diagonal, so it is not used as the primary
 visual.
 
-**Shrinkage weight is not sharply identified everywhere.** Three independent methods — the
-beta-binomial MLE, split-half reliability, and cross-validation — were compared per zone. The
-MLE and cross-validation agree closely (rank correlation 0.841); split-half agrees with neither
-on levels. All three disagree most in the three-point zones, which is where the data least
-constrains the answer: cross-validation hit its grid boundary in exactly the two worst cases.
-The practical consequence is confined — for a typical cell the choice of weight moves shrunk PPS
-by under 0.01 points per shot, but for the highest-volume three-point shooters it reaches 0.08
-to 0.10.
+**Shrinkage weight is not sharply identified everywhere — but the rankings are.** Three
+independent methods were compared per zone: the beta-binomial MLE, split-half reliability, and
+cross-validation. The MLE and cross-validation agree closely (rank correlation 0.838); split-half
+agrees with neither on levels. All three disagree most in the three-point zones, and those are
+not the thinnest zones — the prediction that they would be was tested and failed.
+
+The cross-validated loss surface there is genuinely flat rather than merely unbounded. Extending
+the search grid to 20,000 produced a nominal minimum in every zone, but held-out loss stays within
+0.01% of that minimum across a range spanning 450 to 20,000 for the centre above-the-break zone.
+The weight is not identified, and the MLE's estimate falls inside that interval — cross-validation
+does not contradict it so much as fail to discriminate.
+
+**What that costs the results: almost nothing.** Rebuilding every player's score under all three
+weight vectors gives rank correlations of 0.995 to 0.9985. No player moves more than one league
+standard deviation (0.061); the largest shift under any pairing is 0.015, a quarter of an SD.
+Twenty to fifty-two players out of 318 move more than ten rank places, all in the middle of the
+distribution. **The top five and bottom five are identical under all three weightings.**
+
+The reason is structural: a score sums across 14 zones, and each zone's term is weighted by how
+far the player's frequency departs from the league's, which is small precisely where the weight is
+uncertain. Cell-level sensitivity does not propagate to the player score.
 
 **Position granularity.** The NBA publishes three position buckets, not five. Three qualifying
 players in 2025-26 appear on no end-of-season roster and are shown as `Unknown` rather than being
