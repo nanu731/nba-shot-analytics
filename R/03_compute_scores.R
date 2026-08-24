@@ -203,12 +203,9 @@ compute_scores <- function(season) {
   }
   cat(glue("  POS3 buckets: {str_c(sort(unique(player_scores$POS3)), collapse = ', ')}"), "\n")
 
-  r_baseline <- cor(player_scores$score_pooled, player_scores$score_unweighted)
-  r_pps      <- cor(player_scores$score_pooled, player_scores$pps_overall_raw)
-  cat(glue("\ncor(pooled, unweighted) = {round(r_baseline, 4)}  ",
-           "{if (r_baseline > 0.95) 'above 0.95 as expected' else 'BELOW 0.95'}"), "\n")
-  cat(glue("cor(score, raw overall PPS) = {round(r_pps, 4)}  ",
-           "{if (abs(r_pps) < 0.5) 'weak' else 'moderate - see ASSUMPTIONS.md entry 10'}"), "\n")
+  # Score checks 1 and 2 live in R/validation.R, which Section 16 keeps separate from the
+  # recurring pipeline.
+
 
   zone_priors <- priors |>
     select(season, zone, zone_value, alpha, beta, k, prior_mean,

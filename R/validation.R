@@ -20,6 +20,19 @@ validate <- function(season) {
   d <- load_season(season)
   cat(glue("\n===== {season}  (n = {nrow(d)}) ====="), "\n")
 
+  cat("\n-- check 1: pooled vs unweighted baseline --\n")
+  r1 <- cor(d$score_pooled, d$score_unweighted)
+  cat(glue("  r = {round(r1, 4)}  ",
+           "{if (r1 > 0.95) 'above 0.95, the baselines agree' else 'BELOW 0.95 - baselines disagree'}"), "\n")
+
+  cat("\n-- check 2: score vs raw overall PPS --\n")
+  # Section 16 expects this to be weak. A strong one would mean the score had collapsed
+  # into an efficiency measure; the rejected sum(f * PPS) formula returns exactly 1.
+  r2 <- cor(d$score_pooled, d$pps_overall_raw)
+  rejected <- cor(d$pps_overall_raw, d$pps_overall_raw)
+  cat(glue("  r = {round(r2, 4)}  (rejected sum(f x PPS) formula would give {rejected})"), "\n")
+  cat(glue("  {if (abs(r2) < 0.5) 'weak' else 'moderate - see ASSUMPTIONS.md entry 10'}"), "\n")
+
   cat("\n-- check 3: score vs zones_used --\n")
   r3 <- cor(d$score_pooled, d$zones_used)
   cat(glue("  r = {round(r3, 4)}  (Section 16 says do not assume a direction)"), "\n")
@@ -71,7 +84,7 @@ validate <- function(season) {
   full_slope <- coef(lm(score_pooled ~ total_attempts, data = d))[2] * 1000
   cat(glue("  pooled slope across all players = {round(full_slope, 4)} per 1000 attempts"), "\n")
 
-  invisible(list(season = season, r_zones = r3,
+  invisible(list(season = season, r_zones = r3, r_pooled_unweighted = r1, r_raw_pps = r2,
                  vq = qd |> summarise(r = cor(score_pooled, total_attempts),
                                       slope = coef(lm(score_pooled ~ total_attempts))[2] * 1000,
                                       .by = vq) |> arrange(vq),

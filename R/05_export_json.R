@@ -3,7 +3,12 @@ library(arrow)
 library(glue)
 library(jsonlite)
 
-SEASONS <- c("2021-22", "2022-23", "2023-24", "2024-25", "2025-26")
+# Discovered from disk rather than hardcoded, so meta.json always lists exactly the
+# seasons whose files sit beside it.
+available_seasons <- function() {
+  dirs <- list.dirs("data/processed/zone_stats", recursive = FALSE, full.names = FALSE)
+  sort(str_remove(dirs[str_starts(dirs, "season=")], "^season="))
+}
 OUT_DIR <- "export/data"
 
 # Rule A16: derived aggregates only. Nothing here reaches below the player-zone cell, and
@@ -67,7 +72,7 @@ season_block <- function(season, zidx) {
   )
 }
 
-export_json <- function(seasons = SEASONS, dir = OUT_DIR) {
+export_json <- function(seasons = available_seasons(), dir = OUT_DIR) {
   zidx <- zone_index()
   blocks <- set_names(map(seasons, \(s) {
     b <- season_block(s, zidx)
