@@ -215,10 +215,12 @@ build_zone_stats <- function(season) {
     cat(glue("  {path}  {round(file.size(path) / 1024, 1)} KB"), "\n")
   }
 
-  readback <- dbGetQuery(con, "
-    SELECT season, COUNT(*) AS rows, COUNT(DISTINCT PLAYER_ID) AS players
-    FROM read_parquet('data/processed/zone_stats/**/*.parquet', hive_partitioning = 1)
-    GROUP BY season ORDER BY season")
+  # Scoped to the season just written. Globbing the whole store would union schemas
+  # across seasons, and mid-pipeline some are stage-2 shaped while others are already
+  # stage-3 enriched.
+  readback <- dbGetQuery(con, glue("
+    SELECT '{season}' AS season, COUNT(*) AS rows, COUNT(DISTINCT PLAYER_ID) AS players
+    FROM read_parquet('data/processed/zone_stats/season={season}/zone_stats.parquet')"))
   cat("\nread back from the partitioned store\n")
   print(as_tibble(readback))
 

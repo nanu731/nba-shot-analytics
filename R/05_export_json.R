@@ -3,12 +3,21 @@ library(arrow)
 library(glue)
 library(jsonlite)
 
-# Discovered from disk rather than hardcoded, so meta.json always lists exactly the
-# seasons whose files sit beside it.
-available_seasons <- function() {
-  dirs <- list.dirs("data/processed/zone_stats", recursive = FALSE, full.names = FALSE)
+season_dirs <- function(root) {
+  if (!dir.exists(root)) return(character(0))
+  dirs <- list.dirs(root, recursive = FALSE, full.names = FALSE)
   sort(str_remove(dirs[str_starts(dirs, "season=")], "^season="))
 }
+
+# What the pipeline can process: the collected raw shot logs. This is the pipeline's
+# input. Discovering from data/processed would be circular -- the pipeline would only run
+# if it had already run, which is exactly the bug a clean-state rebuild exposes.
+available_seasons <- function() season_dirs("data/raw/shots")
+
+# What the export can write: seasons that have been through stages 2 and 3. This is stage
+# 5's own input, so it is not circular, and it keeps meta.json listing exactly the season
+# files sitting beside it after a partial run.
+exportable_seasons <- function() season_dirs("data/processed/zone_stats")
 OUT_DIR <- "export/data"
 
 # Rule A16: derived aggregates only. Nothing here reaches below the player-zone cell, and
@@ -72,7 +81,7 @@ season_block <- function(season, zidx) {
   )
 }
 
-export_json <- function(seasons = available_seasons(), dir = OUT_DIR) {
+export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
   zidx <- zone_index()
   blocks <- set_names(map(seasons, \(s) {
     b <- season_block(s, zidx)
