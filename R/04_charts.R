@@ -175,10 +175,12 @@ zone_anchors <- function(season) {
 #'
 #' @param player   PLAYER_ID, or a PLAYER_NAME matched exactly.
 #' @param season   e.g. "2025-26".
-#' @param colour_by "contribution" shades each zone by its contribution to the selection
-#'   score, which is the mismatch story Section 7 stores per cell. "pps" shades by shrunk
-#'   points per shot instead.
-zone_chart <- function(player, season, colour_by = c("contribution", "pps")) {
+#' @param colour_by "pps" (default) shades each zone by shrunk points per shot. A colour
+#'   ramp on a court is read as efficiency whatever the legend says, so the default has to
+#'   mean efficiency. "contribution" shades by the zone's contribution to the selection
+#'   score instead, which is the Section 7 mismatch story but reads backwards on a court:
+#'   a player's best zone renders darkest red when he is underweight there.
+zone_chart <- function(player, season, colour_by = c("pps", "contribution")) {
   colour_by <- match.arg(colour_by)
   zs <- read_zones(season)
 
