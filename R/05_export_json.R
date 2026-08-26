@@ -23,35 +23,41 @@ OUT_DIR <- "export/data"
 # Rule A16: derived aggregates only. Nothing here reaches below the player-zone cell, and
 # no shot-level column (LOC_X, LOC_Y, GAME_ID, ACTION_TYPE) is exported.
 
-# Zones are referenced by integer index into meta$zones rather than by name. The names run
-# to 41 characters and would otherwise repeat in all ~21,000 zone objects.
+# Zones are keyed by their stable string id, never by position. A positional index would
+# be more compact, but if the zone model ever changed the same integer would silently mean
+# a different zone, and the website -- a separate repository that keys its SVG paths off
+# this value -- would draw the wrong shape with nothing raising an error anywhere.
 zone_index <- function() {
   source("R/02_build_zone_stats.R")
   ZONE_REF |>
     arrange(zone_order) |>
-    transmute(zone, value = zone_value) |>
-    mutate(idx = row_number() - 1L)
+    transmute(zone, zone_id, value = zone_value)
 }
 
 r <- function(x, digits) round(x, digits)
 
 season_block <- function(season, zidx) {
   zs <- read_parquet(glue("data/processed/zone_stats/season={season}/zone_stats.parquet")) |>
-    left_join(select(zidx, zone, idx), by = "zone")
+    left_join(select(zidx, zone, zone_id), by = "zone")
   ps <- read_parquet(glue("data/processed/player_scores/season={season}/player_scores.parquet"))
   pr <- read_parquet(glue("data/processed/zone_priors/season={season}/zone_priors.parquet")) |>
-    left_join(select(zidx, zone, idx), by = "zone")
+    left_join(select(zidx, zone, zone_id), by = "zone")
 
-  if (anyNA(zs$idx) || anyNA(pr$idx)) stop(glue("{season}: a zone failed to match ZONE_REF"), call. = FALSE)
+  if (anyNA(zs$zone_id) || anyNA(pr$zone_id)) {
+    stop(glue("{season}: a zone failed to match ZONE_REF"), call. = FALSE)
+  }
+
+  # Canonical basket-outward ordering, applied by id rather than by row position.
+  zone_rank <- set_names(seq_len(nrow(zidx)), zidx$zone_id)
 
   baselines <- zs |>
     summarise(freq_pooled = first(freq_pooled), freq_unweighted = first(freq_unweighted),
-              .by = c(idx)) |>
-    arrange(idx)
+              .by = zone_id) |>
+    arrange(zone_rank[zone_id])
 
   flat <- zs |>
-    arrange(PLAYER_ID, idx) |>
-    transmute(PLAYER_ID, zone = idx, makes, attempts,
+    arrange(PLAYER_ID, zone_rank[zone_id]) |>
+    transmute(PLAYER_ID, zone = zone_id, makes, attempts,
               fg_pct = r(fg_pct, 4), pps = r(pps_raw, 4), freq = r(shot_freq, 4),
               fg_pct_shrunk = r(fg_pct_shrunk, 4), pps_shrunk = r(pps_shrunk, 4),
               contrib = r(score_contrib, 5))
@@ -71,14 +77,26 @@ season_block <- function(season, zidx) {
     mutate(zones = unname(zone_rows[as.character(player_id)]))
 
   list(
-    priors = pr |> arrange(idx) |>
-      transmute(zone = idx, alpha = r(alpha, 3), beta = r(beta, 3), k = r(k, 2),
-                prior_mean = r(prior_mean, 4), league_attempts, converged, method),
+    priors = pr |> arrange(zone_rank[zone_id]) |>
+      transmute(zone = zone_id, alpha = r(alpha, 3), beta = r(beta, 3), k = r(k, 2),
+                prior_mean = r(prior_mean, 4), qualifying_attempts, converged, method),
     baselines = baselines |>
-      transmute(zone = idx, freq_pooled = r(freq_pooled, 5),
+      transmute(zone = zone_id, freq_pooled = r(freq_pooled, 5),
                 freq_unweighted = r(freq_unweighted, 5)),
     players = players
   )
+}
+
+# The picker must search every player without downloading a season file, so meta.json
+# carries one entry per player keyed by PLAYER_ID. Names are display text only: two
+# players change spelling between seasons, so the most recent is kept and every join
+# goes on the id.
+player_index <- function(blocks) {
+  imap(blocks, \(b, s) transmute(b$players, player_id, name, season = s)) |>
+    list_rbind() |>
+    arrange(player_id, season) |>
+    summarise(name = last(name), seasons = list(season), .by = player_id) |>
+    arrange(player_id)
 }
 
 export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
@@ -89,19 +107,29 @@ export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
     b
   }), seasons)
 
+  pidx <- player_index(blocks)
+
   meta <- list(
-      generated = format(Sys.Date()),
-      seasons = seasons,
-      eligibility = list(min_games = 20, min_attempts = 250),
-      metric = list(
-        score = paste("Sum over zones of (player frequency - league pooled frequency)",
-                      "x shrunk PPS. Units are points per shot."),
-        pps = "Points per field goal attempt. Made 2 = 2, made 3 = 3, miss = 0.",
-        shrinkage = "Beta-binomial empirical Bayes, fitted per zone and per season on the qualifying pool.",
-        note = "zone fields index into meta.zones. fg_pct and pps are null where attempts = 0."
-      ),
-      zones = zidx |> transmute(index = idx, zone, value)
-    )
+    generated = format(Sys.Date()),
+    seasons = seasons,
+    eligibility = list(min_games = 20, min_attempts = 250),
+    metric = list(
+      score = paste("Sum over zones of (player frequency - league pooled frequency)",
+                    "x shrunk PPS. Units are points per shot."),
+      pps = "Points per field goal attempt. Made 2 = 2, made 3 = 3, miss = 0.",
+      shrinkage = "Beta-binomial empirical Bayes, fitted per zone and per season on the qualifying pool.",
+      note = paste("zone fields are stable string ids; resolve them through meta.zones.",
+                   "fg_pct and pps are null where attempts = 0. Summing zones[].contrib",
+                   "does not reproduce score exactly; both are rounded independently.",
+                   "See export/SCHEMA.md.")
+    ),
+    # name must be built before zone is reassigned; transmute evaluates left to right.
+    zones = zidx |> transmute(name = zone, zone = zone_id, value) |>
+      select(zone, name, value),
+    players = set_names(
+      map2(pidx$name, pidx$seasons, \(n, ss) list(name = n, seasons = ss)),
+      as.character(pidx$player_id))
+  )
 
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   write <- function(x, file) {
@@ -110,8 +138,8 @@ export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
     path
   }
 
-  # meta is its own file so the site loads zone definitions and eligibility once rather
-  # than repeating them in every season payload.
+  # meta is its own file so the site loads zone definitions, eligibility and the player
+  # search index once rather than repeating them in every season payload.
   paths <- c(write(meta, "meta.json"),
              imap_chr(blocks, \(b, s) write(c(list(season = s), b), glue("season-{s}.json"))))
 
@@ -123,7 +151,8 @@ export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
 
   m <- fromJSON(file.path(dir, "meta.json"), simplifyVector = FALSE)
   one <- fromJSON(file.path(dir, glue("season-{seasons[length(seasons)]}.json")), simplifyVector = FALSE)
-  cat(glue("  reads back: meta has {length(m$zones)} zones and {length(m$seasons)} seasons; ",
+  cat(glue("  reads back: meta has {length(m$zones)} zones, {length(m$players)} players, ",
+           "{length(m$seasons)} seasons; ",
            "{one$season} has {length(one$players)} players, ",
            "{length(one$players[[1]]$zones)} zone rows on the first"), "\n")
   invisible(paths)

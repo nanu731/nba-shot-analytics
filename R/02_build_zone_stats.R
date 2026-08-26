@@ -7,22 +7,26 @@ library(glue)
 # The NBA's own classification, hardcoded rather than read off the data with DISTINCT.
 # A typo or a new label combination in a future season should stop the run, not quietly
 # become a fifteenth zone.
+# zone_id is the stable public identifier. It is derived from what the zone means, never
+# from its position, because the JSON export and the website key off it: a positional
+# index would silently point at a different zone if the model ever changed, and the site
+# would draw the wrong shape with nothing raising an error. These strings are permanent.
 ZONE_REF <- tribble(
-  ~SHOT_ZONE_BASIC,        ~SHOT_ZONE_AREA,         ~zone_value, ~zone_order,
-  "Restricted Area",       "Center(C)",                       2,           1,
-  "In The Paint (Non-RA)", "Left Side(L)",                    2,           2,
-  "In The Paint (Non-RA)", "Center(C)",                       2,           3,
-  "In The Paint (Non-RA)", "Right Side(R)",                   2,           4,
-  "Mid-Range",             "Left Side(L)",                    2,           5,
-  "Mid-Range",             "Left Side Center(LC)",            2,           6,
-  "Mid-Range",             "Center(C)",                       2,           7,
-  "Mid-Range",             "Right Side Center(RC)",           2,           8,
-  "Mid-Range",             "Right Side(R)",                   2,           9,
-  "Left Corner 3",         "Left Side(L)",                    3,          10,
-  "Above the Break 3",     "Left Side Center(LC)",            3,          11,
-  "Above the Break 3",     "Center(C)",                       3,          12,
-  "Above the Break 3",     "Right Side Center(RC)",           3,          13,
-  "Right Corner 3",        "Right Side(R)",                   3,          14
+  ~SHOT_ZONE_BASIC,        ~SHOT_ZONE_AREA,         ~zone_id,                ~zone_value, ~zone_order,
+  "Restricted Area",       "Center(C)",             "restricted_area",                 2,           1,
+  "In The Paint (Non-RA)", "Left Side(L)",          "paint_left",                      2,           2,
+  "In The Paint (Non-RA)", "Center(C)",             "paint_center",                    2,           3,
+  "In The Paint (Non-RA)", "Right Side(R)",         "paint_right",                     2,           4,
+  "Mid-Range",             "Left Side(L)",          "midrange_left",                   2,           5,
+  "Mid-Range",             "Left Side Center(LC)",  "midrange_left_center",            2,           6,
+  "Mid-Range",             "Center(C)",             "midrange_center",                 2,           7,
+  "Mid-Range",             "Right Side Center(RC)", "midrange_right_center",           2,           8,
+  "Mid-Range",             "Right Side(R)",         "midrange_right",                  2,           9,
+  "Left Corner 3",         "Left Side(L)",          "corner3_left",                    3,          10,
+  "Above the Break 3",     "Left Side Center(LC)",  "arc3_left_center",                3,          11,
+  "Above the Break 3",     "Center(C)",             "arc3_center",                     3,          12,
+  "Above the Break 3",     "Right Side Center(RC)", "arc3_right_center",               3,          13,
+  "Right Corner 3",        "Right Side(R)",         "corner3_right",                   3,          14
 ) |>
   mutate(zone = str_c(SHOT_ZONE_BASIC, " | ", SHOT_ZONE_AREA), .before = zone_value)
 

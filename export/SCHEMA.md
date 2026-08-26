@@ -1,7 +1,7 @@
 # export/data — current schema
 
 Describes what `R/05_export_json.R` emits **as of the files currently on disk**
-(`generated: 2026-08-24`). This is a description of present behaviour, not a specification of
+(`generated: 2026-08-26`). This is a description of present behaviour, not a specification of
 intended behaviour. Where a field is named misleadingly or carries a subtlety, that is recorded
 rather than corrected.
 
@@ -16,14 +16,14 @@ into `export/data/`.
 
 | File | Size | Contents |
 |---|---|---|
-| `meta.json` | 1.4 KB | Zone definitions, eligibility rules, metric descriptions |
-| `season-2021-22.json` | 643 KB | 312 players |
-| `season-2022-23.json` | 602 KB | 292 players |
-| `season-2023-24.json` | 580 KB | 281 players |
-| `season-2024-25.json` | 626 KB | 304 players |
-| `season-2025-26.json` | 654 KB | 318 players |
+| `meta.json` | 41 KB | Zone definitions, eligibility rules, metric descriptions, player search index |
+| `season-2021-22.json` | 707 KB | 312 players |
+| `season-2022-23.json` | 662 KB | 292 players |
+| `season-2023-24.json` | 638 KB | 281 players |
+| `season-2024-25.json` | 689 KB | 304 players |
+| `season-2025-26.json` | 720 KB | 318 players |
 
-Total 3.03 MB. Season files are written for every season present in
+Total 3.38 MB. Season files are written for every season present in
 `data/processed/zone_stats/`, discovered from disk at run time; the list is not hardcoded.
 
 `export/data/` is excluded from version control as a build artifact. `export/charts/` (SVG) is
@@ -42,25 +42,67 @@ A single object, five keys.
 | `eligibility` | object | Two integers: `min_games` (20) and `min_attempts` (250). Both gates must be met for a player to appear. These are hardcoded in the export, not read from the pipeline. |
 | `metric` | object | Four prose strings — `score`, `pps`, `shrinkage`, `note` — describing the metric in words. Human-readable only; nothing parses them. |
 | `zones` | array of 14 objects | The zone dictionary. See below. |
+| `players` | object | Player search index, keyed by player id. See below. |
 
 ### meta.zones[]
 
-**This is the lookup table for every `zone` integer elsewhere in the export.**
+**This is the lookup table for every `zone` value elsewhere in the export.**
 
 | Key | Type | Notes |
 |---|---|---|
-| `index` | integer 0–13 | The value used by `zone` fields in season files. |
-| `zone` | string | Full zone name, e.g. `"Above the Break 3 | Center(C)"`. This is the NBA's `SHOT_ZONE_BASIC` and `SHOT_ZONE_AREA` joined with `" | "`. Up to 41 characters. |
+| `zone` | string | **Stable identifier.** The key used by `zone` fields in season files. Derived from what the zone means, never from its position. Safe to hardcode, to key SVG paths off, and to persist. |
+| `name` | string | Full NBA zone name, e.g. `"Above the Break 3 | Center(C)"` — `SHOT_ZONE_BASIC` and `SHOT_ZONE_AREA` joined with `" | "`. Display text; do not key off it. |
 | `value` | integer, 2 or 3 | Point value of every shot in this zone. |
 
-Order is fixed and runs basket-outward: 0 restricted area, 1–3 paint (L/C/R), 4–8 mid-range
-(L/LC/C/RC/R), 9 left corner three, 10–12 above the break (LC/C/RC), 13 right corner three.
+The 14 ids, in the array's canonical basket-outward order:
 
-**Indices are positional, not stable identifiers.** They are assigned by row order from the
-pipeline's zone reference table. If the zone model ever changes, the same integer will mean a
-different zone. Consumers should resolve through `meta.zones` rather than hardcoding.
+| `zone` | `name` | Points |
+|---|---|---|
+| `restricted_area` | Restricted Area \| Center(C) | 2 |
+| `paint_left` | In The Paint (Non-RA) \| Left Side(L) | 2 |
+| `paint_center` | In The Paint (Non-RA) \| Center(C) | 2 |
+| `paint_right` | In The Paint (Non-RA) \| Right Side(R) | 2 |
+| `midrange_left` | Mid-Range \| Left Side(L) | 2 |
+| `midrange_left_center` | Mid-Range \| Left Side Center(LC) | 2 |
+| `midrange_center` | Mid-Range \| Center(C) | 2 |
+| `midrange_right_center` | Mid-Range \| Right Side Center(RC) | 2 |
+| `midrange_right` | Mid-Range \| Right Side(R) | 2 |
+| `corner3_left` | Left Corner 3 \| Left Side(L) | 3 |
+| `arc3_left_center` | Above the Break 3 \| Left Side Center(LC) | 3 |
+| `arc3_center` | Above the Break 3 \| Center(C) | 3 |
+| `arc3_right_center` | Above the Break 3 \| Right Side Center(RC) | 3 |
+| `corner3_right` | Right Corner 3 \| Right Side(R) | 3 |
 
-**`zone` contains no geometry.** It is a label only. See the note at the end of this document.
+**Array order is display order, not identity.** The array is ordered basket-outward and that
+order is stable, but **never use array position as an identifier** — resolve by the `zone`
+string. An earlier version of this export keyed zones by integer index; if the zone model had
+changed, the same integer would have meant a different zone with nothing raising an error.
+
+**`zone` contains no geometry.** It is an identifier only. See the note at the end of this
+document.
+
+### meta.players
+
+The search index. An object keyed by player id as a string, so the picker can search every
+player without downloading a season file.
+
+| Key | Type | Notes |
+|---|---|---|
+| *(key)* | string | The player id, as a string because JSON object keys are strings. Parse to integer to match `players[].player_id` in season files, which is a number. |
+| `name` | string | Display name. |
+| `seasons` | array of string | Every season in which this player qualifies, ascending. |
+
+538 players across the five seasons. Example:
+
+```json
+"201939": { "name": "Stephen Curry", "seasons": ["2021-22", "2022-23", "2023-24", "2024-25", "2025-26"] }
+```
+
+**Names are display text only. Every join goes on the id.** A player's name is not stable
+across seasons: `202685` appears as "Jonas Valančiūnas" in four seasons and "Jonas Valanciunas"
+in 2025-26, and `1626171` changes from "Bobby Portis" to "Bobby Portis Jr.". This index carries
+the **most recent** name. Ids are stable — 376 of the 538 players appear in two or more seasons
+and no id ever refers to two different people, and no name maps to two ids in the current data.
 
 ---
 
@@ -78,12 +120,12 @@ The fitted shrinkage parameters for this season. Ordered by `zone` ascending.
 
 | Key | Type | Units | Notes |
 |---|---|---|---|
-| `zone` | integer | — | Index into `meta.zones`. |
+| `zone` | string | — | Stable zone id; resolve through `meta.zones`. |
 | `alpha` | number, 3 dp | pseudo-makes | Beta-binomial α for this zone-season. |
 | `beta` | number, 3 dp | pseudo-misses | Beta-binomial β. |
 | `k` | number, 2 dp | pseudo-attempts | `alpha + beta`. The shrinkage strength: effectively the number of league-average attempts added to every player's record in this zone. Ranges 31 to 560 in 2025-26. |
 | `prior_mean` | number, 4 dp | proportion 0–1 | `alpha / k`. The fitted league field-goal percentage for this zone. Note this is the *fitted* value and can differ slightly from the raw pooled percentage. |
-| `league_attempts` | integer | shots | **Misleadingly named.** This is attempts by *qualifying players only*, not the whole league. For 2025-26 restricted area it is 54,217; the true league-wide figure is 62,253. |
+| `qualifying_attempts` | integer | shots | Attempts in this zone by **qualifying players only**, not the whole league. For 2025-26 restricted area it is 54,217; the league-wide figure including non-qualifying players is 62,253. Renamed from `league_attempts` on 2026-08-26, which claimed the wrong population. |
 | `converged` | boolean | — | `true` if the maximum-likelihood fit converged. |
 | `method` | string | — | `"vglm"` (maximum likelihood) or `"moments"` (method-of-moments fallback). Across all 70 zone-seasons: 67 `vglm`, 3 `moments`. `converged` is `false` exactly when `method` is `"moments"`. |
 
@@ -93,7 +135,7 @@ The league shot distribution, which is the comparison point in the score formula
 
 | Key | Type | Units | Notes |
 |---|---|---|---|
-| `zone` | integer | — | Index into `meta.zones`. |
+| `zone` | string | — | Stable zone id; resolve through `meta.zones`. |
 | `freq_pooled` | number, 5 dp | proportion 0–1 | Total qualifying-pool attempts in this zone ÷ total qualifying-pool attempts. **This is the primary baseline** and the one used to compute `score`. Sums to exactly 1.00000 across the 14 zones. |
 | `freq_unweighted` | number, 5 dp | proportion 0–1 | The mean across players of each player's own share. Used only for `score_unweighted`. Does not correspond to any actual shot distribution. |
 
@@ -117,13 +159,13 @@ every player object.
 | `score` | number, 5 dp | points per shot | **The headline selection score**, pooled baseline. Signed; roughly −0.12 to +0.29. Positive means the player's allocation of shots adds value given his own abilities. |
 | `score_unweighted` | number, 5 dp | points per shot | Same formula against `freq_unweighted`. A robustness check; correlates 0.9996–0.9998 with `score`. |
 | `herfindahl` | number, 4 dp | index 0–1 | Sum of squared shot frequencies. Concentration of the shot diet. Floor is 1/14 ≈ 0.071 (perfectly even); 1.0 would be every shot from one zone. |
-| `zones` | array of 14 objects | — | Always exactly 14, always ordered by `zone` index 0–13, including zones with no attempts. |
+| `zones` | array of 14 objects | — | Always exactly 14, in the same basket-outward order as `meta.zones`, including zones with no attempts. |
 
 ### players[].zones[] — 14 objects per player
 
 | Key | Type | Units | Notes |
 |---|---|---|---|
-| `zone` | integer | — | Index into `meta.zones`. |
+| `zone` | string | — | Stable zone id; resolve through `meta.zones`. |
 | `makes` | integer | shots | Made field goals. `0` when the player never shot here. |
 | `attempts` | integer | shots | Field goal attempts. `0` when the player never shot here. |
 | `fg_pct` | number, 4 dp or **null** | proportion 0–1 | Raw field goal percentage. **`null` when `attempts` is 0** — no shots means no observed rate, which is distinct from a rate of zero. 268 nulls in 2025-26. |
@@ -168,8 +210,30 @@ no `ACTION_TYPE`, no per-shot rows of any kind. The finest grain in the export i
 player-zone cell. No team identifiers appear anywhere. No dates beyond `meta.generated`.
 
 **Ordering invariants that currently hold**, though nothing in the format enforces them:
-`players` is sorted by `score` descending; each player's `zones` array is in ascending `zone`
-order with all 14 present; `priors` and `baselines` are in ascending `zone` order.
+`players` is sorted by `score` descending; each player's `zones` array is in `meta.zones`
+order with all 14 present; `priors` and `baselines` are in `meta.zones` order.
+
+---
+
+## Delivering the export to the website
+
+`R/06_sync_to_site.R` copies every JSON file from `export/data/` into the website
+repository, which is a separate git repo. It **only copies**; committing on the website side
+stays manual, so a bad export never lands in the site's history unreviewed.
+
+The destination is read from the `SHOT_SELECTION_SITE_DIR` environment variable, defaulting
+to `/Users/narayanlekhi/projects/portfolio-site/public/data/shot-selection/`. The default is
+documented rather than hardcoded so the script runs on another machine:
+
+```bash
+Rscript R/06_sync_to_site.R                                    # uses the default
+SHOT_SELECTION_SITE_DIR=/other/path Rscript R/06_sync_to_site.R
+```
+
+**It will not create the destination directory.** If the path does not exist the script stops
+with an error naming the path and the variable. Creating it silently would let a typo in the
+variable produce a new folder that nothing serves, while the copy still looked like it
+succeeded. It prints every file written and its size.
 
 ---
 

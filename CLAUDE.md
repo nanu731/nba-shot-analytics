@@ -1103,6 +1103,20 @@ The JSON carries **season as a top-level dimension**: one `meta.json` plus one
 others. `export/SCHEMA.md` documents every field, its type, its units, and what a missing
 value means. Keep that file current when the export changes.
 
+**Zones are keyed by stable string id** (`restricted_area`, `arc3_center`, and so on),
+never by positional index. The site keys its SVG paths off these, and a positional index
+would silently point at a different zone if the model changed. `meta.zones` carries the id,
+the full NBA name for display, and the point value.
+
+**`meta.json` also carries a player search index** keyed by player id, so the picker can
+search all 538 players without downloading a season file. Names are display text only —
+two players change spelling across seasons — and every join goes on the id.
+
+**`R/06_sync_to_site.R` copies the export to the website repository.** The destination
+comes from `SHOT_SELECTION_SITE_DIR`, defaulting to the author's local path. It refuses to
+create a missing destination, because a typo would otherwise produce a folder nothing
+serves. It only copies; committing on the site side is manual.
+
 **The export contains no zone geometry**, and neither does the repository. A site that
 wants zone outlines must author them independently.
 

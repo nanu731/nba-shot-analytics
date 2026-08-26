@@ -97,12 +97,12 @@ fit_zone_priors <- function(zone_stats, season) {
     group_modify(\(d, key) {
       p <- fit_zone_prior(d$makes, d$attempts, glue("{season} {key$zone}"))
       tibble(alpha = p$alpha, beta = p$beta, method = p$method, converged = p$converged,
-             league_makes = sum(d$makes), league_attempts = sum(d$attempts))
+             qualifying_makes = sum(d$makes), qualifying_attempts = sum(d$attempts))
     }) |>
     ungroup() |>
     mutate(k = alpha + beta,
            prior_mean = alpha / k,
-           pooled_fg_pct = league_makes / league_attempts,
+           pooled_fg_pct = qualifying_makes / qualifying_attempts,
            season = .env$season, .before = 1) |>
     arrange(zone_order)
 }
@@ -209,7 +209,7 @@ compute_scores <- function(season) {
 
   zone_priors <- priors |>
     select(season, zone, zone_value, alpha, beta, k, prior_mean,
-           league_attempts, converged, method)
+           qualifying_attempts, converged, method)
 
   cat("\nwritten\n")
   for (path in c(write_season_table(zone_stats, "zone_stats", season),
