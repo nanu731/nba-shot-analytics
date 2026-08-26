@@ -1118,7 +1118,16 @@ create a missing destination, because a typo would otherwise produce a folder no
 serves. It only copies; committing on the site side is manual.
 
 **The export contains no zone geometry**, and neither does the repository. A site that
-wants zone outlines must author them independently.
+wants zone outlines must author them independently — rule A4 forbids this project deriving
+them, since zones come from the NBA's labels rather than from coordinates.
+
+What this project does provide is verification. `R/07_zone_geometry.R` writes
+`export/reference/zone_grid.csv`, a half-foot spatial histogram of every labelled shot
+across five seasons, which the outlines can be traced from, and checks a candidate set of
+polygons against every labelled shot, reporting label disagreements, orphans and overlaps
+separately with the coordinates of each defect. A binned grid rather than a point cloud
+because A16 forbids shot-level data leaving the machine; see ASSUMPTIONS entry 26.
+`export/reference/` is a development aid and is not fetched at runtime.
 
 ---
 

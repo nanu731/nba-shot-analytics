@@ -237,6 +237,79 @@ succeeded. It prints every file written and its size.
 
 ---
 
+## Zone geometry reference and the polygon checker
+
+`export/reference/` holds development aids for authoring the website's zone outlines. **The
+site does not fetch this at runtime** — `export/data/` is the runtime payload; this directory
+is for the person drawing shapes.
+
+### `zone_grid.csv`
+
+A spatial histogram of every labelled shot across all five seasons, binned into half-foot
+cells. This is what the outlines get traced from.
+
+| Column | Type | Notes |
+|---|---|---|
+| `x`, `y` | number | Cell **centre**, NBA shot-chart units (tenths of a foot, hoop at origin). Cells are 5 units square, so a cell covers `x ± 2.5`, `y ± 2.5`. |
+| `zone_id` | string | Stable zone id, matching `meta.zones[].zone`. |
+| `n` | integer | Shots from that zone in that cell, pooled across 2021-22 to 2025-26. |
+
+7,902 rows over 7,508 distinct cells, 1,089,337 shots, 233 KB.
+
+**One row per cell per zone.** Most cells hold a single zone and produce one row. **387 cells
+hold two**, and those are exactly the cells a zone boundary passes through — they are the most
+useful rows in the file, because they show where an edge runs rather than merely where a zone
+is. A cell's rows summing across two zones is a feature, not a data error.
+
+**Why a grid rather than the raw points.** Rule A16 forbids shot-level data leaving this
+machine in any form, and a labelled point cloud is one row per shot. A binned histogram is a
+derived aggregate: it carries no per-shot record, no player, no game, no outcome, and no
+coordinate finer than half a foot. It is also the better artifact for the job — the zones are
+non-convex (the arc zones are annular sectors) so convex hulls would be wrong, and a grid
+traces a non-convex boundary directly.
+
+If the full point cloud is genuinely needed for local work, generate it with
+`labelled_shots()` in `R/07_zone_geometry.R` and keep it under `data/cache/`, which is
+gitignored permanently. It must not be committed or copied into `export/`.
+
+### The polygon checker
+
+```bash
+Rscript R/07_zone_geometry.R                    # regenerate zone_grid.csv
+Rscript R/07_zone_geometry.R candidate.json     # check a candidate set of outlines
+```
+
+The candidate file is a JSON object keyed by stable zone id, each value an array of `[x, y]`
+vertices in the same units as the grid:
+
+```json
+{
+  "restricted_area": [[-39,-36],[39,-36],[39,39],[-39,39]],
+  "paint_left": [ ... ],
+  "corner3_right": [ ... ]
+}
+```
+
+All 14 ids must be present and no others; a missing or unknown id stops the run naming both.
+Each polygon needs at least three vertices and is treated as closed.
+
+Every labelled shot is tested against every polygon by ray casting, and results are reported
+per zone against the label the NBA assigned. **Three defect categories, kept separate because
+they are different bugs:**
+
+| Defect | Meaning | Usually caused by |
+|---|---|---|
+| `disagreement` | The shot landed inside exactly one polygon, but not the one its NBA label names. | A boundary in the wrong place. |
+| `orphan` | The shot landed in no polygon at all. | A gap between shapes, or a zone drawn too small. |
+| `overlap` | The shot landed inside two or more polygons. | Shapes that double-cover an area. |
+
+A correct set of outlines produces **zero of all three**. Anything else writes
+`export/reference/polygon_defects.csv` with the coordinate, the NBA label, and the polygon it
+actually landed in for each defect, capped at 5,000 rows, so a specific bad edge can be
+inspected directly rather than inferred from a count.
+
+---
+
 ## Zone geometry
 
 **The export contains no geometry, and neither does the repository.**
