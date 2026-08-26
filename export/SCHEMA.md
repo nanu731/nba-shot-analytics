@@ -274,33 +274,112 @@ gitignored permanently. It must not be committed or copied into `export/`.
 
 ### `zone_polygons.json`
 
-The 14 verified outlines, built by `R/08_zone_polygons.R`. **Checked against all 1,089,337
-labelled shots with zero disagreements, zero orphans and zero overlaps.**
+The 14 zone outlines, built by `R/08_zone_polygons.R`. **Verified against all 1,089,337
+labelled shots with zero disagreements, zero orphans and zero overlaps** — every shot falls
+inside exactly one polygon, and it is the polygon its NBA label names.
 
-Keyed by stable zone id. Each entry:
+This file is **imported at build time**, not fetched by the browser. `R/06_sync_to_site.R`
+copies it into the site's source tree, separately from the runtime payload in
+`export/data/`.
+
+53 KB, 3,153 vertices across 14 zones, 20 arc records.
+
+#### Coordinate system — read this before drawing anything
+
+Units are **tenths of a foot**. The hoop is at the origin `(0, 0)`.
+
+**x** increases to the **right**. Range across all vertices is −250.5 to 250.5, the sidelines.
+
+**y** increases **away from the baseline, up the court**. Range is −52.5 (the baseline,
+behind the hoop) to 430 (a bound comfortably past the furthest shot on record at y = 397).
+
+**y is therefore inverted relative to SVG**, where y grows downward. A single group
+transform such as `scale(1, -1)` handles the polygons. Text inside that transform renders
+upside down, which is why `anchor` is given in data coordinates and expected to be passed
+through the transform separately rather than being baked into the path data.
+
+Angles, where they appear, are **degrees, measured from the +x axis, counter-clockwise**.
+0° points right, 90° points up the court, 180° points left.
+
+#### Per-zone keys
+
+Keyed by stable zone id, the same ids used by `meta.zones[].zone` in the runtime export.
 
 | Key | Type | Notes |
 |---|---|---|
-| `vertices` | array of `[x, y]` | Closed polygon; the first vertex is not repeated at the end. Same units as the grid. |
-| `anchor` | `[x, y]` | Label anchor in **data coordinates**. The point furthest from the zone's own boundary. The site flips the y axis with a group transform and text inside that transform renders upside down, so anchors are passed through the transform separately. |
-| `arcs` | array of objects | Present on the 12 zones that have curved edges. Absent on `corner3_left` and `corner3_right`, which are rectangles. |
+| `vertices` | array of `[x, y]` | The closed polygon. **The first vertex is not repeated at the end** — close the path yourself. Winding order is not guaranteed and should not be relied on. |
+| `anchor` | `[x, y]` | Label anchor in data coordinates. The point furthest from the zone's own boundary, so it is inside the shape even where the shape is not convex. |
+| `arcs` | array of objects | Present only on zones with curved edges. **Absent on `corner3_left` and `corner3_right`**, which are rectangles. A consumer must expect the key to be missing rather than empty. |
 
-Each arc record is `{ "centre": [0, 0], "r": <radius>, "start_deg": <a>, "end_deg": <b> }`.
-Every arc in the model is centred on the hoop, so `centre` is always the origin. Angles are
-degrees, zero along +x, counter-clockwise; `start_deg` may exceed `end_deg` where the edge is
-traversed clockwise.
+Each arc record:
 
-**The arc parameters are a source, not a reconstruction.** The polygons are generated *from*
-these declarations, rather than the parameters being recovered from finished vertices
-afterwards. Drawing the arcs mathematically and drawing the vertex list produce the same
-curve by construction, so the two cannot silently disagree. Prefer the arc form where the
-renderer supports it: the vertex list samples arcs at 0.5°, which is a chord error of about
-0.002 units at the three-point radius.
+| Field | Type | Notes |
+|---|---|---|
+| `centre` | `[x, y]` | Always `[0, 0]`. Every arc in the model is centred on the hoop. |
+| `r` | number | Radius. |
+| `start_deg`, `end_deg` | number | Degrees as above. `start_deg` may be **greater** than `end_deg`, which means the edge is traversed clockwise. Do not assume increasing angles. |
 
-3,153 vertices across 14 zones, 20 arc records, 53 KB.
+**The arc parameters are a source, not a reconstruction.** The polygons are generated from
+these declarations; the parameters were not recovered from finished vertices afterwards.
+Drawing the arc mathematically and drawing the vertex list produce the same curve by
+construction, so the two cannot silently drift apart. Prefer the arc form where the renderer
+supports exact curves — the vertex list samples arcs at 0.5°, a chord error of about 0.002
+units at the three-point radius.
 
-`zone_polygons_vertices.json` beside it is the same shapes with vertices only, in the format
-the checker takes.
+#### Worked example: `midrange_right_center`
+
+The right wing mid-range zone, bounded by two arcs about the hoop and two straight rays
+between them.
+
+```json
+"midrange_right_center": {
+  "vertices": [
+    [129.448, 94.049],
+    [192.142, 139.599],
+    [190.916, 141.27],
+    ...
+    [127.786, 96.294],
+    [128.622, 95.175]
+  ],
+  "anchor": [105, 169],
+  "arcs": [
+    { "centre": [0, 0], "r": 237.5,   "start_deg": 36, "end_deg": 72 },
+    { "centre": [0, 0], "r": 160.006, "start_deg": 72, "end_deg": 36 }
+  ]
+}
+```
+
+146 vertices. Reading it: the boundary starts on the 16 ft band at 36°, runs out along that
+ray to the three-point arc, sweeps that arc counter-clockwise from 36° to 72°, comes back
+down the 72° ray to the 16 ft band, then sweeps that inner arc **clockwise** from 72° back
+to 36° to close. The second arc's `start_deg` exceeding its `end_deg` is what encodes the
+reversal, and it is why the inner curve bulges toward the hoop rather than away from it.
+
+The two straight ray segments are implicit: they are the vertices between the end of one arc
+and the start of the next, not separate records.
+
+For contrast, a zone with no curved edges:
+
+```json
+"corner3_right": {
+  "vertices": [[219.5, -52.5], [250.5, -52.5], [250.5, 87.5], [219.5, 87.5]],
+  "anchor": [233, -35]
+}
+```
+
+Four vertices, no `arcs` key at all.
+
+#### Why the constants look wrong
+
+Several boundaries sit a fraction off their nominal court values — the paint wall at 80.5
+rather than 80, the free-throw line at 138.5 rather than 137.5, the corner cut at 87.5
+rather than the 89.478 where the three-point arc actually meets the corner line. Shot
+coordinates are integers, so a boundary placed exactly on one leaves shots sitting on it
+where inside-versus-outside is undefined. Each threshold was measured from the labels and
+placed in the gap. Do not round them to the diagram values; they are correct as shipped.
+
+`zone_polygons_vertices.json` beside this file is the same shapes with vertices only, in the
+format `R/07_zone_geometry.R` takes for checking. The site does not need it.
 
 ### The polygon checker
 
