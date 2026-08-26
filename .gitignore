@@ -219,7 +219,9 @@ __marimo__/
 # Project-specific ignores
 data/raw/
 data/cache/
-data/processed/
+# data/processed/ is deliberately COMMITTED: the three output tables are ~1 MB and
+# committing them lets a clone reproduce every chart and finding without an API run.
+# They contain no shot-level rows, so this does not breach rule A16.
 outputs/
 .env
 # CLAUDE.md is deliberately COMMITTED. Losing it once cost a full session of

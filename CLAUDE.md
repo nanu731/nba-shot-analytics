@@ -63,8 +63,8 @@ previous session hit the output ceiling mid-task and lost the work.
 
 **A15. NEVER write a large file to `data/processed/`.** Only the three small output
 tables belong there. Large intermediates go to `data/cache/`; shot-level data stays in
-`data/raw/`. **Note the unresolved question flagged in Section 13** about whether that
-directory should be committed.
+`data/raw/`. **That directory is committed to git** (Section 13), so anything written
+there is permanent repository weight.
 
 **A16. NEVER commit raw NBA data in any form.** `data/raw/` and `data/cache/`
 stay gitignored permanently. Do not commit shot-level Parquet, CSV, or JSON. Do
@@ -748,11 +748,10 @@ directory is `export/` and not `site/`.
 
 ### What is committed and what is not, as of 2026-08-26
 
-**Gitignored:** `data/raw/`, `data/cache/`, `data/processed/`, `export/data/`,
-`ASSUMPTIONS.md`.
+**Gitignored:** `data/raw/`, `data/cache/`, `export/data/`, `ASSUMPTIONS.md`.
 
-**Committed:** `R/`, `src/`, `export/charts/`, `export/SCHEMA.md`, `README.md`, and
-**this file**.
+**Committed:** `R/`, `src/`, `data/processed/`, `export/charts/`, `export/SCHEMA.md`,
+`README.md`, and **this file**.
 
 `export/charts/` is committed because the SVGs are small, change only when a chart design
 changes rather than on every run, and are what a repository visitor actually wants to see.
@@ -765,24 +764,26 @@ Derived aggregates are a different thing. The practical line: if a file contains
 per shot, it does not leave this machine. If it contains one row per player-zone or per
 player, it can.
 
-### Unresolved: should `data/processed/` be committed?
+### `data/processed/` is committed, deliberately
 
-**Flagged, not decided.** An earlier version of this section stated that
-`data/processed/` is committed deliberately, on the grounds that the three output tables
-are small and committing them lets anyone cloning the repository reproduce every chart
-and finding without a multi-hour API collection — a stated portfolio goal. Rule A15 still
-carries the trace of that reasoning.
+The three output tables are tracked in git. This is a decision, not an oversight, and it
+was reaffirmed on 2026-08-26 after `.gitignore` was found to contradict it.
 
-**The current `.gitignore` contradicts it**: `data/processed/` is ignored at line 222 and
-zero files under it are tracked. The directory is 1.0 MB across 15 Parquet files, which is
-consistent with the "small enough to commit" argument.
+**The reason is reproducibility.** All five seasons together are about 1 MB as Parquet.
+Committing them means anyone who clones the repository can rebuild every chart, rerun
+every validation check, and verify every number in the writeup **without an API collection
+run**. That is a stated portfolio goal: the analysis should be inspectable by someone who
+does not have NBA Stats API access and does not want to spend hours collecting.
 
-Nothing in `ASSUMPTIONS.md` records a decision to reverse this, so it is not clear whether
-the ignore rule was deliberate or inherited. **Consequence today: a fresh clone cannot
-reproduce any chart or number without re-running ingestion against the NBA API**, because
-both the raw data and the processed tables are absent. Committing the processed tables
-would not breach A16, since they contain no shot-level rows. Decide explicitly and record
-it.
+**It does not breach A16.** The finest grain in these tables is the player-zone cell —
+`zone_stats` is 4,452 rows for 2025-26, `player_scores` 318, `zone_priors` 14. There are no
+shot-level rows and no `GAME_ID`, `LOC_X`, `LOC_Y`, or `ACTION_TYPE` columns. These are the
+output of analysis, not a copy of the source feed. The redistribution boundary A16 draws is
+between shot-level data and derived aggregates, and these fall on the permitted side of it.
+
+**The consequence for A15.** Because the directory is committed, anything written there
+inflates the repository permanently. Keep it to the three small tables. A stage needing a
+large intermediate writes to `data/cache/` instead.
 
 ---
 
