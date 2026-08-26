@@ -222,7 +222,8 @@ data/cache/
 data/processed/
 outputs/
 .env
-CLAUDE.md
+# CLAUDE.md is deliberately COMMITTED. Losing it once cost a full session of
+# reconstruction and the reconstruction contained errors. Do not re-add it here.
 .Rproj.user
 
 # R and macOS
@@ -231,8 +232,6 @@ CLAUDE.md
 .RData
 .Ruserdata
 .DS_Store
-ASSUMPTIONS.md
-ASSUMPTIONS.md
 ASSUMPTIONS.md
 
 # Build artifact: regenerate with R/05_export_json.R. See CLAUDE.md Section 13.
