@@ -68,6 +68,8 @@ season_block <- function(season, zidx) {
     transmute(
       player_id = PLAYER_ID, name = PLAYER_NAME,
       position = POSITION, pos3 = POS3,
+      pos3_display = POS3_DISPLAY, pos3_derived = POS3_DERIVED,
+      listed_height = listed_height,
       games, attempts = total_attempts, zones_used,
       pps = r(pps_overall_raw, 4),
       score = r(score_pooled, 5),

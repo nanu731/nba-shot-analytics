@@ -132,6 +132,41 @@ derive_pos3 <- function(position) {
   )
 }
 
+# Height fallback for the handful of player-seasons the league never listed. Thresholds
+# are inclusive: 6'5.5" and under is a guard, 6'6" to 6'10" a forward, 6'11" and over a
+# centre. Listed heights are whole inches, so the guard ceiling is 77.
+HEIGHT_G_MAX <- 77.5   # 6 ft 5.5 in
+HEIGHT_F_MAX <- 82     # 6 ft 10 in
+
+height_inches <- function(h) {
+  ft <- as.numeric(str_extract(h, "^[0-9]+"))
+  inch <- as.numeric(str_extract(h, "(?<=-)[0-9]+$"))
+  if_else(is.na(ft) | is.na(inch), NA_real_, ft * 12 + inch)
+}
+
+pos3_from_height <- function(inches) {
+  case_when(is.na(inches)            ~ NA_character_,
+            inches <= HEIGHT_G_MAX   ~ "G",
+            inches <= HEIGHT_F_MAX   ~ "F",
+            .default                 = "C")
+}
+
+# Heights come from whichever season's roster is nearest the one being filled, since a
+# player absent from this season's roster may be listed in an adjacent one. Height does
+# not change materially, and where a player has two listings both land in the same bucket.
+height_lookup <- function(season) {
+  files <- list.files("data/raw/roster", pattern = "\\.parquet$",
+                      full.names = TRUE, recursive = TRUE)
+  target <- as.numeric(str_sub(season, 1, 4))
+  map(files, \(f) read_parquet(f, col_select = c("PLAYER_ID", "HEIGHT")) |>
+        mutate(gap = abs(as.numeric(str_extract(f, "(?<=season=)[0-9]{4}")) - target))) |>
+    list_rbind() |>
+    filter(!is.na(HEIGHT), HEIGHT != "") |>
+    arrange(PLAYER_ID, gap) |>
+    distinct(PLAYER_ID, .keep_all = TRUE) |>
+    transmute(PLAYER_ID, listed_height = HEIGHT, height_in = height_inches(HEIGHT))
+}
+
 compute_scores <- function(season) {
   cat(glue("\n=== stage 3: {season} ==="), "\n\n")
   zs     <- read_processed("zone_stats", season)   |> select(all_of(STAGE2_ZONE_COLS))
@@ -190,10 +225,21 @@ compute_scores <- function(season) {
     select(PLAYER_ID, POSITION) |>
     distinct(PLAYER_ID, .keep_all = TRUE)
 
+  # POSITION and POS3 stay exactly as the league listed them, including NA and Unknown.
+  # The derived value lives in its own column so that any analysis of position uses only
+  # reported data: the project's defence of the metric is that position explains 18% of
+  # score variance, and deriving position from height would make that partly circular for
+  # the affected players. The site can show POS3_DISPLAY; the analysis must use POS3.
   player_scores <- scores |>
     left_join(per_player, by = "PLAYER_ID") |>
     left_join(roster, by = "PLAYER_ID") |>
-    mutate(POS3 = derive_pos3(POSITION))
+    mutate(POS3 = derive_pos3(POSITION)) |>
+    left_join(height_lookup(season), by = "PLAYER_ID") |>
+    mutate(
+      POS3_HEIGHT  = if_else(POS3 == "Unknown", pos3_from_height(height_in), NA_character_),
+      POS3_DERIVED = !is.na(POS3_HEIGHT),
+      POS3_DISPLAY = coalesce(POS3_HEIGHT, POS3)) |>
+    select(-POS3_HEIGHT, -height_in)
 
   unknown <- filter(player_scores, POS3 == "Unknown")
   cat(glue("position: {sum(player_scores$POS3 != 'Unknown')} of {nrow(player_scores)} matched, ",
@@ -202,6 +248,13 @@ compute_scores <- function(season) {
     cat(glue("  {str_c(unknown$PLAYER_NAME, collapse = ', ')}"), "\n")
   }
   cat(glue("  POS3 buckets: {str_c(sort(unique(player_scores$POS3)), collapse = ', ')}"), "\n")
+  d <- filter(player_scores, POS3_DERIVED)
+  if (nrow(d)) {
+    cat(glue("  derived from height: {nrow(d)} -- ",
+             "{str_c(d$PLAYER_NAME, ' ', d$listed_height, ' -> ', d$POS3_DISPLAY, collapse = '; ')}"), "\n")
+  }
+  still <- sum(player_scores$POS3_DISPLAY == "Unknown")
+  if (still) cat(glue("  still Unknown after height fallback: {still}"), "\n")
 
   # Score checks 1 and 2 live in R/validation.R, which Section 16 keeps separate from the
   # recurring pipeline.
