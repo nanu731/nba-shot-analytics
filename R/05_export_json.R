@@ -111,7 +111,10 @@ export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
 
   meta <- list(
     generated = format(Sys.Date()),
-    seasons = seasons,
+    # I() marks these AsIs so jsonlite's auto_unbox leaves them as arrays. Without it a
+    # length-1 vector serialises as a bare scalar, and a consumer iterating the field
+    # would walk the characters of a string. See ASSUMPTIONS entry 25.
+    seasons = I(seasons),
     eligibility = list(min_games = 20, min_attempts = 250),
     metric = list(
       score = paste("Sum over zones of (player frequency - league pooled frequency)",
@@ -127,7 +130,7 @@ export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
     zones = zidx |> transmute(name = zone, zone = zone_id, value) |>
       select(zone, name, value),
     players = set_names(
-      map2(pidx$name, pidx$seasons, \(n, ss) list(name = n, seasons = ss)),
+      map2(pidx$name, pidx$seasons, \(n, ss) list(name = n, seasons = I(ss))),
       as.character(pidx$player_id))
   )
 

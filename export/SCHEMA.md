@@ -38,7 +38,7 @@ A single object, five keys.
 | Key | Type | Notes |
 |---|---|---|
 | `generated` | string | Date the export ran, `YYYY-MM-DD`. No time, no timezone. From the system date at run time. |
-| `seasons` | array of string | Every season present in this export, ascending. Format `"2021-22"`. |
+| `seasons` | array of string | Every season present in this export, ascending. Format `"2021-22"`. Always an array, including a single-season export. |
 | `eligibility` | object | Two integers: `min_games` (20) and `min_attempts` (250). Both gates must be met for a player to appear. These are hardcoded in the export, not read from the pipeline. |
 | `metric` | object | Four prose strings — `score`, `pps`, `shrinkage`, `note` — describing the metric in words. Human-readable only; nothing parses them. |
 | `zones` | array of 14 objects | The zone dictionary. See below. |
@@ -90,7 +90,7 @@ player without downloading a season file.
 |---|---|---|
 | *(key)* | string | The player id, as a string because JSON object keys are strings. Parse to integer to match `players[].player_id` in season files, which is a number. |
 | `name` | string | Display name. |
-| `seasons` | array of string | Every season in which this player qualifies, ascending. |
+| `seasons` | array of string | Every season in which this player qualifies, ascending. **Always an array, with no exceptions** — a player qualifying in exactly one season gets a one-element array, not a bare string. Verified across all 538 entries. |
 
 538 players across the five seasons. Example:
 
