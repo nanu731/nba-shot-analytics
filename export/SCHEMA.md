@@ -272,6 +272,36 @@ If the full point cloud is genuinely needed for local work, generate it with
 `labelled_shots()` in `R/07_zone_geometry.R` and keep it under `data/cache/`, which is
 gitignored permanently. It must not be committed or copied into `export/`.
 
+### `zone_polygons.json`
+
+The 14 verified outlines, built by `R/08_zone_polygons.R`. **Checked against all 1,089,337
+labelled shots with zero disagreements, zero orphans and zero overlaps.**
+
+Keyed by stable zone id. Each entry:
+
+| Key | Type | Notes |
+|---|---|---|
+| `vertices` | array of `[x, y]` | Closed polygon; the first vertex is not repeated at the end. Same units as the grid. |
+| `anchor` | `[x, y]` | Label anchor in **data coordinates**. The point furthest from the zone's own boundary. The site flips the y axis with a group transform and text inside that transform renders upside down, so anchors are passed through the transform separately. |
+| `arcs` | array of objects | Present on the 12 zones that have curved edges. Absent on `corner3_left` and `corner3_right`, which are rectangles. |
+
+Each arc record is `{ "centre": [0, 0], "r": <radius>, "start_deg": <a>, "end_deg": <b> }`.
+Every arc in the model is centred on the hoop, so `centre` is always the origin. Angles are
+degrees, zero along +x, counter-clockwise; `start_deg` may exceed `end_deg` where the edge is
+traversed clockwise.
+
+**The arc parameters are a source, not a reconstruction.** The polygons are generated *from*
+these declarations, rather than the parameters being recovered from finished vertices
+afterwards. Drawing the arcs mathematically and drawing the vertex list produce the same
+curve by construction, so the two cannot silently disagree. Prefer the arc form where the
+renderer supports it: the vertex list samples arcs at 0.5°, which is a chord error of about
+0.002 units at the three-point radius.
+
+3,153 vertices across 14 zones, 20 arc records, 53 KB.
+
+`zone_polygons_vertices.json` beside it is the same shapes with vertices only, in the format
+the checker takes.
+
 ### The polygon checker
 
 ```bash
