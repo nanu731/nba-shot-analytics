@@ -151,7 +151,10 @@ every player object.
 | `player_id` | integer | — | NBA's official player ID. See §Player identity below. |
 | `name` | string | — | Display name as delivered by the NBA for that season. |
 | `position` | string or **null** | — | Raw NBA roster position. Observed values across all seasons: `C`, `C-F`, `F`, `F-C`, `F-G`, `G`, `G-F`. **`null` means the player appears on no end-of-season roster** — 8 occurrences across the five seasons. |
-| `pos3` | string | — | Three-way bucket derived from `position` by taking the text before any hyphen. Values `C`, `F`, `G`, or `Unknown`. **Never null**; `"Unknown"` is used where `position` is null. Display variable only — never an input to any calculation. |
+| `pos3` | string | — | Three-way bucket derived from `position` by taking the text before any hyphen. Values `C`, `F`, `G`, or `Unknown`. **Never null**; `"Unknown"` is used where `position` is null. **Reported data only** — this is the field any analysis of position must use. |
+| `pos3_display` | string | — | `pos3`, with `Unknown` filled from listed height where possible. **Use this for labelling and colouring charts.** `C`, `F`, `G`, or `Unknown` if height was also unavailable. |
+| `pos3_derived` | boolean | — | `true` where `pos3_display` came from the height rule rather than a roster. 8 of 1,507 player-seasons. Never `true` for a player the league listed. |
+| `listed_height` | string or **null** | feet-inches | Height as the NBA lists it, e.g. `"6-10"`. Present for anyone appearing on any season's roster; `null` otherwise. Informational: it is the input to the height rule, not a measurement this project made. |
 | `games` | integer | games | Games in which the player attempted at least one shot. **Not true games played** — a player who appeared without shooting is undercounted. |
 | `attempts` | integer | shots | Total field goal attempts, after cleaning. Excludes backcourt shots and 20 label-contradiction shots per season. |
 | `zones_used` | integer 0–14 | zones | Count of zones with at least one attempt. Observed minimum is 4. |
@@ -283,6 +286,43 @@ copies it into the site's source tree, separately from the runtime payload in
 `export/data/`.
 
 53 KB, 3,153 vertices across 14 zones, 20 arc records.
+
+#### Position: reported versus derived
+
+Positions come from `CommonTeamRoster`, an end-of-season snapshot, so a player waived or
+traded late can qualify on shots and appear on no roster. Eight player-seasons out of 1,507
+have no listed position.
+
+For those eight only, a bucket is derived from the player's listed height:
+
+| Listed height | `pos3_display` |
+|---|---|
+| 6 ft 5.5 in and under | `G` |
+| 6 ft 6 in to 6 ft 10 in | `F` |
+| 6 ft 11 in and over | `C` |
+
+Heights are listed in whole inches, so the guard ceiling is effectively 6 ft 5 in and the
+forward band is 78 to 82 inches inclusive. Where a player is listed in several seasons, the
+listing nearest the season being filled is used; no player's listings straddle a threshold.
+
+**The rule applies only where `pos3` is `Unknown`.** A player the league listed keeps that
+listing even where the height rule would disagree — and it does disagree in one case. Orlando
+Robinson is 6 ft 10 in, which the rule calls a forward, and the league listed him a centre in
+the seasons it listed him at all. He is derived `F` for 2024-25, the season with no listing.
+Nothing overrides a reported value anywhere.
+
+The eight: James Johnson and Drew Eubanks (2021-22), John Wall (2022-23), Killian Hayes
+(2023-24), Orlando Robinson (2024-25), Jaden Ivey, Vince Williams Jr. and Cam Thomas
+(2025-26).
+
+**Why the derived value sits in its own field.** The project's defence of the metric is that
+position explains only about 18 percent of the variance in selection score. If position were
+filled in place from height, then for those players position *is* height, and that result
+becomes partly circular. Keeping `pos3` reported-only means a chart can show a bucket for
+everyone via `pos3_display` while any analysis of position uses `pos3` alone. `pos3_derived`
+tells a reader which values came from a roster and which from a tape measure.
+
+---
 
 #### Coordinate system — read this before drawing anything
 
