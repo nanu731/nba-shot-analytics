@@ -128,7 +128,14 @@ on the session; they get forwarded.
 **C2. Maintain `ASSUMPTIONS.md` at the project root.** Every time you make a
 choice the brief does not explicitly cover, append an entry: the choice, the
 reason, and the date. Name the sections of this file it amends. This is the audit trail.
-It remains gitignored; this file no longer is.
+
+**It is tracked in git, as of 2026-08-27.** It was gitignored until then. The reason for
+the change is the reason this file stopped being gitignored: an audit trail records
+decisions and their reasoning that exist nowhere else, so a lost copy cannot be
+reconstructed from the code the way a description of the code can. `CLAUDE.md` learned
+that expensively -- one full session of reconstruction, and the reconstruction contained
+errors. `ASSUMPTIONS.md` is the file it most resembles and it had no copy on any remote at
+all. Do not re-add either to `.gitignore`.
 
 **C3. If you catch yourself having violated a Section A rule, say so immediately**
 and unprompted. A reported violation is recoverable. A hidden one compounds.
@@ -762,10 +769,10 @@ directory is `export/` and not `site/`.
 
 ### What is committed and what is not, as of 2026-08-26
 
-**Gitignored:** `data/raw/`, `data/cache/`, `export/data/`, `ASSUMPTIONS.md`.
+**Gitignored:** `data/raw/`, `data/cache/`, `export/data/`.
 
 **Committed:** `R/`, `src/`, `data/processed/`, `export/charts/`, `export/SCHEMA.md`,
-`README.md`, and **this file**.
+`README.md`, `ASSUMPTIONS.md`, and **this file**.
 
 `export/charts/` is committed because the SVGs are small, change only when a chart design
 changes rather than on every run, and are what a repository visitor actually wants to see.

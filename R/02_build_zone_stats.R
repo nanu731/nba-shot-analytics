@@ -14,11 +14,19 @@ source("R/zone_model.R")
 # positional index would silently point at a different zone if the model changed, and the
 # site would draw the wrong shape with nothing raising an error.
 #
-# Three ids survive the 14-zone model with different geometry -- arc3_center, corner3_left,
-# corner3_right -- and arc3_left_center / arc3_right_center are gone in favour of arc3_left
-# / arc3_right. A site holding outlines from before 2026-08-27 would draw wrong shapes for
-# the three reused ids without erroring. Step 7 has to make that impossible rather than
-# merely documented.
+# Two ids survive the 14-zone model: corner3_left and corner3_right, whose membership is
+# identical across both models shot for shot, so a stale outline still draws them
+# correctly. The one id whose geometry changed under an unchanged name was arc3_center,
+# renamed to arc3_top in R/zone_model.R for that reason. Everything else is either new or
+# gone, so a stale lookup misses loudly. Step 7 still owes a model version asserted at site
+# build time, because a missing lookup is not guaranteed to be a visible failure.
+#
+# TODO_ZONE_LABELS: zone_label below is PLACEHOLDER COPY written by the assistant, not by
+# the author, and must not reach the export or any chart a reader sees. The author is
+# supplying wording before the export step. ZONE_LABELS_PROVISIONAL exists so stage 5 can
+# refuse to run while it is TRUE -- wire that assertion in when stage 5 is rewired.
+ZONE_LABELS_PROVISIONAL <- TRUE
+
 ZONE_REF <- tibble(
   zone       = ZONE_IDS,
   zone_value = unname(ZONE_VALUE[ZONE_IDS]),

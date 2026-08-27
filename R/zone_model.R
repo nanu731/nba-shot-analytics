@@ -58,13 +58,19 @@ ARC_RAY     <- 60                                          # above-the-break div
 #   lane    |x| <= LANE_HALF  and  y <= LANE_TOP
 #   corner  |x| >= CORNER_X
 
+# arc3_top is deliberately not called arc3_center. The 14-zone model had an id of that
+# name for the NBA's roughly 72-108 degree wedge; this zone is the 60-120 degree one, at
+# 29,332 qualifying attempts in 2025-26 against that zone's 15,586. Reusing the string
+# would let a site holding the old outline draw the narrow wedge against the wide wedge's
+# number, with nothing raising an error. corner3_left and corner3_right keep their names
+# because their membership is identical across both models, shot for shot.
 ZONE_IDS <- c("rim", "paint",
               "mid_left", "mid_center", "mid_right",
-              "corner3_left", "arc3_left", "arc3_center", "arc3_right", "corner3_right")
+              "corner3_left", "arc3_left", "arc3_top", "arc3_right", "corner3_right")
 
 ZONE_VALUE <- c(rim = 2, paint = 2,
                 mid_left = 2, mid_center = 2, mid_right = 2,
-                corner3_left = 3, arc3_left = 3, arc3_center = 3,
+                corner3_left = 3, arc3_left = 3, arc3_top = 3,
                 arc3_right = 3, corner3_right = 3)
 
 # --- The classifier --------------------------------------------------------------------
@@ -80,7 +86,7 @@ is_three <- function(x, y) {
 #' Assign each shot to one of the ten zones. Vectorised; returns a character vector, NA
 #' beyond Y_BACKCOURT. NA is the honest shape there: a backcourt heave is outside the
 #' partition rather than a member of some zone, and it makes stage 2 drop it explicitly
-#' instead of absorbing it into arc3_center, which is what an unbounded classifier does.
+#' instead of absorbing it into arc3_top, which is what an unbounded classifier does.
 classify_zone <- function(x, y) {
   r   <- sqrt(x^2 + y^2)
   ang <- atan2(y, x) * 180 / pi          # (-180, 180]
@@ -100,7 +106,7 @@ classify_zone <- function(x, y) {
     three & y <  CORNER_TOP & x >= 0                 ~ "corner3_right",
     three & ang >= 180 - ARC_RAY                     ~ "arc3_left",
     three & ang <= ARC_RAY                           ~ "arc3_right",
-    three                                            ~ "arc3_center",
+    three                                            ~ "arc3_top",
 
     ang >= 180 - MID_RAY | ang <= -90                ~ "mid_left",
     ang <= MID_RAY       & ang >  -90                ~ "mid_right",
@@ -225,7 +231,7 @@ X_TOP_ARC <- TOP_BOUND / tan(deg(ARC_RAY))
          ar(R_ARC, ARC_RAY, A_NOTCH)))
   z$arc3_left <- mirror(z$arc3_right)
 
-  z$arc3_center <- build(
+  z$arc3_top <- build(
     on_ray(ARC_RAY, R_ARC),
     list(ln(X_TOP_ARC, TOP_BOUND), ln(-X_TOP_ARC, TOP_BOUND),
          ar(R_ARC, 180 - ARC_RAY, ARC_RAY)))
