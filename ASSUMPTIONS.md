@@ -900,3 +900,42 @@ user-facing text destined for charts, the JSON export and the website, and the a
 that. `ZONE_LABELS_PROVISIONAL <- TRUE` sits beside the table so stage 5 can refuse to run
 while it is set; wiring that assertion is part of the stage 5 rewire. Wording arrives from the
 author before the export step.
+
+---
+
+## 37. `LANE_TOP` is the nominal free-throw line at 137.5, not the labels' 138.5
+
+**Date:** 2026-08-27 · **Stage:** 2 · **Constant:** `LANE_TOP` in `R/zone_model.R`
+
+Two candidates, and the difference is one coordinate unit.
+
+**138.5, the measured value.** The NBA's labels put the paint/mid-range cut there: across all
+1,089,337 in-play shots, the maximum y under an In The Paint (Non-RA) label is 138 and the
+minimum y for a Mid-Range shot inside the lane is 139. `R/08_zone_polygons.R` recorded
+`FT <- 138.5` for exactly this reason, following the general method of entry 27 — measure the
+threshold from the gap rather than assume it.
+
+**137.5, the nominal value, and the one adopted.** The free-throw line is 15 feet from the
+backboard face, which puts it at y = 137.5 in shot-chart units. That is where the line is
+painted on the floor.
+
+**137.5 wins because the model computes zones from court geometry rather than reproducing the
+NBA's classification.** 138.5 exists only to match a label boundary, and that label scheme is
+what this change retires. Adopting a value derived from a retired source imports the thing
+being left behind. Entry 27's measure-the-gap method was correct for its purpose — it was
+reproducing the labels — and this is a different purpose.
+
+**The consequence is 799 shots.** They sit in the strip `|x| <= 80`, `137.5 < y < 138.5`, all
+at y = 138. Every one is In The Paint (Non-RA) by label and `mid_center` here: 787 Center(C),
+6 Left Side(L), 6 Right Side(R). **They are the only paint-family disagreement between this
+model and the NBA labels across all 1,089,337 shots** — every other shot in the restricted
+area and the paint agrees. The divergence report at step 5 will show them.
+
+**138.5 is not a correction to be applied later.** It will look like an error against
+`R/08`'s constant block and against entry 27, and it is not one. This is the same hazard as
+the corner break at 87.5, which is measured where a diagram says 89.478, and as the backcourt
+cut at 397.5, which is measured where geometry says 417.5. Each of the three looks wrong
+against one reference and is right against the one that governs it. Check which reference
+governs before changing any of them.
+
+No integer y can equal 137.5, so no shot sits on the boundary and ray casting stays defined.

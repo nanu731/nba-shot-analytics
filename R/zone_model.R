@@ -13,11 +13,14 @@
 library(tidyverse)
 
 # --- Court primitives ------------------------------------------------------------------
-# Every number below is either a real court marking or a ray chosen to pass through one.
+# Almost every number below is a real court marking or a ray chosen to pass through one.
+# Two are not, and both say so where they are defined: CORNER_TOP and Y_BACKCOURT are
+# measured from the data, because the feature they mark has no court line to sit on.
 
 R_RIM      <- 40      # restricted area
 LANE_HALF  <- 80      # lane half-width
-LANE_TOP   <- 137.5   # free throw line
+LANE_TOP   <- 137.5   # free throw line, 15 ft from the backboard face. Nominal, and
+                      # deliberately not the 138.5 the NBA's labels imply. See below.
 BASELINE   <- -52.5   # baseline
 R_ARC      <- 237.5   # three-point arc
 CORNER_X   <- 220     # corner three straight segment
@@ -51,12 +54,27 @@ LANE_MARK_Y <- 77.5
 MID_RAY     <- atan2(LANE_MARK_Y, LANE_HALF) * 180 / pi   # 44.0906 degrees
 ARC_RAY     <- 60                                          # above-the-break divider
 
-# Boundary inclusivity follows how the NBA treats its own integer coordinates, measured
-# across 1,089,337 shots: restricted-area labels stop below r = 40, paint labels reach
-# |x| = 80 exactly, corner-three labels start at |x| = 220 exactly.
-#   rim     r <  R_RIM
-#   lane    |x| <= LANE_HALF  and  y <= LANE_TOP
-#   corner  |x| >= CORNER_X
+# Boundary inclusivity, verified across all 1,089,337 in-play shots. Shot coordinates are
+# integers, so what matters at each threshold is which side an exact hit falls on.
+#
+#   rim     r <  R_RIM        max r under a Restricted Area label is 39.96248; the 129
+#                             shots at exactly r = 40 are all labelled paint, and the
+#                             strict < sends them to paint too.
+#   lane    |x| <= LANE_HALF  paint labels reach |x| = 80; Mid-Range beside the lane
+#                             starts at |x| = 81. Inclusive is right.
+#   corner  |x| >= CORNER_X   Mid-Range reaches |x| = 219; corner threes start at 220.
+#
+#   lane    y <= LANE_TOP     THE ONE PLACE THIS MODEL AND THE LABELS PART. The NBA's cut
+#                             is at 138.5 -- paint labels reach y = 138, Mid-Range inside
+#                             the lane starts at 139 -- and LANE_TOP is the nominal
+#                             free-throw line at 137.5 instead. 799 shots at y = 138 are
+#                             In The Paint (Non-RA) by label and mid_center here, and they
+#                             are the only paint-family disagreement anywhere in the five
+#                             seasons. Chosen, not inherited: 138.5 is an artifact of the
+#                             labelling convention this model retires, while 137.5 is
+#                             where the line is painted. Do not "correct" it to 138.5.
+#                             ASSUMPTIONS entry 37. No integer y can equal 137.5, so
+#                             nothing sits on the boundary.
 
 # arc3_top is deliberately not called arc3_center. The 14-zone model had an id of that
 # name for the NBA's roughly 72-108 degree wedge; this zone is the 60-120 degree one, at
