@@ -27,9 +27,22 @@ notebook. They are deleted. Finding them in git history is not permission.
 
 **A3. NEVER use eFG%, true shooting, or any metric other than PPS.**
 
-**A4. NEVER write your own zone classifier.** Zones come from concatenating
-`SHOT_ZONE_BASIC` and `SHOT_ZONE_AREA`. No geometry, no angles, no `assign_zone()`.
-Drawing a court outline for a chart is not classification; see Section 12.
+**A4. NEVER define a zone boundary outside `R/zone_model.R`.** Zones are computed from
+shot coordinates, and every number that places a boundary lives in that one constants
+block. No second classifier, no boundary hardcoded in a stage script, a chart, or the
+export. `classify_zone()` and `zone_polygon()` both read those constants, so a boundary
+change is a one-line edit that moves the classifier and the outline together.
+
+*Superseded 2026-08-27.* A4 previously read "NEVER write your own zone classifier. Zones
+come from concatenating `SHOT_ZONE_BASIC` and `SHOT_ZONE_AREA`." That ban existed because
+an early version of this project wasted sessions deriving radial boundaries and checking
+them against a hand-written classifier, and the league's labels were both less work and a
+stronger claim. It was lifted because the labels turned out to encode two things that are
+not basketball distinctions: the scheme mixes a rectangular lane with a polar grid, so the
+two disagree along the lane walls and leave slivers, and it changes its angular thresholds
+at 16 feet, which puts a step in the middle of a zone. What A4 protected against was two
+definitions drifting apart. The rule above protects against the same thing by a different
+route. See `ASSUMPTIONS.md`.
 
 **A5. NEVER add a minimum-attempt filter at the zone level.** Every zone with one
 or more attempts is included. Thin cells are handled by shrinkage, not exclusion.
@@ -693,11 +706,12 @@ Each of these was considered and rejected. Do not build them.
 - **Hex-bin charts.** An arbitrary hexagon grid ignores the 14 zone boundaries the
   entire pipeline uses, so the chart would visually disagree with the published
   numbers. The previous version built one and it was removed.
-- **Custom zone geometry, radial boundaries, `assign_zone()`, polygon verification
-  by point sampling.** The NBA already classified every shot. `court_layer()` in
-  `R/04_charts.R` draws a hoop, paint, free-throw arc and three-point line as chart
-  furniture; no shot is assigned to anything by those coordinates, and the repository
-  contains no zone polygons or boundary definitions of any kind.
+- **A second zone definition of any kind.** Retired as an out-of-scope entry on
+  2026-08-27, when A4 changed: the project now computes its own zones. What stays banned
+  is a *duplicate* — a boundary restated in SQL, a chart, or the export, or a classifier
+  living anywhere but `R/zone_model.R`. `court_layer()` in `R/04_charts.R` draws a hoop,
+  paint, free-throw arc and three-point line as chart furniture and assigns no shot to
+  anything.
 - **eFG%, true shooting, or any efficiency metric other than PPS.**
 - **Defender proximity / `CLOSE_DEF_DIST`.** Not available per-shot through the
   public NBA Stats API. Confirmed by testing `ShotChartDetail` across all
@@ -1117,9 +1131,9 @@ comes from `SHOT_SELECTION_SITE_DIR`, defaulting to the author's local path. It 
 create a missing destination, because a typo would otherwise produce a folder nothing
 serves. It only copies; committing on the site side is manual.
 
-**The export contains no zone geometry**, and neither does the repository. A site that
-wants zone outlines must author them independently — rule A4 forbids this project deriving
-them, since zones come from the NBA's labels rather than from coordinates.
+**Zone geometry now originates here**, in `R/zone_model.R`, and the site consumes it
+rather than authoring its own. This reverses what this section said before 2026-08-27,
+when zones came from the NBA's labels and A4 forbade deriving them.
 
 What this project does provide is verification. `R/07_zone_geometry.R` writes
 `export/reference/zone_grid.csv`, a half-foot spatial histogram of every labelled shot
@@ -1292,10 +1306,10 @@ the metric discriminates and because volume is the confound most worth making vi
 You have read a long document. These are the parts that matter most.
 
 Commit to `main`, not `pps-rebuild`. Never read the dead files. Never use eFG%. Never
-write a zone classifier. Never filter zones by attempt count. Never add an eligibility
-gate. Never edit `.qmd` directly. Never assume. Never fail silently. Never write a large
-file to `data/processed/`. Never commit raw NBA data in any form. Never build anything in
-Section 12.
+place a zone boundary outside `R/zone_model.R`. Never filter zones by attempt count.
+Never add an eligibility gate. Never edit `.qmd` directly. Never assume. Never fail
+silently. Never write a large file to `data/processed/`. Never commit raw NBA data in any
+form. Never build anything in Section 12.
 
 Always verify before proceeding. Always split long responses. Always write
 Parquet. Always pass `season` as an argument.
