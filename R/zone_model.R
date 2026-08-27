@@ -257,6 +257,29 @@ X_TOP_ARC <- TOP_BOUND / tan(deg(ARC_RAY))
   z[ZONE_IDS]
 })
 
+# --- Model version ----------------------------------------------------------------------
+#
+# A fingerprint of the geometry, emitted into every artifact that carries zone shapes or
+# zone-keyed data, so a consumer can refuse to combine two that disagree.
+#
+# Computed, not maintained. A hand-written version string is one someone forgets to bump
+# after changing a constant, and the whole point is to catch exactly that. This hashes the
+# ids, the point values and every vertex, so any boundary change moves it and no boundary
+# change can fail to.
+#
+# The zm10 prefix is for humans reading a diff; the hash is what the assertion compares.
+
+zone_model_version <- function() {
+  payload <- list(
+    ids    = ZONE_IDS,
+    values = unname(ZONE_VALUE[ZONE_IDS]),
+    shapes = map(.zones[ZONE_IDS], \(z) list(
+      v = round(z$vertices, 6),
+      a = map(z$arcs, \(a) round(c(a$r, a$start_deg, a$end_deg), 6))))
+  )
+  paste0("zm10-", substr(rlang::hash(payload), 1, 12))
+}
+
 #' Outline for one zone: vertices, plus arc records for the curved edges.
 zone_polygon <- function(id) {
   if (!id %in% ZONE_IDS) stop(glue::glue("unknown zone id: {id}"), call. = FALSE)
