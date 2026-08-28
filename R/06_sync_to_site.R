@@ -70,7 +70,21 @@ sync_build <- function(dest = Sys.getenv(BUILD_VAR, DEFAULT_BUILD_DIR),
   copy_into(files, dest, BUILD_VAR, "build")
 }
 
+# The placeholder zone labels must not reach the website. meta.json carries the flag, so
+# this catches a stale export as well as a fresh one, and it fails before anything is
+# copied rather than after.
+refuse_if_provisional <- function(src = "export/data") {
+  meta <- file.path(src, "meta.json")
+  if (!file.exists(meta)) return(invisible(NULL))
+  if (isTRUE(jsonlite::fromJSON(meta)$zone_labels_provisional)) {
+    stop(glue("{meta} has zone_labels_provisional = true. The zone display labels are ",
+              "placeholder copy written by the assistant, not by the author. Nothing syncs ",
+              "until they are replaced and the export is rebuilt."), call. = FALSE)
+  }
+}
+
 sync_to_site <- function() {
+  refuse_if_provisional()
   written <- c(sync_runtime(), { cat("\n"); sync_build() })
   cat(glue("\n  {round(sum(file.size(written)) / 1024^2, 2)} MB written across ",
            "{length(written)} files. Commit on the website side manually."), "\n")

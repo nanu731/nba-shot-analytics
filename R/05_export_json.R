@@ -3,6 +3,8 @@ library(arrow)
 library(glue)
 library(jsonlite)
 
+source("R/zone_model.R")
+
 season_dirs <- function(root) {
   if (!dir.exists(root)) return(character(0))
   dirs <- list.dirs(root, recursive = FALSE, full.names = FALSE)
@@ -31,33 +33,34 @@ zone_index <- function() {
   source("R/02_build_zone_stats.R")
   ZONE_REF |>
     arrange(zone_order) |>
-    transmute(zone, zone_id, value = zone_value)
+    transmute(zone, name = zone_label, value = zone_value)
 }
 
 r <- function(x, digits) round(x, digits)
 
 season_block <- function(season, zidx) {
   zs <- read_parquet(glue("data/processed/zone_stats/season={season}/zone_stats.parquet")) |>
-    left_join(select(zidx, zone, zone_id), by = "zone")
+    mutate(known = zone %in% zidx$zone)
   ps <- read_parquet(glue("data/processed/player_scores/season={season}/player_scores.parquet"))
   pr <- read_parquet(glue("data/processed/zone_priors/season={season}/zone_priors.parquet")) |>
-    left_join(select(zidx, zone, zone_id), by = "zone")
+    mutate(known = zone %in% zidx$zone)
 
-  if (anyNA(zs$zone_id) || anyNA(pr$zone_id)) {
-    stop(glue("{season}: a zone failed to match ZONE_REF"), call. = FALSE)
+  if (!all(zs$known) || !all(pr$known)) {
+    stop(glue("{season}: a zone id is absent from the model: ",
+              "{str_c(setdiff(c(zs$zone, pr$zone), zidx$zone), collapse = ', ')}"), call. = FALSE)
   }
 
   # Canonical basket-outward ordering, applied by id rather than by row position.
-  zone_rank <- set_names(seq_len(nrow(zidx)), zidx$zone_id)
+  zone_rank <- set_names(seq_len(nrow(zidx)), zidx$zone)
 
   baselines <- zs |>
     summarise(freq_pooled = first(freq_pooled), freq_unweighted = first(freq_unweighted),
-              .by = zone_id) |>
-    arrange(zone_rank[zone_id])
+              .by = zone) |>
+    arrange(zone_rank[zone])
 
   flat <- zs |>
-    arrange(PLAYER_ID, zone_rank[zone_id]) |>
-    transmute(PLAYER_ID, zone = zone_id, makes, attempts,
+    arrange(PLAYER_ID, zone_rank[zone]) |>
+    transmute(PLAYER_ID, zone, makes, attempts,
               fg_pct = r(fg_pct, 4), pps = r(pps_raw, 4), freq = r(shot_freq, 4),
               fg_pct_shrunk = r(fg_pct_shrunk, 4), pps_shrunk = r(pps_shrunk, 4),
               contrib = r(score_contrib, 5))
@@ -79,11 +82,11 @@ season_block <- function(season, zidx) {
     mutate(zones = unname(zone_rows[as.character(player_id)]))
 
   list(
-    priors = pr |> arrange(zone_rank[zone_id]) |>
-      transmute(zone = zone_id, alpha = r(alpha, 3), beta = r(beta, 3), k = r(k, 2),
+    priors = pr |> arrange(zone_rank[zone]) |>
+      transmute(zone, alpha = r(alpha, 3), beta = r(beta, 3), k = r(k, 2),
                 prior_mean = r(prior_mean, 4), qualifying_attempts, converged, method),
     baselines = baselines |>
-      transmute(zone = zone_id, freq_pooled = r(freq_pooled, 5),
+      transmute(zone, freq_pooled = r(freq_pooled, 5),
                 freq_unweighted = r(freq_unweighted, 5)),
     players = players
   )
@@ -113,6 +116,15 @@ export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
 
   meta <- list(
     generated = format(Sys.Date()),
+    # The geometry fingerprint. zone_polygons.json carries the same field, and the site
+    # must assert the two are equal at build time and fail if either is missing or they
+    # differ -- a missing field is how a pre-2026-08-27 file would otherwise pass. See
+    # ASSUMPTIONS entry 35: three zone ids survived the model change and two of them are
+    # safe, so a stale outline would draw a wrong court without erroring.
+    zone_model = zone_model_version(),
+    # Placeholder display copy is in the build. The site must refuse to publish while this
+    # is true; R/06 refuses to sync. Removed when the author's wording lands.
+    zone_labels_provisional = ZONE_LABELS_PROVISIONAL,
     # I() marks these AsIs so jsonlite's auto_unbox leaves them as arrays. Without it a
     # length-1 vector serialises as a bare scalar, and a consumer iterating the field
     # would walk the characters of a string. See ASSUMPTIONS entry 25.
@@ -128,9 +140,7 @@ export_json <- function(seasons = exportable_seasons(), dir = OUT_DIR) {
                    "does not reproduce score exactly; both are rounded independently.",
                    "See export/SCHEMA.md.")
     ),
-    # name must be built before zone is reassigned; transmute evaluates left to right.
-    zones = zidx |> transmute(name = zone, zone = zone_id, value) |>
-      select(zone, name, value),
+    zones = zidx |> select(zone, name, value),
     players = set_names(
       map2(pidx$name, pidx$seasons, \(n, ss) list(name = n, seasons = I(ss))),
       as.character(pidx$player_id))

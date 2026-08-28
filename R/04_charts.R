@@ -4,6 +4,10 @@ library(glue)
 library(svglite)
 library(ggrepel)
 
+# Court dimensions and the classifier both come from here. Nothing in this file restates a
+# boundary; see rule A4.
+source("R/zone_model.R")
+
 # All three chart types share a theme and palette because they share a site.
 
 POS_COLOURS <- c(C = "#0F7B6C", F = "#B5651D", G = "#3A5FCD", Unknown = "#8A8A8A")
@@ -131,29 +135,32 @@ if (sys.nframe() == 0L) {
   write_chart(zone_chart("Stephen Curry", season), "zones_curry", season, 8.5, 7)
 }
 
-# Court outline in NBA shot-chart units: tenths of a foot, hoop at the origin. This is a
-# visual reference only. Section 12 rejects derived zone geometry, and nothing here
-# classifies anything -- every zone label comes from the NBA's own columns.
+# Court furniture: the markings a viewer expects to see under the points. Every dimension
+# is read from R/zone_model.R rather than restated here, which A4 requires and which is not
+# a formality -- this function previously drew the corner segments up to y = 89.5, the
+# geometric arc junction, where the model's break is the measured 87.5. Two numbers for one
+# line is exactly the drift the rule exists to stop.
+#
+# The hoop and its 7.5-unit ring are the only numbers that are local, because no zone
+# boundary depends on them.
 court_layer <- function(colour = "grey45", linewidth = 0.35) {
   arc <- function(r, from, to, n = 200) {
     t <- seq(from, to, length.out = n)
     tibble(x = r * cos(t), y = r * sin(t))
   }
-  three_arc <- arc(237.5, acos(220 / 237.5), pi - acos(220 / 237.5))
+  three_arc <- arc(R_ARC, acos(CORNER_X / R_ARC), pi - acos(CORNER_X / R_ARC))
+  seg <- function(...) annotate("segment", ..., colour = colour, linewidth = linewidth)
+  path <- function(d) annotate("path", x = d$x, y = d$y, colour = colour, linewidth = linewidth)
   list(
-    annotate("path", x = arc(7.5, 0, 2 * pi)$x, y = arc(7.5, 0, 2 * pi)$y,
-             colour = colour, linewidth = linewidth),
-    annotate("segment", x = -30, xend = 30, y = -7.5, yend = -7.5,
-             colour = colour, linewidth = linewidth),
-    annotate("rect", xmin = -80, xmax = 80, ymin = -52.5, ymax = 137.5,
+    path(arc(7.5, 0, 2 * pi)),
+    seg(x = -30, xend = 30, y = -7.5, yend = -7.5),
+    annotate("rect", xmin = -LANE_HALF, xmax = LANE_HALF, ymin = BASELINE, ymax = LANE_TOP,
              fill = NA, colour = colour, linewidth = linewidth),
-    annotate("path", x = arc(40, 0, pi)$x, y = arc(40, 0, pi)$y,
-             colour = colour, linewidth = linewidth),
-    annotate("segment", x = c(-220, 220), xend = c(-220, 220),
-             y = -52.5, yend = 89.5, colour = colour, linewidth = linewidth),
-    annotate("path", x = three_arc$x, y = three_arc$y, colour = colour, linewidth = linewidth),
-    annotate("segment", x = -250, xend = 250, y = -52.5, yend = -52.5,
-             colour = colour, linewidth = linewidth)
+    path(arc(R_RIM, 0, pi)),
+    seg(x = c(-CORNER_X, CORNER_X), xend = c(-CORNER_X, CORNER_X),
+        y = BASELINE, yend = CORNER_TOP),
+    path(three_arc),
+    seg(x = -SIDELINE, xend = SIDELINE, y = BASELINE, yend = BASELINE)
   )
 }
 
@@ -164,14 +171,14 @@ zone_anchors <- function(season) {
   if (is.null(.zone_anchor_cache[[season]])) {
     .zone_anchor_cache[[season]] <- read_parquet(
       glue("data/raw/shots/season={season}/shots.parquet")) |>
-      filter(SHOT_ZONE_BASIC != "Backcourt", SHOT_ZONE_AREA != "Back Court(BC)") |>
-      mutate(zone = str_c(SHOT_ZONE_BASIC, " | ", SHOT_ZONE_AREA)) |>
+      mutate(zone = classify_zone(LOC_X, LOC_Y)) |>
+      filter(!is.na(zone)) |>
       summarise(lx = median(LOC_X), ly = median(LOC_Y), .by = zone)
   }
   .zone_anchor_cache[[season]]
 }
 
-#' Zone chart for one player, coloured by the NBA's own 14-zone classification.
+#' Zone chart for one player, coloured by the 10-zone model in R/zone_model.R.
 #'
 #' @param player   PLAYER_ID, or a PLAYER_NAME matched exactly.
 #' @param season   e.g. "2025-26".
@@ -193,12 +200,19 @@ zone_chart <- function(player, season, colour_by = c("pps", "contribution")) {
   name <- row$PLAYER_NAME[1]
 
   shots <- read_parquet(glue("data/raw/shots/season={season}/shots.parquet")) |>
-    filter(PLAYER_ID == pid,
-           SHOT_ZONE_BASIC != "Backcourt", SHOT_ZONE_AREA != "Back Court(BC)") |>
-    mutate(zone = str_c(SHOT_ZONE_BASIC, " | ", SHOT_ZONE_AREA)) |>
+    filter(PLAYER_ID == pid) |>
+    mutate(zone = classify_zone(LOC_X, LOC_Y)) |>
+    filter(!is.na(zone)) |>
     inner_join(select(row, zone, zone_value, pps_shrunk, score_contrib, shot_freq, attempts),
                by = "zone") |>
     filter(zone_value == if_else(SHOT_TYPE == "3PT Field Goal", 3, 2))
+
+  # The join above matched on zone ids that were retired on 2026-08-27, and produced an
+  # empty, entirely plausible-looking chart rather than an error. Fail loudly instead.
+  if (nrow(shots) == 0) {
+    stop(glue("{name}, {season}: no shots survived the zone join. The chart would render ",
+              "empty rather than wrong, which is why this stops."), call. = FALSE)
+  }
 
   fill_col <- if (colour_by == "contribution") "score_contrib" else "pps_shrunk"
   labels <- row |>
@@ -228,7 +242,8 @@ zone_chart <- function(player, season, colour_by = c("pps", "contribution")) {
                        if (colour_by == "contribution") "contribution to the selection score."
                        else "shrunk points per shot.",
                        "\nLabels show shrunk PPS, then share of the player's attempts with the raw count.",
-                       "Zones are the NBA's own 14."),
+                       glue("Zones are the {length(ZONE_IDS)}-zone model, computed from",
+                            " shot coordinates.")),
       x = NULL, y = NULL
     ) +
     theme_shots() +
