@@ -939,3 +939,49 @@ against one reference and is right against the one that governs it. Check which 
 governs before changing any of them.
 
 No integer y can equal 137.5, so no shot sits on the boundary and ray casting stays defined.
+
+---
+
+## 38. The polygon/classifier criterion is achievable-coordinate agreement, not universal agreement
+
+**Date:** 2026-08-27 · **Stage:** 5 · **Affects:** `R/07_zone_geometry.R`, `R/zone_model.R`
+
+`classify_zone()` and `zone_polygon()` are generated from one constants block but by
+different code, and R/07 checks they agree. **They cannot agree everywhere, and the checker
+is not asking them to.** Write this down before someone reads a nonzero grid count as a
+failure and starts adjusting geometry to chase it.
+
+**Why not.** Shot coordinates are integers, so a boundary placed where a point can land
+exactly leaves points sitting on it, where ray casting is undefined. The fix is to offset the
+polygon edge by `EPS` in the direction the classifier's inclusivity implies. That offset is
+what makes the boundary well-defined, and it necessarily creates a band of width `EPS` in
+which the polygon and the classifier disagree. Removing the band would reintroduce the
+undefined boundary. The two goals are in direct opposition and the band is the one to keep.
+
+**The criterion, in two parts.** Agreement on every achievable coordinate, and a disagreement
+band narrower than the coordinate spacing. The first is the test that matters and it is
+absolute: **zero defects across all 104,205 distinct real coordinates, covering all 1,091,329
+shots, in all four categories.** The second is what guarantees the first keeps holding for
+coordinates not yet observed. `EPS = 0.02` against an integer grid leaves a factor of fifty;
+the tightest real margin is at `r = 40`, where the nearest coordinate below is 39.96248, a
+gap of 0.0375 against a 0.02 offset.
+
+**The dense grid is diagnostic, not a pass/fail gate.** It probes sub-coordinate positions no
+shot can occupy, so it will always report a nonzero count. What matters is that every defect
+it reports falls into a family with a known cause. As of `zm10-c5fdd6d04ead`, 103 defects over
+3,588,609 points: 49 orphans on the keyhole slit at `x = 0.25`, 32 in the `EPS` band at
+`r = 40`, 10 in the `EPS_DEG` band at the 60 and 120 degree rays, and 12 from arc chord error
+at `r ~ 237.5`, of which 2 are the only overlaps. **An unexplained defect, or any defect on a
+real coordinate, is a failure. A band defect is not.**
+
+**Two families are accepted rather than fixed.** The slit is inherent to representing a hole
+as a single ring, and closing it would need multi-ring polygons the consumers do not support.
+The chord error is `ARC_STEP = 0.5` degrees trading vertex count against fidelity, at about
+0.002 units; two zones sharing an arc chord it over different spans, so the gap opens both
+ways. Neither is reachable by an integer coordinate.
+
+**Corrected on the same day it was written.** `LANE_TOP` and `ARC_RAY` were the two thresholds
+of six that had never been offset, which produced 641 of an original 734 grid defects -- every
+point on `y = 137.5`, plus the 60 degree ray. That was an oversight, not a choice, and
+offsetting them cut the count to 103. The lesson is that the grid found a real omission that
+the real-coordinate test could not, because no integer `y` equals 137.5. **Run both.**

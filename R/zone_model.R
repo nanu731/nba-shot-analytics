@@ -134,23 +134,38 @@ classify_zone <- function(x, y) {
 
 # --- Polygons --------------------------------------------------------------------------
 #
-# The outlines render the classifier above. Where a boundary sits on a whole number, an
-# integer shot coordinate can land exactly on it, and ray casting there is undefined. The
-# polygon is therefore offset by EPS in the direction the classifier's inclusivity implies:
-# rim shrinks (r < R_RIM excludes the boundary), the lane grows (|x| <= LANE_HALF includes
-# it), the corner grows inward (|x| >= CORNER_X includes it).
+# The outlines render the classifier above. Where a boundary sits where a point can land
+# exactly, ray casting there is undefined, so the polygon is offset in the direction the
+# classifier's inclusivity implies. Every one of the six thresholds is offset; the two that
+# were not, until 2026-08-27, accounted for 641 of 734 defects on a dense grid.
+#
+#   rim     shrinks   r < R_RIM excludes its boundary
+#   lane    grows      |x| <= LANE_HALF includes it
+#   lane    grows up   y <= LANE_TOP includes it, so paint keeps the free-throw line and
+#                      mid_center gives it up
+#   corner  grows in   |x| >= CORNER_X includes it
+#   mid ray grows out  ang <= MID_RAY includes it, so mid_right keeps the ray
+#   arc ray grows in   ang <= ARC_RAY includes it, so arc3_right keeps the ray and
+#                      arc3_top gives it up
 #
 # EPS is a rendering allowance, not a second definition. It is smaller than the gap between
-# any two achievable integer coordinates, so it moves no shot between zones; R/07 proves
-# that against all 1,089,337 real coordinates.
+# any two achievable coordinates, so it moves no shot between zones.
+#
+# It cannot make the two agree everywhere, and is not meant to. An offset boundary is a band
+# of width EPS where polygon and classifier differ by construction. The criterion is
+# agreement on every achievable coordinate, with the band narrower than the coordinate
+# spacing -- see ASSUMPTIONS entry 38. R/07 checks exactly that.
 
-EPS <- 0.02
+EPS     <- 0.02
+EPS_DEG <- 0.0002     # the same allowance for a boundary defined by an angle
 
-P_RIM     <- R_RIM - EPS
-P_LANE    <- LANE_HALF + EPS
+P_RIM      <- R_RIM - EPS
+P_LANE     <- LANE_HALF + EPS
+P_LANE_TOP <- LANE_TOP + EPS
 P_CORNER  <- CORNER_X - EPS
 P_SIDE    <- SIDELINE + EPS     # shots exist at exactly |x| = 250
-P_MID_RAY <- MID_RAY + 0.0002   # integer points sit exactly on this ray, e.g. (160, 155)
+P_MID_RAY <- MID_RAY + EPS_DEG   # integer points sit exactly on this ray, e.g. (160, 155)
+P_ARC_RAY <- ARC_RAY + EPS_DEG   # no integer point can, since y/x = sqrt(3) has no solution
 
 # Where the nudged ray meets the nudged lane wall. Anchoring the ray edge here rather than
 # at the true lane mark keeps that edge a true constant-angle ray: starting it at
@@ -200,8 +215,7 @@ mirror <- function(z) {
 # Derived intersections, all from the constants above.
 A_NOTCH   <- ang_at_y(R_ARC, CORNER_TOP)          # arc at the corner break: 21.63 deg
 X_NOTCH   <- sqrt(R_ARC^2 - CORNER_TOP^2)         # 220.79 -- outside CORNER_X by 0.79
-R_MID_IN  <- rad_at_y(ARC_RAY, TOP_BOUND)         # 60 deg ray at the top bound
-X_TOP_ARC <- TOP_BOUND / tan(deg(ARC_RAY))
+X_TOP_ARC <- TOP_BOUND / tan(deg(P_ARC_RAY))
 
 .zones <- local({
   z <- list()
@@ -215,7 +229,7 @@ X_TOP_ARC <- TOP_BOUND / tan(deg(ARC_RAY))
   A_SLIT <- atan2(SLIT_Y, SLIT) * 180 / pi
   z$paint <- build(
     c(P_LANE, BASELINE),
-    list(ln(P_LANE, LANE_TOP), ln(-P_LANE, LANE_TOP), ln(-P_LANE, BASELINE),
+    list(ln(P_LANE, P_LANE_TOP), ln(-P_LANE, P_LANE_TOP), ln(-P_LANE, BASELINE),
          ln(SLIT, BASELINE), ln(SLIT, SLIT_Y),
          ar(P_RIM, A_SLIT, A_SLIT - 360),
          ln(SLIT, BASELINE), ln(P_LANE, BASELINE)))
@@ -237,7 +251,7 @@ X_TOP_ARC <- TOP_BOUND / tan(deg(ARC_RAY))
     c(P_LANE, P_MARK_Y),
     list(ln(on_ray(P_MID_RAY, R_ARC)[1], on_ray(P_MID_RAY, R_ARC)[2]),
          ar(R_ARC, P_MID_RAY, 180 - P_MID_RAY),
-         ln(-P_LANE, P_MARK_Y), ln(-P_LANE, LANE_TOP), ln(P_LANE, LANE_TOP)))
+         ln(-P_LANE, P_MARK_Y), ln(-P_LANE, P_LANE_TOP), ln(P_LANE, P_LANE_TOP)))
 
   z$corner3_right <- build(c(P_CORNER, BASELINE),
     list(ln(P_SIDE, BASELINE), ln(P_SIDE, CORNER_TOP), ln(P_CORNER, CORNER_TOP)))
@@ -246,13 +260,13 @@ X_TOP_ARC <- TOP_BOUND / tan(deg(ARC_RAY))
   z$arc3_right <- build(
     c(X_NOTCH, CORNER_TOP),
     list(ln(P_SIDE, CORNER_TOP), ln(P_SIDE, TOP_BOUND), ln(X_TOP_ARC, TOP_BOUND),
-         ar(R_ARC, ARC_RAY, A_NOTCH)))
+         ar(R_ARC, P_ARC_RAY, A_NOTCH)))
   z$arc3_left <- mirror(z$arc3_right)
 
   z$arc3_top <- build(
-    on_ray(ARC_RAY, R_ARC),
+    on_ray(P_ARC_RAY, R_ARC),
     list(ln(X_TOP_ARC, TOP_BOUND), ln(-X_TOP_ARC, TOP_BOUND),
-         ar(R_ARC, 180 - ARC_RAY, ARC_RAY)))
+         ar(R_ARC, 180 - P_ARC_RAY, P_ARC_RAY)))
 
   z[ZONE_IDS]
 })
