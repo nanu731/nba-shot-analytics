@@ -26,24 +26,31 @@ until you compare a three to a layup, where the same percentage means different 
 Points per shot puts every spot on one scale, and the scale is the thing the game is scored
 in.
 
-The floor splits into 14 zones. The NBA already labels every shot with the zone it came
-from, so this project uses those labels rather than drawing its own boundaries. The zones
-match what you see on an NBA.com shot chart.
+The floor splits into 10 zones, computed from where each shot was taken. Every boundary is
+either a real court marking — the restricted-area arc, the lane, the free-throw line, the
+three-point line — or a ray drawn through one.
 
 | Zone | Worth | 2025-26 shots |
 |---|---|---|
 | Restricted area | 2 | 62,253 |
-| Paint, outside the restricted area (left / center / right) | 2 | 2,253 / 39,141 / 2,514 |
-| Mid-range (5 zones, left to right) | 2 | 5,819 / 2,861 / 4,718 / 2,806 / 5,813 |
+| Paint, outside the restricted area | 2 | 43,740 |
+| Mid-range (left / center / right) | 2 | 5,614 / 11,010 / 5,561 |
 | Left corner three | 3 | 12,210 |
-| Above the break (left / center / right) | 3 | 26,511 / 17,219 / 23,624 |
+| Above the break (left / center / right) | 3 | 18,972 / 32,471 / 15,911 |
 | Right corner three | 3 | 11,360 |
+
+An earlier version used the NBA's own 14 zone labels instead. Those turned out to encode two
+things that are not basketball distinctions. The paint has no left-right split at all inside
+eight feet. And the side boundaries shift at sixteen feet, from 60 and 120 degrees to 36, 72,
+108 and 144, so a shot on a fixed line out from the hoop changes zones purely by travelling
+further. The rebuilt model keeps one consistent set of boundaries. The restricted area and
+both corner threes come out containing exactly the same shots either way.
 
 ---
 
 ## The score
 
-Take a player's shooting from each of the 14 zones and hold it fixed. Then ask what he
+Take a player's shooting from each of the 10 zones and hold it fixed. Then ask what he
 would average if he shot the same mix as a typical NBA player, and compare that to what he
 actually averaged.
 
@@ -63,31 +70,31 @@ The score runs from roughly -0.12 to +0.29. League-wide, one standard deviation 
 
 | | Player | Score | Points per shot |
 |---|---|---|---|
-| 1 | Ryan Kalkbrenner | +0.286 | 1.50 |
-| 2 | Rudy Gobert | +0.262 | 1.36 |
-| 3 | Jaxson Hayes | +0.251 | 1.52 |
+| 1 | Ryan Kalkbrenner | +0.285 | 1.50 |
+| 2 | Rudy Gobert | +0.263 | 1.36 |
+| 3 | Jaxson Hayes | +0.248 | 1.52 |
 | ... | | | |
-| 316 | T.J. McConnell | -0.093 | 1.11 |
-| 317 | DeMar DeRozan | -0.117 | 1.04 |
-| 318 | Kevin Durant | -0.118 | 1.18 |
+| 316 | Ryan Nembhard | -0.097 | 1.02 |
+| 317 | Kevin Durant | -0.109 | 1.18 |
+| 318 | DeMar DeRozan | -0.118 | 1.04 |
 
 Big men fill the top. Their job puts them at the rim, which is the most valuable spot on
 the floor outside the corners. That much is unsurprising.
 
 ### The interesting part is inside each position
 
-Position accounts for 18% of the variation in score. The other 82% separates players who
+Position accounts for 17% of the variation in score. The other 83% separates players who
 share a position.
 
-Centers spread wider than the league does. Their standard deviation is 0.0848 against a
-league figure of 0.061, running from -0.053 to +0.286. The metric tells centers apart more
+Centers spread wider than the league does. Their standard deviation is 0.0852 against a
+league figure of 0.0609, running from -0.055 to +0.285. The metric tells centers apart more
 sharply than it tells the league apart.
 
 | Position | Best three | Worst three |
 |---|---|---|
-| Center | Kalkbrenner, Gobert, Hayes | Vučević, Adebayo, Embiid |
-| Forward | Gafford, Antetokounmpo, Diabaté | Dončić, Murray, Durant |
-| Guard | Payton II, Champagnie, Braun | Nembhard, McConnell, DeRozan |
+| Center | Kalkbrenner, Gobert, Hayes | Lopez, Adebayo, Embiid |
+| Forward | Gafford, Antetokounmpo, Diabaté | Murray, Dončić, Durant |
+| Guard | Payton II, Champagnie, Braun | McConnell, Nembhard, DeRozan |
 
 Every row runs rim-finishers against players who drift out to mid-range. Compare players
 to others at their position, not to the league.
@@ -108,7 +115,7 @@ separate those, so the pattern is reported rather than corrected.
 
 ### Handling small samples
 
-Among 318 qualifying players there are 4,184 zone cells with at least one shot. 228 hold a
+Among 318 qualifying players there are 3,089 zone cells with at least one shot. 61 hold a
 single attempt. A one-shot cell scores either 0.00 or 2.00 depending on whether the ball
 went in, and neither number says anything about the player.
 
@@ -123,7 +130,7 @@ PPS_shrunk[p,z] = point_value[z] * FG%_shrunk[p,z]
 ```
 
 Priors get fitted per zone and per season. Three-point zones need far more evidence before
-the estimate stabilizes (fitted weights of 237 to 560) than paint zones do (31 to 96),
+the estimate stabilizes (fitted weights of 115 to 800) than paint zones do (84 to 88),
 which matches published work finding that three-point percentage takes around 750 attempts
 to settle.
 
@@ -159,9 +166,9 @@ and shrinking points per shot reduces to shrinking a percentage. That keeps the 
 on solved ground.
 
 Two sets of shots come out. Backcourt heaves (38 in 2025-26) are buzzer attempts, and the
-NBA's own charts drop them too. And 20 shots carry a point value that contradicts their
-zone label, sitting at 21 to 24 feet where the coordinate-derived zone and the scored
-value disagree. Dropping them keeps the rule above exact. 219,102 attempts remain.
+NBA's own charts drop them too. And 20 shots carry a point value that contradicts where they
+were taken from, sitting at 21 to 24 feet where the recorded coordinate and the scored value
+disagree. Dropping them keeps the rule above exact. 219,102 attempts remain.
 
 No zone gets filtered for low volume. A player who rarely shoots from somewhere is exactly
 what the metric measures, so cutting thin cells would throw away the relevant data.
@@ -205,28 +212,32 @@ shoot more, for around 80% of players studied. Whether that is selection or caus
 unsettled.
 
 **Concentration says nearly the same thing as the score.** A Herfindahl index of how
-concentrated a player's shot diet is correlates 0.833 with the score, rising to 0.913
-inside centers. That is a result on its own: players reach good allocation by leaning on
-their best zone, not by being broadly good everywhere. It also rules out plotting score
-against concentration, which would draw a diagonal line.
+concentrated a player's shot diet is correlates 0.777 with the score, rising to 0.904 inside
+centers though falling to 0.473 inside guards. That is a result on its own: players reach good
+allocation by leaning on their best zone, not by being broadly good everywhere. It also rules
+out plotting score against concentration, which would draw a diagonal line.
 
-**The shrinkage weight is not pinned down, though the rankings are.** Three methods got
-compared per zone: the beta-binomial fit, split-half reliability, and cross-validation. The
-first and third agree (rank correlation 0.838). Split-half agrees with neither on levels.
-All three diverge most in three-point zones, and those are not the thinnest zones, which
-was the prediction and it failed.
+**The shrinkage weight is not pinned down, though the rankings roughly are.** Three methods
+got compared per zone: the beta-binomial fit, split-half reliability, and cross-validation.
+The first and third rank the zones similarly (rank correlation 0.683). Split-half agrees with
+neither on levels. All three diverge most in three-point zones, and those are not the thinnest
+zones, which was the prediction and it failed.
 
-The cross-validated loss surface there is flat. Extending the search to 20,000 found a
-nominal minimum in every zone, but held-out loss stays within 0.01% of it across a range
-spanning 450 to 20,000 for the center above-the-break zone. Cross-validation does not
-contradict the beta-binomial fit so much as fail to distinguish it from anything else.
+The cross-validated loss surface there is flat, and flatter than it was under the older,
+smaller zones. Two of the ten zones never find a minimum at all inside a search extended to
+20,000. Bigger cells make the weight harder to pin down, not easier: shrinkage is estimated
+from how far the observed spread exceeds what chance alone would produce, and as cells grow
+that chance component shrinks until a wide range of weights fits about equally well.
+Cross-validation does not contradict the beta-binomial fit so much as fail to distinguish it
+from anything else.
 
-Rebuilding every score under all three weightings gives rank correlations of 0.995 to
-0.9985. No player moves more than one league standard deviation. The largest shift is
-0.015, a quarter of an SD. Between 20 and 52 players move more than ten rank places, all
-of them in the crowded middle. The top five and bottom five hold under all three.
+Rebuilding every score under all three weightings gives rank correlations of 0.9932 to 0.9986.
+No player moves more than one league standard deviation. The largest shift is 0.0223, about a
+third of an SD. Between 14 and 72 players move more than ten rank places, all of them in the
+crowded middle. The top five hold under all three weightings; the bottom five hold to within
+one player.
 
-That happens because a score sums 14 zones, and each zone's weight is how far the player's
+That happens because a score sums 10 zones, and each zone's weight is how far the player's
 frequency sits from the league's. Where the shrinkage weight is least certain, that
 frequency gap is smallest. Uncertainty in a cell does not reach the player.
 
