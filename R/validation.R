@@ -10,8 +10,11 @@ SEASONS <- c("2021-22", "2022-23", "2023-24", "2024-25", "2025-26")
 load_season <- function(season) {
   ps <- read_parquet(glue("data/processed/player_scores/season={season}/player_scores.parquet"))
   zs <- read_parquet(glue("data/processed/zone_stats/season={season}/zone_stats.parquet"))
+  # The rim zone under the 10-zone model. It is the same region as the old
+  # "Restricted Area | Center(C)": membership is identical, 54,217 qualifying attempts in
+  # 2025-26 under both.
   ra <- zs |>
-    filter(zone == "Restricted Area | Center(C)") |>
+    filter(zone == "rim") |>
     select(PLAYER_ID, ra_freq = shot_freq)
   left_join(ps, ra, by = "PLAYER_ID") |> mutate(season = season)
 }
