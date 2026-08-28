@@ -188,73 +188,91 @@ for PPS.** Shrink FG% and multiply by the zone's point value.
 ### The twenty-shot exception, dropped in cleaning
 
 Point-homogeneity is **not true of the raw data**. In 2025-26, twenty shots carry a
-`SHOT_TYPE` that contradicts their zone's point value: twelve labelled `Above the
-Break 3` were scored as 2PT field goals, eight labelled `Mid-Range` as 3PT. All twenty
+`SHOT_TYPE` that contradicts the point value their coordinate implies: twelve in `arc3_top`
+were scored as 2PT field goals, four in `mid_left` and four in `mid_right` as 3PT. All twenty
 sit between 21 and 24 feet and all are jump shots, so they are boundary cases where the
-NBA's coordinate-derived zone label disagrees with the value actually scored.
+recorded coordinate and the value actually scored disagree.
 
 **Stage 2 drops them.** The identity above is load-bearing, and the alternatives were
-worse: valuing by `SHOT_TYPE` breaks it in six zones, valuing by zone knowingly
-misvalues twenty shots. Twenty of 219,160 is 0.009 percent and moves no player's score
-measurably. The filter is a join against the 14-zone reference keeping only rows where
-`zone_value` matches the `SHOT_TYPE`-implied value.
+worse: valuing by coordinate knowingly misvalues twenty shots, and PPS meaning points the
+player actually scored is the metric's whole claim. Twenty of 219,160 is 0.009 percent and
+moves no player's score measurably. The filter keeps only rows where the zone's point value
+matches the `SHOT_TYPE`-implied value.
+
+**Across five seasons this is 407 shots**: 210 / 144 / 21 / 12 / 20. Verified 2026-08-27:
+these are **exactly the same 407 shots** the 14-zone label model dropped, zero either-only.
+The NBA's own zone labels are coordinate-derived too, so both models disagree with
+`SHOT_TYPE` in the same places.
 
 Row counts through cleaning: 219,160 raw, minus 38 backcourt, minus 20 clashes, leaving
 **219,102**. State the drop in the writeup.
 
 ---
 
-## 4. Zone model: 14 zones, taken directly from the NBA
+## 4. Zone model: 10 zones, computed from shot coordinates
 
-Zones are **not derived, not computed, not classified**. The NBA already
-classified every shot. The raw data contains `SHOT_ZONE_BASIC` and
-`SHOT_ZONE_AREA`, and the zone key is those two columns concatenated:
+Zones are computed, from exactly one constants block in `R/zone_model.R`. Rule A4 makes that
+the only place a boundary may be defined; `classify_zone()` and `zone_polygon()` both read it,
+so the classifier and the outline cannot drift apart.
 
-    zone = SHOT_ZONE_BASIC || ' | ' || SHOT_ZONE_AREA
+**This replaced the NBA's 14 labels on 2026-08-27.** Sections of this file below still describe
+the reasoning; ASSUMPTIONS entries 29 to 38 carry the full record.
 
-Verified against 2025-26 data. Counts below are **post-cleaning** and sum to 219,102.
-Add the 38 backcourt shots and the 20 point-value clashes of Section 3 to reach the
-219,160 total in the raw file.
+Counts below are **post-cleaning** and sum to 219,102. Add the 38 backcourt shots and the 20
+point-value clashes of Section 3 to reach the 219,160 total in the raw file.
 
-| SHOT_ZONE_BASIC | SHOT_ZONE_AREA | Points | 2025-26 shots |
-|---|---|---|---|
-| Restricted Area | Center(C) | 2 | 62,253 |
-| In The Paint (Non-RA) | Center(C) | 2 | 39,141 |
-| In The Paint (Non-RA) | Left Side(L) | 2 | 2,253 |
-| In The Paint (Non-RA) | Right Side(R) | 2 | 2,514 |
-| Mid-Range | Left Side(L) | 2 | 5,819 |
-| Mid-Range | Left Side Center(LC) | 2 | 2,861 |
-| Mid-Range | Center(C) | 2 | 4,718 |
-| Mid-Range | Right Side Center(RC) | 2 | 2,806 |
-| Mid-Range | Right Side(R) | 2 | 5,813 |
-| Left Corner 3 | Left Side(L) | 3 | 12,210 |
-| Right Corner 3 | Right Side(R) | 3 | 11,360 |
-| Above the Break 3 | Left Side Center(LC) | 3 | 26,511 |
-| Above the Break 3 | Center(C) | 3 | 17,219 |
-| Above the Break 3 | Right Side Center(RC) | 3 | 23,624 |
+| zone | Points | 2025-26 shots |
+|---|---|---|
+| `rim` | 2 | 62,253 |
+| `paint` | 2 | 43,740 |
+| `mid_left` | 2 | 5,614 |
+| `mid_center` | 2 | 11,010 |
+| `mid_right` | 2 | 5,561 |
+| `corner3_left` | 3 | 12,210 |
+| `arc3_left` | 3 | 18,972 |
+| `arc3_top` | 3 | 32,471 |
+| `arc3_right` | 3 | 15,911 |
+| `corner3_right` | 3 | 11,360 |
 
-An earlier version of this table counted `SHOT_ZONE_BASIC || SHOT_ZONE_AREA` alone and so
-absorbed the clashes into six of these rows. Those six are the ones that changed.
+`rim`, `corner3_left` and `corner3_right` are **membership-identical to the NBA's**
+`Restricted Area | Center(C)`, `Left Corner 3` and `Right Corner 3` — same shots, same counts,
+verified across all 1,089,337 in-play shots. The other seven differ.
 
-These 14 zones reproduce the NBA.com shot chart, which is the visual reference for this
-project. The twenty dropped clashes are the one documented departure.
+**The ids are not interchangeable with the old ones.** `arc3_top` was called `arc3_center`
+during development and was renamed because the 14-zone model had an id of that name for a
+different, narrower wedge. See ASSUMPTIONS entry 35 and the `zone_model` fingerprint below.
 
-**Backcourt is excluded entirely.** Drop rows where `SHOT_ZONE_BASIC = 'Backcourt'`
-or `SHOT_ZONE_AREA = 'Back Court(BC)'`. Both columns must be tested; they do not
-perfectly overlap. That is 38 shots in 2025-26, all buzzer heaves. The NBA's own charts
-exclude them.
+### Why the NBA's labels were replaced
 
-`SHOT_ZONE_RANGE` is a third column that subdivides four zones by distance. **It is
-not used.** It would push the model to 18 zones and create cells too thin to
-estimate. The column stays in the Parquet file, so a distance breakdown remains a
-`GROUP BY` addition later rather than a re-collection.
+They encode two things that are not basketball distinctions, both found while deriving the
+zone outlines for the website, and both verified against the raw data on 2026-08-27.
 
-### Why this replaced the old approach
+**The scheme mixes a rectangular lane with a polar grid.** `In The Paint (Non-RA)` is a
+rectangle minus the restricted-area circle, then cut by a second circle at `r = 80` and only
+then by rays. Inside 8 feet there is no sideways split at all: all 126,511 such shots are
+`Center(C)`, so `paint_left` and `paint_right` exist only in the 8-to-16-foot ring.
 
-The previous version spent multiple sessions deriving radial zone boundaries,
-constructing polygon vertices, and verifying them against a hand-written classifier
-using random point sampling. All of it was unnecessary. Using the NBA's own labels
-is less work and a stronger claim.
+**It changes its angular thresholds at 16 feet.** The area split is exactly 60 and 120 degrees
+in the 8-16 ft band and exactly 36, 72, 108 and 144 degrees beyond it. The centre wedge
+therefore narrows from 60 degrees wide to 36 at exactly `r = 160`: mid-range shots between 60
+and 72 degrees are `Center(C)` inside 16 feet (793 shots) and `Right Side Center(RC)` outside
+it (6,057). A radial line crosses a zone boundary purely by getting further from the hoop.
+
+### Backcourt
+
+**Excluded entirely**, as on the NBA's own charts. `classify_zone()` returns `NA` above
+`Y_BACKCOURT = 397.5` and stage 2 drops those rows. That constant is measured, not geometric,
+and reproduces the retired `SHOT_ZONE_BASIC = 'Backcourt'` filter row for row in every season:
+475 / 459 / 465 / 555 / 38. See ASSUMPTIONS entry 30, and do not "correct" it to the true
+half-court line at 417.5.
+
+### The geometry fingerprint
+
+`zone_model_version()` in `R/zone_model.R` hashes the ids, the point values and every vertex,
+returning a string like `zm10-c5fdd6d04ead`. It is emitted as `zone_model` in both `meta.json`
+and `export/reference/zone_polygons.json`, and the website must assert the two are equal at
+build time, failing if either is missing or they differ. It is computed rather than
+maintained, so no boundary change can fail to move it.
 
 ### No zone-level minimum
 
@@ -267,7 +285,7 @@ project is about. Filtering thin zones would discard the data most relevant to t
 question. Sample-size noise in thin cells is handled by shrinkage (Section 6), not
 by exclusion.
 
-Build a full 14-row grid per player, including zero-attempt cells.
+Build a full 10-row grid per player, including zero-attempt cells.
 
 ---
 
@@ -282,11 +300,14 @@ Both gates apply, and both are computed **after cleaning**.
 
 | Season | Raw | After cleaning | Qualifying | Their shots | Grid rows |
 |---|---|---|---|---|---|
-| 2021-22 | 216,722 | 216,037 | 312 | 193,393 | 4,368 |
-| 2022-23 | 217,220 | 216,617 | 292 | 192,772 | 4,088 |
-| 2023-24 | 218,700 | 218,214 | 281 | 192,590 | 3,934 |
-| 2024-25 | 219,527 | 218,960 | 304 | 194,516 | 4,256 |
-| 2025-26 | 219,160 | 219,102 | 318 | 194,967 | 4,452 |
+| 2021-22 | 216,722 | 216,037 | 312 | 193,393 | 3,120 |
+| 2022-23 | 217,220 | 216,617 | 292 | 192,772 | 2,920 |
+| 2023-24 | 218,700 | 218,214 | 281 | 192,590 | 2,810 |
+| 2024-25 | 219,527 | 218,960 | 304 | 194,516 | 3,040 |
+| 2025-26 | 219,160 | 219,102 | 318 | 194,967 | 3,180 |
+
+Every figure except the grid column is unchanged from the 14-zone model. Redrawing the zones
+moved no shot totals and no player across either gate.
 
 For 2025-26, 436 players clear the games gate and 319 clear the attempts gate; 318 clear
 both, out of 582 who took any shot.
@@ -330,17 +351,19 @@ endpoint.**
 
 ### The problem
 
-Among the 318 qualifying players in 2025-26 there are **4,184** player-zone cells **with
-at least one attempt**. Of those, **228** contain a single attempt and **629** contain
-three or fewer. The fewest zones any qualifying player uses is **4**.
+Among the 318 qualifying players in 2025-26 there are **3,089** player-zone cells **with
+at least one attempt**. Of those, **61** contain a single attempt and **198** contain
+three or fewer. The fewest zones any qualifying player uses is **3**.
 
-These are measured on the true qualifying pool after cleaning, replacing earlier
-estimates of 4,200 / 227 / 630 that came from a 319-player pool filtered on attempts
-without the 20-game gate.
-
-Do not confuse this with the size of the `zone_stats` table. That table has 14 rows
-per player including zero-attempt cells, so 318 x 14 = **4,452** rows. The 4,184 figure
+Do not confuse this with the size of the `zone_stats` table. That table has 10 rows
+per player including zero-attempt cells, so 318 x 10 = **3,180** rows. The 3,089 figure
 counts only cells where the player actually shot.
+
+**Fewer, larger zones made this problem substantially smaller.** Under the 14-zone model the
+same pool had 4,184 occupied cells, 228 of them single-attempt and 629 with three or fewer.
+Single-attempt cells fell by 73 percent. Shrinkage still matters, but it is doing less work
+than it was, and the argument for the 250-attempt gate is correspondingly stronger rather than
+weaker — see Section 5.
 
 A one-attempt cell produces a PPS of either 0 or 2 on a coin flip, which moves that
 player's selection score by roughly 0.02, about a third of the league standard deviation
@@ -355,7 +378,7 @@ discriminative than raw rates.
 
 ### The method
 
-For each of the 14 zones independently, fit a beta-binomial to the `(makes,
+For each of the 10 zones independently, fit a beta-binomial to the `(makes,
 attempts)` pairs across qualifying players, yielding `alpha[z]` and `beta[z]`.
 Then:
 
@@ -387,23 +410,27 @@ year.
 
 ### Fitted values, 2025-26
 
-| Zone | alpha | beta | k | prior mean |
-|---|---|---|---|---|
-| Restricted Area C | 55.7 | 27.9 | 83.6 | 0.667 |
-| Paint L / C / R | 28.2 / 42.4 / 13.4 | 37.0 / 53.5 / 17.7 | 65.2 / 95.8 / 31.1 | 0.432 / 0.442 / 0.431 |
-| Mid-Range L | 38.0 | 55.2 | 93.2 | 0.408 |
-| Mid-Range LC | 59.1 | 90.3 | 149 | 0.396 |
-| Mid-Range C | 33.9 | 45.7 | 79.6 | 0.426 |
-| Mid-Range RC | 38.1 | 56.5 | 94.6 | 0.403 |
-| Mid-Range R | 77.8 | 104 | 182 | 0.427 |
-| Left Corner 3 | 50.8 | 79.7 | 131 | 0.389 |
-| ATB3 LC | 83.3 | 153 | 237 | 0.352 |
-| ATB3 C | 198 | 362 | 560 | 0.354 |
-| ATB3 RC | 137 | 258 | 395 | 0.347 |
-| Right Corner 3 | 44.4 | 70.3 | 115 | 0.387 |
+| Zone | alpha | beta | k | prior mean | qualifying FGA |
+|---|---|---|---|---|---|
+| `rim` | 55.7 | 27.9 | 83.6 | 0.667 | 54,217 |
+| `paint` | 38.6 | 49.2 | 87.8 | 0.439 | 39,640 |
+| `mid_left` | 40.2 | 59.1 | 99.3 | 0.405 | 5,217 |
+| `mid_center` | 44.5 | 63.8 | 108 | 0.411 | 10,350 |
+| `mid_right` | 112 | 151 | 263 | 0.426 | 5,186 |
+| `corner3_left` | 50.8 | 79.7 | 130 | 0.389 | 10,434 |
+| `arc3_left` | 72.7 | 132 | 205 | 0.355 | 16,871 |
+| `arc3_top` | 279 | 521 | 800 | 0.349 | 29,332 |
+| `arc3_right` | 80.9 | 150 | 231 | 0.350 | 14,075 |
+| `corner3_right` | 44.4 | 70.3 | 115 | 0.387 | 9,645 |
 
 Three-point zones shrink far harder than paint zones, which independently reproduces the
 published stabilization findings.
+
+**An unforced check on the refit.** `rim`, `corner3_left` and `corner3_right` reproduce the
+14-zone model's `Restricted Area | Center(C)`, `Left Corner 3` and `Right Corner 3` priors to
+every printed digit — 55.7 / 27.9 / 83.6 / 0.667, 50.8 / 79.7 / 130 / 0.389, 44.4 / 70.3 /
+115 / 0.387. Those are exactly the three zones whose membership is unchanged. Nothing forced
+the agreement; it fell out of an independent fit.
 
 ### Implementation
 
@@ -412,10 +439,9 @@ correlation `rho`, where `k = (1 - rho)/rho`. `vglm` can fail to converge on thi
 **A method-of-moments fallback exists and emits a warning** so a convergence failure
 surfaces rather than silently producing a bad `k`, per rule A9.
 
-**Fallbacks actually used: 3 of 70 zone-seasons.** 2022-23 `In The Paint (Non-RA) | Left
-Side(L)` and `Mid-Range | Left Side Center(LC)`; 2024-25 `Mid-Range | Right Side
-Center(RC)`. 2025-26 needed none — 14 of 14 by MLE. The fallback path is deterministic: a
-clean rebuild reproduces exactly the same three.
+**Fallbacks actually used: 1 of 50 zone-seasons.** 2024-25 `arc3_right`, at k = 69.5.
+2025-26 needed none — 10 of 10 by MLE. Under the 14-zone model it was 3 of 70. The fallback
+path is deterministic: a clean rebuild reproduces the same one.
 
 ---
 
@@ -480,21 +506,25 @@ robustness result.
 
     H[p] = SUM over z of f[p,z]^2
 
-Ranges from about 0.071 (perfectly even across 14 zones) to 1.0 (pure specialist).
+Ranges from 0.100 (perfectly even across 10 zones) to 1.0 (pure specialist). Observed range
+in 2025-26 is 0.111 to 0.758.
 
 Concentration is **not the second axis of the primary chart.** Measured against the
-selection score it correlates r = 0.833 in 2025-26, and 0.77 to 0.85 across seasons, so
+selection score it correlates r = 0.777 in 2025-26, and 0.71 to 0.81 across seasons, so
 the two are largely the same measurement and the scatter is close to a diagonal.
 
-Worse for the framing, the redundancy **increases within position**, which is where the
-comparison is supposed to be meaningful: r = 0.913 for centres, 0.798 for forwards, 0.667
-for guards. An axis that becomes less informative exactly where it is needed does not earn
-its place.
+**The within-position picture is more mixed than it was, and the old claim overstated it.**
+This section previously said the redundancy "increases within position". Under the 10-zone
+model it increases for centres and falls for everyone else: r = 0.904 for centres against
+0.732 for forwards and 0.473 for guards, on an overall 0.777. Only the centre figure is now
+above the league-wide one. The reason not to use concentration as the second axis is
+therefore the overall redundancy plus the centre case, not a uniform within-position pattern.
 
 The four quadrants are not empty, but they are lopsided. On median splits the diagonal
-holds 124 players per cell against 35 in each off-diagonal cell. The "efficient
-generalist" was described as the rarest and most valuable case; it is one of those
-35-player cells and is not a distinct population.
+holds 112 players per cell against 47 in each off-diagonal cell — less extreme than the
+124-against-35 of the 14-zone model, and still lopsided. The "efficient generalist" was
+described as the rarest and most valuable case; it is one of those 47-player cells and is
+not a distinct population.
 
 **Do not build score against concentration.** Section 8a has the replacement.
 
@@ -526,16 +556,16 @@ x is `total_attempts`, y is `score_pooled`, faceted into panels by `POS3`, with 
 extremes labelled.
 
 **The axes are independent enough to carry a scatter**, and unlike concentration the
-relationship does not degrade within position: r = -0.386 overall, -0.485 for centres,
--0.477 for forwards, -0.350 for guards, stable at -0.37 to -0.39 across all five seasons.
+relationship does not degrade within position: r = -0.390 overall, -0.487 for centres,
+-0.482 for forwards, -0.352 for guards, stable at -0.367 to -0.390 across all five seasons.
 
 **All four quadrants populate in every position group.** Median splits within position
-give 7/15/15/7 for centres, 19/37/37/19 for forwards, and 31/48/48/32 for guards.
+give 7/15/15/7 for centres, 18/38/38/18 for forwards, and 32/48/48/31 for guards.
 
 **It makes the volume confound visible.** Mean score falls monotonically as volume rises:
-+0.046 at 250-400 attempts, +0.022 at 400-600, +0.011 at 600-900, -0.022 above 900. The
++0.046 at 250-400 attempts, +0.023 at 400-600, +0.011 at 600-900, -0.022 above 900. The
 top 20 by score have a median of 364 attempts against a league median of 542; the bottom
-20 have a median of 981. Eight of the top 20 sit within 100 shots of the 250-attempt gate.
+20 have a median of 982. Eight of the top 20 sit within 100 shots of the 250-attempt gate.
 See Section 17 for the two readings and why the data cannot separate them.
 
 The quadrants carry meaning under this pairing. High score with high volume is the
@@ -710,7 +740,7 @@ native 24-column schema and reproduced 219,160 rows exactly.
 
 Each of these was considered and rejected. Do not build them.
 
-- **Hex-bin charts.** An arbitrary hexagon grid ignores the 14 zone boundaries the
+- **Hex-bin charts.** An arbitrary hexagon grid ignores the 10 zone boundaries the
   entire pipeline uses, so the chart would visually disagree with the published
   numbers. The previous version built one and it was removed.
 - **A second zone definition of any kind.** Retired as an out-of-scope entry on
@@ -797,7 +827,7 @@ run**. That is a stated portfolio goal: the analysis should be inspectable by so
 does not have NBA Stats API access and does not want to spend hours collecting.
 
 **It does not breach A16.** The finest grain in these tables is the player-zone cell —
-`zone_stats` is 4,452 rows for 2025-26, `player_scores` 318, `zone_priors` 14. There are no
+`zone_stats` is 3,180 rows for 2025-26, `player_scores` 318, `zone_priors` 10. There are no
 shot-level rows and no `GAME_ID`, `LOC_X`, `LOC_Y`, or `ACTION_TYPE` columns. These are the
 output of analysis, not a copy of the source feed. The redistribution boundary A16 draws is
 between shot-level data and derived aggregates, and these fall on the permitted side of it.
@@ -829,7 +859,7 @@ seconds.
 Stages:
 
 1. Ingest shots and rosters (Python, writes partitioned Parquet)
-2. Clean, filter to qualifying players, build the 14-row-per-player zone grid
+2. Clean, filter to qualifying players, build the 10-row-per-player zone grid
 3. Fit priors, compute shrunk PPS, baselines, scores, concentration
 4. Charts
 5. Export JSON
@@ -885,7 +915,7 @@ specifically rather than curl.
 
 All in `data/processed/`, partitioned by season.
 
-**`zone_stats`** — one row per player-zone, 14 rows per player including zeros:
+**`zone_stats`** — one row per player-zone, 10 rows per player including zeros:
 `PLAYER_ID`, `PLAYER_NAME`, `zone`, `zone_value`, `makes`, `attempts`, `fg_pct`,
 `pps_raw`, `shot_freq`, `fg_pct_shrunk`, `pps_shrunk`, `freq_pooled`, `freq_unweighted`,
 `score_contrib`.
@@ -927,10 +957,10 @@ recurring pipeline. Report in the writeup.
 ### Score checks
 
 1. Correlate pooled score against unweighted score. Expect r > 0.95.
-   **Result: 0.9996 to 0.9998 across five seasons.** Passes.
+   **Result: 0.9996 to 0.9998 across five seasons.** Passes. Unchanged by the zone model.
 2. Correlate score against raw overall PPS. Expect **weak** correlation. A strong
    one means the metric has collapsed back into an efficiency measure.
-   **Result: 0.476 to 0.662 (0.577 in 2025-26). Moderate, not weak.** It is *not* the
+   **Result: 0.487 to 0.661 (0.573 in 2025-26). Moderate, not weak.** It is *not* the
    rejected formula — that gives exactly 1.000 on the same players. The driver is rim
    concentration raising both quantities, since the restricted area is simultaneously the
    highest-PPS zone and the one most overweighted relative to the league. Whether 0.58
@@ -938,38 +968,51 @@ recurring pipeline. Report in the writeup.
    comparison, not a formula change.
 3. Correlate score against `zones_used`. **Do not assume a direction** — during design
    this was argued both ways and the reasoning was wrong at least once.
-   **Result: negative, r = -0.635 to -0.724.** Players using all 14 zones average -0.007;
-   the player using 4 scores +0.251. Confounded with concentration rather than independent
-   of it.
+   **Result: negative, r = -0.584 (-0.545 to -0.650 across seasons).**
+
+   **Read the framing, not the number. Under 10 zones this check is testing something
+   different from what it tested under 14.** `zones_used` is capped at 10 and the ceiling is
+   crowded: **282 of 318 players use all ten, 89 percent**, against 207 of 318 at fourteen,
+   which was 65 percent. The variance of the variable itself falls from 2.676 to 0.975.
+
+   So this is no longer a gradient across the league. It is close to a binary, and the
+   correlation is carried almost entirely by the 36 players below the ceiling. Restricted to
+   those, r = -0.433 on 36 players, against -0.626 on 111 under the 14-zone model. The 282 at
+   the ceiling average +0.006; the one player using three zones scores +0.248.
+
+   **A reader who sees only -0.584 will carry away a gradient that no longer exists.** What
+   the check now supports is narrower: extreme specialists score well. That is the same
+   conclusion Section 8 reaches through concentration, so this check has largely stopped being
+   independent evidence.
 4. Check whether centers cluster at one end of the score distribution.
-   **Result: yes, but position explains only R2 = 0.178 (0.156-0.204 across seasons),**
-   F(2,312) = 33.7, p < 1e-13. **82% of the variance is within position.** See Section 8a
+   **Result: yes, but position explains only R2 = 0.170 (0.155-0.198 across seasons),**
+   F(2,312) = 32.0, p < 1e-13. **83% of the variance is within position.** See Section 8a
    and the finding below.
 5. **Removed as invalid.** An earlier version correlated score against restricted-area
    frequency as an indirect proxy for the free-throw bias. Overweighting the restricted
    area is close to the single largest positive term in the score by construction, so a
    high correlation is what the formula guarantees rather than evidence about free throws.
-   Measured at r = 0.86 in 2025-26 and 0.78 to 0.86 across seasons, indistinguishable from
+   Measured at r = 0.856 in 2025-26 and 0.781 to 0.856 across seasons, indistinguishable from
    that structural floor. The free-throw limitation is documented in Section 17 and is
    **not testable from shot-log data alone.**
 
 ### The central finding: within-position discrimination
 
-Centres have SD **0.0848**, which is **139% of the league-wide SD of 0.061**, spanning
--0.053 to +0.286.
+Centres have SD **0.0852**, which is **140% of the league-wide SD of 0.0609**, spanning
+-0.055 to +0.285.
 
-| POS3 | n | mean | SD | range |
-|---|---|---|---|---|
-| C | 44 | +0.0754 | 0.0848 | -0.053 to +0.286 |
-| F | 112 | +0.0256 | 0.0584 | -0.118 to +0.183 |
-| G | 159 | -0.0010 | 0.0418 | -0.117 to +0.145 |
-| Unknown | 3 | -0.0235 | 0.0334 | -0.062 to -0.002 |
+| POS3 | n | mean | SD | % of league SD | range |
+|---|---|---|---|---|---|
+| C | 44 | +0.0742 | 0.0852 | 140% | -0.055 to +0.285 |
+| F | 112 | +0.0263 | 0.0583 | 96% | -0.109 to +0.182 |
+| G | 159 | -0.0002 | 0.0420 | 69% | -0.118 to +0.143 |
+| Unknown | 3 | -0.0232 | 0.0346 | 57% | -0.063 to -0.001 |
 
 The within-position extremes are basketball-interpretable, which is the strongest evidence
 the metric measures allocation rather than role. Centres run Kalkbrenner, Gobert, Hayes at
-the top against Vučević, Adebayo, Embiid at the bottom. Forwards run Gafford,
-Antetokounmpo, Diabaté against Dončić, Murray, Durant. Guards run Payton II, Champagnie,
-Braun against Nembhard, McConnell, DeRozan.
+the top against Lopez, Adebayo, Embiid at the bottom. Forwards run Gafford,
+Antetokounmpo, Diabaté against Murray, Dončić, Durant. Guards run Payton II, Champagnie,
+Braun against McConnell, Nembhard, DeRozan.
 
 **The metric works. The positional clustering is a display problem**, and Section 8 already
 prescribes the remedy. No metric change.
@@ -979,37 +1022,54 @@ prescribes the remedy. No metric change.
 Fit `k[z]` three ways and report a per-zone comparison table: beta-binomial MLE (production
 method), split-half reliability, and cross-validation.
 
-**Result: they diverge.** Median k is 105 (MLE), 157 (split-half), 140 (CV).
+**Result: they diverge.** Median k is 123 (MLE), 160 (split-half), 115 (CV).
 
-    cor(k_cv,    k_mle)   = 0.896   rank 0.838
-    cor(k_split, k_mle)   = -0.081  rank 0.327
-    cor(k_cv,    k_split) = -0.139  rank 0.246
+    cor(k_cv,    k_mle)   = 0.106   rank 0.683
+    cor(k_split, k_mle)   = -0.365  rank -0.067
+    cor(k_cv,    k_split) = -0.303  rank -0.122
 
-MLE and cross-validation agree closely and rank the zones almost identically. Split-half
-agrees with neither on levels. All three disagree most in the three-point zones, **which
-are not the thinnest zones** — a prediction that they would be was tested and failed.
+**The MLE/CV agreement is weaker than this section used to claim, and the claim is corrected
+rather than renumbered.** Under 14 zones it read "MLE and cross-validation agree closely and
+rank the zones almost identically", on a Pearson of 0.896 and a rank of 0.838. Under 10 zones
+the honest statement is that **they rank the zones similarly** — rank 0.683 — and no more than
+that. The Pearson collapse to 0.106 is an artifact: `arc3_right` pins at the 20,000 grid edge,
+and one point at 20,000 against a median of 123 destroys a correlation computed on ten values.
+The rank figure is the one to read, and it is genuinely lower than before. Split-half agrees
+with neither.
 
-**The cross-validated loss surface there is flat, not merely unbounded.** Extending the
-grid to 20,000 removed every boundary hit, so a nominal minimum exists, but held-out loss
-stays within 0.01% of it across 450-20,000 for `ATB3 | Center(C)` and 500-20,000 for the
-right-side-centre equivalent. Two orders of magnitude. `k` is not identified there, and the
-MLE's values sit inside every such interval, so cross-validation does not contradict the
-MLE — it cannot discriminate.
+**Cross-validation now hits the grid ceiling, where under 14 zones it did not.** This section
+previously recorded that extending the grid to 20,000 removed every boundary hit. **That is no
+longer true.** Two of ten zones pin at the edge: `mid_right` is flat from 500 to 20,000 and
+`arc3_right` from 875 to 20,000, and `arc3_top` is flat from 320 to 5,000 without pinning.
 
-**No favourite is picked.** Production stays the beta-binomial MLE, which Section 6
-specifies and which cross-validation independently corroborates.
+The direction of that change is the opposite of what fewer, better-populated cells might
+suggest. **Larger cells make `k` less identified, not more.** Shrinkage weight is estimated
+from how much observed spread exceeds binomial noise; as cells grow, binomial noise shrinks,
+the likelihood flattens in `k`, and a wide range of weights fits about equally well. The MLE's
+values sit inside every flat interval, so cross-validation still does not contradict it. It
+discriminates even less than it did.
+
+**No favourite is picked.** Production stays the beta-binomial MLE, which Section 6 specifies.
+Cross-validation no longer corroborates it as strongly as this section once said; it does not
+contradict it either.
 
 ### Score sensitivity to the shrinkage weight
 
 Rebuilding every player's score under each of the three k vectors, holding the fitted prior
 mean fixed so only k varies:
 
-Rank correlations 0.995 to 0.9985, Pearson 0.9976 to 0.9994. **No player moves more than
-one league SD (0.061); the largest shift under any pairing is 0.015**, a quarter of an SD.
-Between 20 and 52 players move more than 10 rank places, all mid-distribution. **The top
-five and bottom five are identical under all three weightings.**
+Rank correlations 0.9932 to 0.9986, Pearson 0.9964 to 0.9994. **No player moves more than
+one league SD (0.0609); the largest shift under any pairing is 0.0223**, about a third of an
+SD and up from 0.015 under the 14-zone model. Between 14 and 72 players move more than 10 rank
+places, all mid-distribution.
 
-A score sums across 14 zones, and each zone's term is weighted by `(f - f_league)`, which
+**The top five are identical under all three weightings. The bottom five are not.** This
+section previously claimed both ends were, and that is now half wrong. MLE puts Dončić
+fifth-worst where split-half and cross-validation both put McConnell; the other four are the
+same under all three. The claim that survives is the weaker one: the top of the leaderboard is
+invariant to the shrinkage weight and the bottom is invariant to within one player.
+
+A score sums across 10 zones, and each zone's term is weighted by `(f - f_league)`, which
 is small wherever k is uncertain. Cell-level sensitivity does not propagate to the player
 score. **The headline findings are robust to the shrinkage disagreement.**
 
@@ -1045,11 +1105,11 @@ column that earlier versions made conditional on that check is not warranted by 
 evidence currently available.
 
 **Shot volume.** The selection score falls monotonically as volume rises: +0.046 at
-250-400 attempts, +0.022 at 400-600, +0.011 at 600-900, -0.022 above 900. Overall
-r = -0.386, stable across all five seasons, and it holds within position.
+250-400 attempts, +0.023 at 400-600, +0.011 at 600-900, -0.022 above 900. Overall
+r = -0.390, stable across all five seasons at -0.367 to -0.390, and it holds within position.
 
 **Eight of the top 20 scorers sit within 100 shots of the 250-attempt gate**, with a median
-of 364 attempts against a league median of 542. The bottom 20 have a median of 981. That
+of 364 attempts against a league median of 542. The bottom 20 have a median of 982. That
 bears directly on whether the eligibility threshold is doing more work than intended.
 
 Two readings, and the shot log cannot separate them. Either high-usage players genuinely
@@ -1065,11 +1125,11 @@ slope per 1000 attempts:
 
 | Season | pooled | Q1 | Q2 | Q3 | Q4 |
 |---|---|---|---|---|---|
-| 2021-22 | -0.080 | +0.329 | -0.068 | -0.198 | -0.047 |
-| 2022-23 | -0.076 | -0.090 | +0.005 | -0.100 | -0.028 |
-| 2023-24 | -0.067 | +0.146 | +0.145 | -0.041 | -0.026 |
-| 2024-25 | -0.065 | +0.189 | -0.040 | +0.019 | -0.049 |
-| 2025-26 | -0.081 | -0.150 | -0.141 | -0.117 | -0.115 |
+| 2021-22 | -0.080 | +0.316 | -0.075 | -0.201 | -0.044 |
+| 2022-23 | -0.076 | -0.097 | +0.006 | -0.099 | -0.029 |
+| 2023-24 | -0.067 | +0.144 | +0.145 | -0.043 | -0.026 |
+| 2024-25 | -0.065 | +0.183 | -0.057 | +0.015 | -0.046 |
+| 2025-26 | -0.082 | -0.192 | -0.163 | -0.112 | -0.115 |
 
 Q4 is negative in all five seasons; the lower three flip sign. The effect is a **level
 difference between volume bands rather than a smooth gradient through them**, and it sits
@@ -1079,8 +1139,9 @@ which weakens the threshold-artifact reading specifically.
 **Do not correct for volume.** Section 8a puts it on the x-axis so the pattern is visible,
 the same treatment Section 8 gives the position confound.
 
-**Concentration is nearly redundant with the score.** r = 0.833, worsening within position.
-See Section 8.
+**Concentration is nearly redundant with the score.** r = 0.777, and 0.904 within centres
+specifically, though it falls to 0.473 within guards. See Section 8, where the claim that the
+redundancy uniformly worsens within position is corrected.
 
 **Shrinkage weight is not sharply identified in the three-point zones**, though the
 rankings are. See Section 16.
@@ -1284,7 +1345,8 @@ The project is complete when:
 - [x] The three-method `k` comparison table exists, plus the score-sensitivity analysis
 - [x] The primary chart renders, colored by position — **score against shot volume per
       Section 8a**, which replaced the four-quadrant chart the original criterion named
-- [x] Zone charts match the NBA's classification
+- [x] Zone charts render the computed 10-zone model, and `R/07` verifies that the outlines
+      and the classifier agree on every real coordinate
 - [x] The JSON export loads and covers every qualifying player, and `export/SCHEMA.md`
       documents it
 - [x] Known limitations are written up — Section 17 and `README.md`
@@ -1299,8 +1361,8 @@ Beyond that, stop. Do not propose enhancements unless the user asks.
 One interpretable metric, in points per shot, saying whether a player's shot
 allocation adds or subtracts value relative to a league-typical diet given their
 own demonstrated abilities. Alongside it: a breadth measure, per-zone contribution
-breakdowns showing which zones drive each score, and zone charts matching the NBA's
-official classification.
+breakdowns showing which zones drive each score, and zone charts on a 10-zone model
+computed from court geometry.
 
 The intended finding is named players at both extremes. **The primary visual is score
 against shot volume, faceted by position**, because within-position comparison is where
