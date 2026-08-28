@@ -201,8 +201,14 @@ build_zone_stats <- function(season) {
         exp$qualifying_shots, strict)
   cat("\n")
 
+  # arrange, because the SQL above is a GROUP BY with no ORDER BY and DuckDB returns hash
+  # aggregate groups in whatever order the scan produced. Without this the written parquet
+  # differs byte for byte between two runs on identical data, stage 3 inherits the order,
+  # and the volume chart plots its points in a different sequence -- so a committed file
+  # goes dirty on every pipeline run for no reason anyone can see in a diff.
   qualified <- players |>
     filter(qualifies) |>
+    arrange(PLAYER_ID) |>
     mutate(pps_overall_raw = total_points / total_attempts) |>
     select(PLAYER_ID, PLAYER_NAME, total_attempts, games, zones_used, pps_overall_raw)
 

@@ -50,11 +50,6 @@ write_chart <- function(plot, name, season, width, height) {
 # Section 8a primary chart. Concentration was the original second axis and was dropped:
 # it correlates 0.83 with the score and the redundancy worsens within position.
 score_volume_chart <- function(season) {
-  # ggrepel places labels by stochastic search, so an unseeded chart differs between two
-  # runs on identical data. export/charts is committed, so that dirties five SVGs on every
-  # pipeline run and trains a reader to skip diffs in a directory where a real design
-  # change should be visible.
-  set.seed(20260827)
   d <- read_scores(season)
 
   # Unknown stays as its own panel. Section 9 is explicit that players missing a roster
