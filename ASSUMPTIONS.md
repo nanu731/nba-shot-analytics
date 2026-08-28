@@ -985,3 +985,44 @@ of six that had never been offset, which produced 641 of an original 734 grid de
 point on `y = 137.5`, plus the 60 degree ray. That was an oversight, not a choice, and
 offsetting them cut the count to 103. The lesson is that the grid found a real omission that
 the real-coordinate test could not, because no integer `y` equals 137.5. **Run both.**
+
+---
+
+## 39. The ten zone display labels are authored, and the sync refusal is what held until they arrived
+
+**Date:** 2026-08-28 · **Stage:** 2 · **Affects:** `ZONE_REF$zone_label`, `meta.json`, the website
+
+| id | label |
+|---|---|
+| `rim` | Rim |
+| `paint` | Paint |
+| `mid_left` | Left Baseline |
+| `mid_center` | Top of the Key |
+| `mid_right` | Right Baseline |
+| `corner3_left` | Left Corner 3 |
+| `arc3_left` | Left Wing 3 |
+| `arc3_top` | Top of the Arc |
+| `arc3_right` | Right Wing 3 |
+| `corner3_right` | Right Corner 3 |
+
+**Written by the author, not derived.** They are not generated from the ids, not carried over
+from the NBA's retired label strings, and not reconstructable from anything in the repository.
+Do not regenerate them from the ids or "correct" them toward the NBA's vocabulary — these are
+the names a reader sees, and they are basketball names rather than coordinate descriptions.
+`Top of the Key` and `Top of the Arc` are the pair to be careful with: one is mid-range inside
+the three-point line, the other is beyond it.
+
+**`arc3_top` now agrees with its own label.** The placeholder read "Above the Break 3 Center",
+which contradicted the id, and it was deliberately left contradictory rather than made
+plausible — see entry 35 for why that id was renamed away from `arc3_center`. A label that
+looked right would have stopped anyone asking. "Top of the Arc" resolves the contradiction
+honestly instead of hiding it.
+
+**The refusal mechanism worked and is worth recording as a pattern.** From 2026-08-27 the
+placeholder copy sat in the build with `ZONE_LABELS_PROVISIONAL <- TRUE`, `R/05` stamped
+`zone_labels_provisional` into `meta.json`, and `R/06_sync_to_site.R` stopped with an error
+naming the file rather than copying. The flag travelled inside the artifact, so a stale export
+would have been caught as readily as a fresh one. Nothing reached the website in the interval.
+It is kept rather than deleted, because the same gap will reopen if a zone is ever added.
+
+Entry 36, which recorded the placeholders, is superseded by this one.

@@ -21,19 +21,21 @@ source("R/zone_model.R")
 # gone, so a stale lookup misses loudly. Step 7 still owes a model version asserted at site
 # build time, because a missing lookup is not guaranteed to be a visible failure.
 #
-# TODO_ZONE_LABELS: zone_label below is PLACEHOLDER COPY written by the assistant, not by
-# the author, and must not reach the export or any chart a reader sees. The author is
-# supplying wording before the export step. ZONE_LABELS_PROVISIONAL exists so stage 5 can
-# refuse to run while it is TRUE -- wire that assertion in when stage 5 is rewired.
-ZONE_LABELS_PROVISIONAL <- TRUE
+# zone_label is authored copy, written by the author on 2026-08-28. It is not derived from
+# the ids, the NBA's retired label strings, or anything else, and it should not be
+# regenerated from them. These are the names a reader sees.
+#
+# The flag stays because R/05 stamps it into meta.json and R/06 refuses to sync while it is
+# TRUE. It held from 2026-08-27 until the wording arrived, which is what it was for.
+ZONE_LABELS_PROVISIONAL <- FALSE
 
 ZONE_REF <- tibble(
   zone       = ZONE_IDS,
   zone_value = unname(ZONE_VALUE[ZONE_IDS]),
-  zone_label = c("Restricted Area", "Paint (non-RA)",
-                 "Mid-Range Left", "Mid-Range Center", "Mid-Range Right",
-                 "Left Corner 3", "Above the Break 3 Left", "Above the Break 3 Center",
-                 "Above the Break 3 Right", "Right Corner 3"),
+  zone_label = c("Rim", "Paint",
+                 "Left Baseline", "Top of the Key", "Right Baseline",
+                 "Left Corner 3", "Left Wing 3", "Top of the Arc",
+                 "Right Wing 3", "Right Corner 3"),
   zone_order = seq_along(ZONE_IDS)
 )
 
