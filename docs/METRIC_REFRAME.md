@@ -1,5 +1,10 @@
 # Metric reframe: from league-counterfactual allocation to self-relative relocation gain
 
+> **Superseded design draft.** This document contains useful research and
+> reasoning, but later planning changed the relocation cap, the model comparison,
+> and the decision to remove zones from presentation. The active decisions live
+> in `docs/SPATIAL_MODEL_PLAN.md`.
+
 **Status: specification in progress. Nothing in this document has been built. None of it has
 met data. The logic may change before or during implementation.**
 

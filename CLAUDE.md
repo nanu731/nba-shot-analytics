@@ -1,5 +1,11 @@
 # NBA Shot Selection Analysis
 
+> **Legacy Claude-era reference.** This file documents the existing zone model
+> and its historical rules. Codex uses `AGENTS.md` for current repository
+> instructions and `docs/SPATIAL_MODEL_PLAN.md` for the active redesign. Preserve
+> this file as evidence, but do not treat superseded zone decisions as the new
+> model specification.
+
 Sections A, B and C are **rules**. Follow them exactly.
 Sections 1 through 23 are **reference**. Consult them when the task touches them.
 
