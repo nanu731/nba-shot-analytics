@@ -530,6 +530,19 @@ all-player calibration, or whether the model winner generalizes to every player.
 It is therefore a preliminary comparison, not enough by itself to select the
 production model.
 
+**Activated 2026-08-31:** Narayan approved this pre-declared fallback after the
+frozen all-player 5-foot GAM remained active for 4 hours, 24 minutes, and 7
+seconds without completing its first atomic checkpoint. The process was stopped
+gracefully after 3 hours, 44 minutes, and 27 seconds of CPU time. This was a
+practical runtime decision, not a statistical model failure; no GAM result was
+available to judge. Fold-4 and fold-5 make-or-miss outcomes remained sealed.
+The saved 40-player artifact above was independently reproduced from non-outcome
+metadata using seed `20260831`, with exactly 10 players from each folds-1-3
+attempt-volume quartile. The fallback keeps every frozen formula, prior, grid,
+seed, split, fitting method, prediction rule, and sanity check unchanged. Its
+validation result must be labeled preliminary and cannot establish full-league
+performance.
+
 ## Acceptance checks before website work
 
 - The chosen model predicts unseen makes and misses at least as well as the
