@@ -1527,7 +1527,6 @@ calibration <- list()
 player_calibration <- list()
 scored_predictions <- list()
 evaluated_sparse <- list()
-metric_position <- 0L
 for (grid_width in GRID_WIDTHS) {
   validation_grid <- assign_grid_cells(
     validation_outcomes,
@@ -1554,7 +1553,15 @@ for (grid_width in GRID_WIDTHS) {
       evaluated_sparse,
       list(attach_sparse_outcomes(sparse_intervals[[interval_position]], validation_grid))
     )
-    metric_position <- metric_position + 1L
+    metric_position <- which(vapply(
+      model_metrics,
+      function(table) table$grid_width[[1]] == grid_width &&
+        table$model[[1]] == model,
+      logical(1)
+    ))
+    if (length(metric_position) != 1L) {
+      stop("Could not identify one model-metrics table for ", key, call. = FALSE)
+    }
     model_metrics[[metric_position]]$validation_log_loss <-
       mean(evaluation$scored$log_loss)
     calibration <- c(calibration, list(evaluation$calibration))
