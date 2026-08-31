@@ -507,6 +507,27 @@ experiment would necessarily take hours. It is not a benchmark for the 3- or
 the full experiment may take longer. Runtime may size the work but may not
 choose the statistical winner.
 
+**Measured full-league CAR feasibility, 2026-08-31:** after the representative
+40-player fallback selected the approximately 4-foot grid, the frozen replicated
+R-INLA model completed a training-only fit for all 318 eligible players within
+the 30-minute ceiling. It used 116,955 fold-1-to-3 shots, 19,475 observed
+player-cells, and a 49,608-row prediction lattice. Setup took 0.563 seconds,
+fitting took 125.206 seconds, posterior prediction and the sparse-player
+uncertainty calculation took 42.166 seconds, and watchdog wall time was 176.107
+seconds. Sampled process-tree CPU time was approximately 148.88 seconds and peak
+resident memory was approximately 4,135.55 MB. The latter two are one-second
+process-tree samples, not exact operating-system accounting.
+
+The in-memory R-INLA object was 602,114,256 bytes and its reusable serialized
+fit was 2,152,684,399 bytes. The fit returned `fit$ok = TRUE`, mode status zero,
+no captured R-INLA model warnings or messages, finite probabilities for all
+49,608 player-cells, and a different centered spatial surface for every player.
+All 61 applicable pre-validation checks passed. The runtime emitted one
+environment compatibility warning because `arrow` was built under R 4.6.1 while
+the frozen runtime is R 4.6.0; Arrow operations completed successfully. Fold-4
+and fold-5 make/miss outcomes were not read, so this establishes computational
+feasibility only and says nothing about predictive accuracy.
+
 R-INLA is not installed from ordinary CRAN. It uses its own repository, compiled
 binaries, and depends on spatial and sparse-matrix infrastructure including
 `fmesher` and `Matrix`. Stable R-INLA 26.8.7 and its required dependencies were

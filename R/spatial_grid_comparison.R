@@ -13,7 +13,10 @@ suppressPackageStartupMessages({
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 2L) {
   stop(
-    "Usage: Rscript R/spatial_grid_comparison.R <season> <audit|run>",
+    paste(
+      "Usage: Rscript R/spatial_grid_comparison.R <season>",
+      "<audit|run|car-benchmark-audit|car-benchmark>"
+    ),
     call. = FALSE
   )
 }
@@ -23,8 +26,8 @@ mode <- args[[2]]
 if (!grepl("^[0-9]{4}-[0-9]{2}$", season)) {
   stop("season must look like 2025-26", call. = FALSE)
 }
-if (!mode %in% c("audit", "run")) {
-  stop("mode must be audit or run", call. = FALSE)
+if (!mode %in% c("audit", "run", "car-benchmark-audit", "car-benchmark")) {
+  stop("Unknown comparison mode", call. = FALSE)
 }
 if (season != "2025-26") {
   stop("The frozen first comparison is registered only for 2025-26", call. = FALSE)
@@ -50,6 +53,8 @@ GAM_BASIS_SIZE <- 20L
 POSTERIOR_DRAWS <- 4000L
 BOOTSTRAP_DRAWS <- 2000L
 MODEL_THREADS <- 1L
+CAR_BENCHMARK_GRID <- 40L
+CAR_BENCHMARK_CEILING_SEC <- 1800
 SPLIT_SEED <- 20260830L
 FALLBACK_SAMPLE_SEED <- 20260831L
 GAM_DRAW_SEED <- 20260901L
@@ -75,18 +80,53 @@ EXPECTED_SAMPLE_SHA256 <- "bba00938e29c2a365c668d337067f3958e849db9957c8b2d25962
 EXPECTED_ALL_ELIGIBLE_PLAYERS <- 318L
 EXPECTED_FALLBACK_PLAYERS <- 40L
 EXPECTED_SPARSE_PLAYERS <- 10L
-EXPERIMENT_SCOPE <- "predeclared_40_player_fallback"
-MODEL_SPECIFICATION_ID <- "frozen-spatial-grid-comparison-v1-fallback40"
+EXPECTED_ALL_SPARSE_PLAYERS <- 80L
+IS_CAR_BENCHMARK <- mode %in% c("car-benchmark-audit", "car-benchmark")
+ACTIVE_PLAYER_COUNT <- if (IS_CAR_BENCHMARK) {
+  EXPECTED_ALL_ELIGIBLE_PLAYERS
+} else {
+  EXPECTED_FALLBACK_PLAYERS
+}
+ACTIVE_SPARSE_PLAYER_COUNT <- if (IS_CAR_BENCHMARK) {
+  EXPECTED_ALL_SPARSE_PLAYERS
+} else {
+  EXPECTED_SPARSE_PLAYERS
+}
+ACTIVE_SAMPLE_SHA256 <- if (IS_CAR_BENCHMARK) NA_character_ else EXPECTED_SAMPLE_SHA256
+EXPERIMENT_SCOPE <- if (IS_CAR_BENCHMARK) {
+  "all_318_players_training_only_car_benchmark"
+} else {
+  "predeclared_40_player_fallback"
+}
+MODEL_SPECIFICATION_ID <- if (IS_CAR_BENCHMARK) {
+  "frozen-car-full-league-grid40-training-v1"
+} else {
+  "frozen-spatial-grid-comparison-v1-fallback40"
+}
 
 raw_path <- file.path(
   "data", "raw", "shots", paste0("season=", season), "shots.parquet"
 )
-cache_dir <- file.path(
-  "data", "cache", "spatial_grid_comparison", paste0("season=", season)
-)
-result_dir <- file.path(
-  "data", "processed", "spatial_grid_comparison", paste0("season=", season)
-)
+cache_dir <- if (IS_CAR_BENCHMARK) {
+  file.path(
+    "data", "cache", "spatial_car_full_league_benchmark",
+    paste0("season=", season)
+  )
+} else {
+  file.path(
+    "data", "cache", "spatial_grid_comparison", paste0("season=", season)
+  )
+}
+result_dir <- if (IS_CAR_BENCHMARK) {
+  file.path(
+    "data", "processed", "spatial_car_full_league_benchmark",
+    paste0("season=", season)
+  )
+} else {
+  file.path(
+    "data", "processed", "spatial_grid_comparison", paste0("season=", season)
+  )
+}
 fold_path <- file.path(
   "data", "cache", "spatial_pilot", paste0("season=", season),
   "game_folds.parquet"
@@ -169,8 +209,8 @@ load_verified_checkpoint <- function(path, grid_width, model, expected_rows,
     identical(checkpoint$model, model) &&
     identical(checkpoint$specification_id, MODEL_SPECIFICATION_ID) &&
     identical(checkpoint$split_sha256, EXPECTED_SPLIT_SHA256) &&
-    identical(checkpoint$fallback_sample_sha256, EXPECTED_SAMPLE_SHA256) &&
-    identical(checkpoint$player_count, EXPECTED_FALLBACK_PLAYERS)
+    identical(checkpoint$fallback_sample_sha256, ACTIVE_SAMPLE_SHA256) &&
+    identical(checkpoint$player_count, ACTIVE_PLAYER_COUNT)
   if (!valid_header) {
     stop("Existing checkpoint has an invalid or stale header and was preserved: ",
          path, call. = FALSE)
@@ -221,6 +261,22 @@ save_atomic_checkpoint <- function(path, checkpoint) {
   invisible(path)
 }
 
+save_atomic_fit <- function(object, path) {
+  if (file.exists(path)) {
+    stop("Refusing to replace an existing fitted model: ", path, call. = FALSE)
+  }
+  temporary <- tempfile(
+    pattern = paste0(basename(path), ".partial-"),
+    tmpdir = dirname(path)
+  )
+  saveRDS(object, temporary, compress = FALSE)
+  if (!file.rename(temporary, path)) {
+    stop("Could not atomically publish fitted model; partial file preserved: ",
+         temporary, call. = FALSE)
+  }
+  invisible(path)
+}
+
 run_or_reuse_model <- function(grid_width, model, expected_rows,
                                expected_sparse_rows, check_log, runner) {
   path <- checkpoint_path(grid_width, model)
@@ -247,8 +303,8 @@ run_or_reuse_model <- function(grid_width, model, expected_rows,
     model = model,
     specification_id = MODEL_SPECIFICATION_ID,
     split_sha256 = EXPECTED_SPLIT_SHA256,
-    fallback_sample_sha256 = EXPECTED_SAMPLE_SHA256,
-    player_count = EXPECTED_FALLBACK_PLAYERS,
+    fallback_sample_sha256 = ACTIVE_SAMPLE_SHA256,
+    player_count = ACTIVE_PLAYER_COUNT,
     result = result,
     checks = new_checks
   )
@@ -300,6 +356,15 @@ verify_versions <- function(check_log) {
       detail = paste("expected", EXPECTED_VERSIONS[[package]], "found", installed)
     )
   }
+  check_or_stop(
+    check_log, "configuration", check = "package_sn_available",
+    condition = requireNamespace("sn", quietly = TRUE),
+    detail = if (requireNamespace("sn", quietly = TRUE)) {
+      paste("installed version", as.character(packageVersion("sn")))
+    } else {
+      "R-INLA posterior sampling requires the already-installed sn package"
+    }
+  )
 }
 
 verify_frozen_constants <- function(check_log) {
@@ -313,9 +378,24 @@ verify_frozen_constants <- function(check_log) {
     posterior_draws = identical(POSTERIOR_DRAWS, 4000L),
     model_threads = identical(MODEL_THREADS, 1L),
     fallback_sample_seed = identical(FALLBACK_SAMPLE_SEED, 20260831L),
-    fallback_player_count = identical(EXPECTED_FALLBACK_PLAYERS, 40L),
-    sparse_player_count = identical(EXPECTED_SPARSE_PLAYERS, 10L),
-    experiment_scope = identical(EXPERIMENT_SCOPE, "predeclared_40_player_fallback"),
+    active_player_count = identical(
+      ACTIVE_PLAYER_COUNT,
+      if (IS_CAR_BENCHMARK) 318L else 40L
+    ),
+    sparse_player_count = identical(
+      ACTIVE_SPARSE_PLAYER_COUNT,
+      if (IS_CAR_BENCHMARK) 80L else 10L
+    ),
+    experiment_scope = identical(
+      EXPERIMENT_SCOPE,
+      if (IS_CAR_BENCHMARK) {
+        "all_318_players_training_only_car_benchmark"
+      } else {
+        "predeclared_40_player_fallback"
+      }
+    ),
+    fixed_benchmark_grid = !IS_CAR_BENCHMARK ||
+      identical(GRID_EXPECTED_CELLS[["40"]], 156L),
     gam_seed = identical(GAM_DRAW_SEED, 20260901L),
     car_seed = identical(CAR_DRAW_SEED, 20260902L),
     predictive_seed = identical(PREDICTIVE_SEED, 20260903L),
@@ -471,17 +551,32 @@ prepare_metadata <- function(metadata, folds, check_log) {
       n_distinct(all_eligible$PLAYER_ID) == EXPECTED_ALL_ELIGIBLE_PLAYERS,
     detail = paste(nrow(all_eligible), "all-season eligible players")
   )
-  fallback_sample <- read_verified_fallback_sample(
-    joined, all_eligible, check_log
-  )
-  eligible <- fallback_sample |>
-    select(PLAYER_ID, PLAYER_NAME, season_attempts, season_games) |>
-    arrange(PLAYER_ID)
+  if (IS_CAR_BENCHMARK) {
+    fallback_sample <- tibble()
+    eligible <- all_eligible |>
+      select(PLAYER_ID, PLAYER_NAME, season_attempts, season_games) |>
+      arrange(PLAYER_ID)
+  } else {
+    fallback_sample <- read_verified_fallback_sample(
+      joined, all_eligible, check_log
+    )
+    eligible <- fallback_sample |>
+      select(PLAYER_ID, PLAYER_NAME, season_attempts, season_games) |>
+      arrange(PLAYER_ID)
+  }
   check_or_stop(
-    check_log, "data", check = "activated_fallback_player_count",
-    condition = nrow(eligible) == EXPECTED_FALLBACK_PLAYERS &&
-      n_distinct(eligible$PLAYER_ID) == EXPECTED_FALLBACK_PLAYERS,
-    detail = paste(nrow(eligible), "pre-declared fallback players")
+    check_log, "data", check = if (IS_CAR_BENCHMARK) {
+      "full_league_player_count"
+    } else {
+      "activated_fallback_player_count"
+    },
+    condition = nrow(eligible) == ACTIVE_PLAYER_COUNT &&
+      n_distinct(eligible$PLAYER_ID) == ACTIVE_PLAYER_COUNT,
+    detail = paste(nrow(eligible), if (IS_CAR_BENCHMARK) {
+      "all-season eligible players"
+    } else {
+      "pre-declared fallback players"
+    })
   )
 
   player_fold_counts <- joined |>
@@ -527,7 +622,7 @@ prepare_metadata <- function(metadata, folds, check_log) {
     arrange(PLAYER_ID)
   check_or_stop(
     check_log, "data", check = "sparse_player_definition_pre_validation",
-    condition = nrow(sparse_players) == EXPECTED_SPARSE_PLAYERS,
+    condition = nrow(sparse_players) == ACTIVE_SPARSE_PLAYER_COUNT,
     detail = "bottom quarter by folds 1-3 attempt count; ties resolved by PLAYER_ID"
   )
   list(
@@ -978,7 +1073,7 @@ fit_gam <- function(model_data, sparse_players, grid_width, check_log) {
   prediction_elapsed <- proc.time()[["elapsed"]] - prediction_started
 
   fit_path <- file.path(cache_dir, paste0("gam_grid_", grid_width, "_fit.rds"))
-  saveRDS(fit, fit_path, compress = FALSE)
+  save_atomic_fit(fit, fit_path)
   metrics <- tibble(
     grid_width = as.integer(grid_width),
     model = "GAM",
@@ -1195,7 +1290,7 @@ fit_car <- function(model_data, sparse_players, grid_width, check_log) {
   prediction_elapsed <- proc.time()[["elapsed"]] - prediction_started
 
   fit_path <- file.path(cache_dir, paste0("car_grid_", grid_width, "_fit.rds"))
-  saveRDS(fit, fit_path, compress = FALSE)
+  save_atomic_fit(fit, fit_path)
   metrics <- tibble(
     grid_width = as.integer(grid_width),
     model = "CAR",
@@ -1218,6 +1313,544 @@ fit_car <- function(model_data, sparse_players, grid_width, check_log) {
   rm(predictor_draws, fit)
   gc()
   list(probabilities = probabilities, sparse = sparse_intervals, metrics = metrics)
+}
+
+write_atomic_parquet <- function(table, path) {
+  if (file.exists(path)) {
+    stop("Refusing to replace an existing benchmark result: ", path, call. = FALSE)
+  }
+  temporary <- tempfile(
+    pattern = paste0(basename(path), ".partial-"),
+    tmpdir = dirname(path),
+    fileext = ".parquet"
+  )
+  write_parquet(table, temporary)
+  if (!file.rename(temporary, path)) {
+    stop("Could not atomically publish benchmark result; partial file preserved: ",
+         temporary, call. = FALSE)
+  }
+  invisible(path)
+}
+
+parse_ps_cpu_seconds <- function(values) {
+  vapply(values, function(value) {
+    day_parts <- strsplit(value, "-", fixed = TRUE)[[1]]
+    days <- if (length(day_parts) == 2L) as.numeric(day_parts[[1]]) else 0
+    clock <- as.numeric(strsplit(tail(day_parts, 1L), ":", fixed = TRUE)[[1]])
+    seconds <- if (length(clock) == 3L) {
+      clock[[1]] * 3600 + clock[[2]] * 60 + clock[[3]]
+    } else if (length(clock) == 2L) {
+      clock[[1]] * 60 + clock[[2]]
+    } else {
+      clock[[1]]
+    }
+    days * 86400 + seconds
+  }, numeric(1))
+}
+
+process_tree_snapshot <- function(root_pid) {
+  output <- system2("ps", c("-axo", "pid=,ppid=,rss=,time="), stdout = TRUE)
+  process_table <- read.table(
+    text = output,
+    col.names = c("pid", "ppid", "rss_kb", "cpu_time"),
+    colClasses = c("integer", "integer", "numeric", "character")
+  )
+  descendants <- as.integer(root_pid)
+  repeat {
+    children <- process_table$pid[process_table$ppid %in% descendants]
+    expanded <- sort(unique(c(descendants, children)))
+    if (identical(expanded, sort(unique(descendants)))) break
+    descendants <- expanded
+  }
+  selected <- process_table |>
+    filter(pid %in% descendants)
+  list(
+    pids = selected$pid,
+    rss_mb = sum(selected$rss_kb) / 1024,
+    cpu_seconds = setNames(
+      parse_ps_cpu_seconds(selected$cpu_time),
+      as.character(selected$pid)
+    )
+  )
+}
+
+terminate_process_tree <- function(root_pid) {
+  snapshot <- process_tree_snapshot(root_pid)
+  for (pid in rev(snapshot$pids)) {
+    try(tools::pskill(pid, signal = 15L), silent = TRUE)
+  }
+  Sys.sleep(5)
+  remaining <- process_tree_snapshot(root_pid)$pids
+  for (pid in rev(remaining)) {
+    try(tools::pskill(pid, signal = 9L), silent = TRUE)
+  }
+  Sys.sleep(1)
+  process_tree_snapshot(root_pid)$pids
+}
+
+acquire_benchmark_lock <- function() {
+  lock_path <- file.path(cache_dir, "active_run.lock")
+  if (!dir.create(lock_path, recursive = FALSE, showWarnings = FALSE)) {
+    owner_path <- file.path(lock_path, "owner.rds")
+    owner <- tryCatch(readRDS(owner_path), error = function(condition) NULL)
+    owner_pids <- if (is.null(owner)) integer() else {
+      unique(as.integer(c(owner$parent_pid, owner$child_pid)))
+    }
+    active <- vapply(owner_pids, function(pid) {
+      length(system2("ps", c("-p", pid, "-o", "pid="), stdout = TRUE)) > 0L
+    }, logical(1))
+    if (any(active)) {
+      stop(
+        "DUPLICATE RUN SAFEGUARD: a full-league CAR benchmark is already active",
+        call. = FALSE
+      )
+    }
+    preserved <- paste0(
+      lock_path, ".stale-", format(Sys.time(), "%Y%m%dT%H%M%S")
+    )
+    if (!file.rename(lock_path, preserved) ||
+        !dir.create(lock_path, recursive = FALSE, showWarnings = FALSE)) {
+      stop("Could not preserve the stale benchmark lock", call. = FALSE)
+    }
+  }
+  owner <- list(
+    parent_pid = Sys.getpid(),
+    child_pid = NA_integer_,
+    started_at = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    mode = mode,
+    season = season
+  )
+  saveRDS(owner, file.path(lock_path, "owner.rds"))
+  list(path = lock_path, owner = owner)
+}
+
+update_benchmark_lock <- function(lock, child_pid) {
+  lock$owner$child_pid <- as.integer(child_pid)
+  temporary <- tempfile(pattern = "owner.rds.partial-", tmpdir = lock$path)
+  saveRDS(lock$owner, temporary)
+  if (!file.rename(temporary, file.path(lock$path, "owner.rds"))) {
+    stop("Could not atomically update the benchmark lock", call. = FALSE)
+  }
+  lock
+}
+
+release_benchmark_lock <- function(lock) {
+  owner_path <- file.path(lock$path, "owner.rds")
+  owner <- tryCatch(readRDS(owner_path), error = function(condition) NULL)
+  if (!is.null(owner) && identical(owner$parent_pid, Sys.getpid())) {
+    unlink(lock$path, recursive = TRUE)
+  }
+  invisible(NULL)
+}
+
+car_benchmark_worker <- function(audit, check_log) {
+  setup_started <- proc.time()[["elapsed"]]
+  training_shots <- read_allowed_outcomes(
+    audit$folds,
+    FITTING_FOLDS,
+    audit$metadata$eligible$PLAYER_ID
+  )
+  validation_metadata <- audit$metadata$in_play_metadata |>
+    filter(
+      fold == VALIDATION_FOLD,
+      PLAYER_ID %in% audit$metadata$eligible$PLAYER_ID
+    ) |>
+    arrange(GAME_ID, PLAYER_ID, LOC_X, LOC_Y)
+  check_or_stop(
+    check_log, "seal", check = "fitting_uses_only_folds_1_to_3",
+    condition = identical(sort(unique(training_shots$fold)), FITTING_FOLDS),
+    detail = paste("folds", paste(sort(unique(training_shots$fold)), collapse = ","))
+  )
+  check_or_stop(
+    check_log, "seal", check = "fold4_metadata_contains_no_outcome",
+    condition = identical(sort(unique(validation_metadata$fold)), VALIDATION_FOLD) &&
+      !"SHOT_MADE_FLAG" %in% names(validation_metadata),
+    detail = paste(nrow(validation_metadata), "fold-4 metadata rows; no outcomes")
+  )
+  check_or_stop(
+    check_log, "seal", check = "only_fitting_outcomes_in_memory",
+    condition = !any(training_shots$fold %in% c(VALIDATION_FOLD, SEALED_TEST_FOLD)),
+    detail = paste(nrow(training_shots), "outcome rows from folds 1-3 only")
+  )
+
+  model_data <- build_model_data(
+    training_shots,
+    validation_metadata,
+    audit$metadata$eligible,
+    CAR_BENCHMARK_GRID,
+    check_log
+  )
+  observed_player_cells <- sum(model_data$lattice$attempts > 0L)
+  lattice_rows <- nrow(model_data$lattice)
+  check_or_stop(
+    check_log, "benchmark", CAR_BENCHMARK_GRID, "CAR",
+    "full_league_dimensions",
+    length(model_data$player_levels) == EXPECTED_ALL_ELIGIBLE_PLAYERS &&
+      nrow(model_data$grid) == GRID_EXPECTED_CELLS[["40"]] &&
+      lattice_rows == 49608L,
+    paste(length(model_data$player_levels), "players x", nrow(model_data$grid),
+          "cells =", lattice_rows, "lattice rows")
+  )
+  setup_elapsed <- proc.time()[["elapsed"]] - setup_started
+  checkpoint_reused <- file.exists(checkpoint_path(CAR_BENCHMARK_GRID, "CAR"))
+  car <- run_or_reuse_model(
+    CAR_BENCHMARK_GRID,
+    "CAR",
+    lattice_rows,
+    ACTIVE_SPARSE_PLAYER_COUNT,
+    check_log,
+    function() fit_car(
+      model_data,
+      audit$metadata$sparse_players,
+      CAR_BENCHMARK_GRID,
+      check_log
+    )
+  )
+  sparse_limits <- model_data$lattice |>
+    filter(PLAYER_ID %in% audit$metadata$sparse_players$PLAYER_ID) |>
+    summarise(validation_attempts = sum(validation_attempts), .by = PLAYER_ID)
+  verified_sparse <- car$sparse |>
+    left_join(sparse_limits, by = "PLAYER_ID")
+  check_or_stop(
+    check_log, "model", CAR_BENCHMARK_GRID, "CAR",
+    "car_sparse_uncertainty_dimensions",
+    nrow(verified_sparse) == ACTIVE_SPARSE_PLAYER_COUNT &&
+      n_distinct(verified_sparse$PLAYER_ID) == ACTIVE_SPARSE_PLAYER_COUNT,
+    paste(nrow(verified_sparse), "pre-declared sparse-player intervals")
+  )
+  check_or_stop(
+    check_log, "model", CAR_BENCHMARK_GRID, "CAR",
+    "car_sparse_uncertainty_finite_ordered",
+    all(is.finite(verified_sparse$interval_lower)) &&
+      all(is.finite(verified_sparse$interval_upper)) &&
+      all(is.finite(verified_sparse$interval_width)) &&
+      all(verified_sparse$interval_lower >= 0) &&
+      all(verified_sparse$interval_lower <= verified_sparse$interval_upper) &&
+      all(verified_sparse$interval_upper <= verified_sparse$validation_attempts),
+    "all 90% posterior-predictive intervals are finite, ordered, and feasible"
+  )
+  checks <- bind_rows(check_log$records)
+  if (!all(checks$passed)) {
+    stop("At least one frozen sanity check did not pass", call. = FALSE)
+  }
+  list(
+    metrics = car$metrics |>
+      mutate(
+        season = season,
+        experiment_scope = EXPERIMENT_SCOPE,
+        specification_id = MODEL_SPECIFICATION_ID,
+        fitting_folds = paste(FITTING_FOLDS, collapse = ","),
+        fold4_outcomes_read = FALSE,
+        fold5_outcomes_read = FALSE,
+        completed = TRUE,
+        timed_out = FALSE,
+        failed = FALSE,
+        runtime_ceiling_sec = CAR_BENCHMARK_CEILING_SEC,
+        setup_elapsed_sec = setup_elapsed,
+        player_count = length(model_data$player_levels),
+        training_shot_count = nrow(training_shots),
+        observed_player_cell_count = observed_player_cells,
+        cells_per_player = nrow(model_data$grid),
+        lattice_row_count = lattice_rows,
+        approximate_unknown_count = lattice_rows +
+          length(model_data$player_levels) + 2L,
+        checkpoint_reused = checkpoint_reused,
+        r_version = as.character(getRversion()),
+        inla_version = as.character(packageVersion("INLA")),
+        matrix_version = as.character(packageVersion("Matrix")),
+        fmesher_version = as.character(packageVersion("fmesher")),
+        sn_version = as.character(packageVersion("sn")),
+        arrow_version = as.character(packageVersion("arrow")),
+        dplyr_version = as.character(packageVersion("dplyr")),
+        tidyr_version = as.character(packageVersion("tidyr")),
+        split_sha256 = EXPECTED_SPLIT_SHA256,
+        car_draw_seed = CAR_DRAW_SEED,
+        predictive_seed = PREDICTIVE_SEED
+      ),
+    uncertainty = verified_sparse |>
+      summarise(
+        sparse_player_count = n(),
+        minimum_interval_width = min(interval_width),
+        mean_interval_width = mean(interval_width),
+        maximum_interval_width = max(interval_width),
+        all_intervals_finite_ordered_feasible = TRUE
+      ) |>
+      mutate(
+        season = season,
+        experiment_scope = EXPERIMENT_SCOPE,
+        grid_width = CAR_BENCHMARK_GRID,
+        fold4_outcomes_read = FALSE,
+        fold5_outcomes_read = FALSE,
+        .before = 1
+      ),
+    checks = checks |>
+      mutate(
+        season = season,
+        experiment_scope = EXPERIMENT_SCOPE,
+        fold4_outcomes_read = FALSE,
+        fold5_outcomes_read = FALSE,
+        .before = 1
+      )
+  )
+}
+
+write_car_benchmark_results <- function(result) {
+  dir.create(result_dir, recursive = TRUE, showWarnings = FALSE)
+  write_atomic_parquet(
+    result$metrics,
+    file.path(result_dir, "benchmark_metrics.parquet")
+  )
+  write_atomic_parquet(
+    result$uncertainty,
+    file.path(result_dir, "uncertainty_summary.parquet")
+  )
+  write_atomic_parquet(
+    result$checks,
+    file.path(result_dir, "sanity_checks.parquet")
+  )
+  environment_notices <- tibble(
+    season = season,
+    experiment_scope = EXPERIMENT_SCOPE,
+    severity = "compatibility_warning",
+    source = "arrow package startup",
+    notice = paste(
+      "arrow was built under R 4.6.1 while the frozen runtime is R 4.6.0;",
+      "Arrow operations and every benchmark check completed successfully"
+    ),
+    package_build = packageDescription("arrow")$Built,
+    model_warning_count = result$metrics$warning_count,
+    model_message_count = result$metrics$message_count,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE
+  )
+  write_atomic_parquet(
+    environment_notices,
+    file.path(result_dir, "environment_notices.parquet")
+  )
+}
+
+save_car_benchmark_completion_checkpoint <- function(result) {
+  if (!all(result$checks$passed)) {
+    stop("Refusing to publish benchmark completion before all checks pass",
+         call. = FALSE)
+  }
+  model_checkpoint_path <- checkpoint_path(CAR_BENCHMARK_GRID, "CAR")
+  fit_path <- file.path(
+    cache_dir, paste0("car_grid_", CAR_BENCHMARK_GRID, "_fit.rds")
+  )
+  if (!file.exists(model_checkpoint_path) || !file.exists(fit_path)) {
+    stop("Verified CAR fit artifacts are missing", call. = FALSE)
+  }
+  completion <- list(
+    complete = TRUE,
+    season = season,
+    experiment_scope = EXPERIMENT_SCOPE,
+    specification_id = MODEL_SPECIFICATION_ID,
+    split_sha256 = EXPECTED_SPLIT_SHA256,
+    player_count = ACTIVE_PLAYER_COUNT,
+    grid_width = CAR_BENCHMARK_GRID,
+    model_checkpoint_sha256 = sha256_file(model_checkpoint_path),
+    serialized_model_md5 = unname(tools::md5sum(fit_path)),
+    metrics = result$metrics,
+    uncertainty = result$uncertainty,
+    checks = result$checks
+  )
+  save_atomic_checkpoint(
+    file.path(cache_dir, "benchmark_complete_checkpoint.rds"),
+    completion
+  )
+}
+
+load_verified_benchmark_completion <- function() {
+  path <- file.path(cache_dir, "benchmark_complete_checkpoint.rds")
+  if (!file.exists(path)) return(NULL)
+  completion <- tryCatch(
+    readRDS(path),
+    error = function(condition) {
+      stop("Existing benchmark completion checkpoint is unreadable and was preserved: ",
+           conditionMessage(condition), call. = FALSE)
+    }
+  )
+  model_checkpoint_path <- checkpoint_path(CAR_BENCHMARK_GRID, "CAR")
+  fit_path <- file.path(
+    cache_dir, paste0("car_grid_", CAR_BENCHMARK_GRID, "_fit.rds")
+  )
+  result_paths <- file.path(
+    result_dir,
+    c(
+      "benchmark_metrics.parquet", "uncertainty_summary.parquet",
+      "sanity_checks.parquet", "environment_notices.parquet"
+    )
+  )
+  valid <- is.list(completion) &&
+    isTRUE(completion$complete) &&
+    identical(completion$season, season) &&
+    identical(completion$experiment_scope, EXPERIMENT_SCOPE) &&
+    identical(completion$specification_id, MODEL_SPECIFICATION_ID) &&
+    identical(completion$split_sha256, EXPECTED_SPLIT_SHA256) &&
+    identical(completion$player_count, ACTIVE_PLAYER_COUNT) &&
+    identical(completion$grid_width, CAR_BENCHMARK_GRID) &&
+    nrow(completion$metrics) == 1L &&
+    isTRUE(completion$metrics$completed[[1]]) &&
+    nrow(completion$checks) > 0L &&
+    all(completion$checks$passed) &&
+    file.exists(model_checkpoint_path) &&
+    file.exists(fit_path) &&
+    identical(
+      completion$model_checkpoint_sha256,
+      sha256_file(model_checkpoint_path)
+    ) &&
+    identical(
+      completion$serialized_model_md5,
+      unname(tools::md5sum(fit_path))
+    ) &&
+    all(file.exists(result_paths))
+  if (!valid) {
+    stop("Existing benchmark completion checkpoint is inconsistent; artifacts were preserved",
+         call. = FALSE)
+  }
+  completion
+}
+
+write_car_timeout_result <- function(audit, elapsed, cpu_seconds, peak_rss_mb,
+                                     failure = "wall-time ceiling reached") {
+  dir.create(result_dir, recursive = TRUE, showWarnings = FALSE)
+  grid <- make_grid(CAR_BENCHMARK_GRID)
+  training_metadata <- audit$metadata$in_play_metadata |>
+    filter(
+      fold %in% FITTING_FOLDS,
+      PLAYER_ID %in% audit$metadata$eligible$PLAYER_ID
+    )
+  observed_player_cells <- training_metadata |>
+    assign_grid_cells(CAR_BENCHMARK_GRID, grid) |>
+    distinct(PLAYER_ID, cell_id) |>
+    nrow()
+  result <- tibble(
+    season = season,
+    experiment_scope = EXPERIMENT_SCOPE,
+    specification_id = MODEL_SPECIFICATION_ID,
+    grid_width = CAR_BENCHMARK_GRID,
+    model = "CAR",
+    fitting_folds = paste(FITTING_FOLDS, collapse = ","),
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    completed = FALSE,
+    timed_out = identical(failure, "wall-time ceiling reached"),
+    failed = !identical(failure, "wall-time ceiling reached"),
+    failure = failure,
+    runtime_ceiling_sec = CAR_BENCHMARK_CEILING_SEC,
+    watchdog_wall_elapsed_sec = as.numeric(elapsed),
+    approximate_process_tree_cpu_sec = as.numeric(cpu_seconds),
+    approximate_peak_process_tree_rss_mb = as.numeric(peak_rss_mb),
+    player_count = nrow(audit$metadata$eligible),
+    training_shot_count = nrow(training_metadata),
+    observed_player_cell_count = observed_player_cells,
+    cells_per_player = nrow(grid),
+    lattice_row_count = nrow(grid) * nrow(audit$metadata$eligible),
+    approximate_unknown_count = lattice_row_count + player_count + 2L,
+    checkpoint_exists = file.exists(checkpoint_path(CAR_BENCHMARK_GRID, "CAR")),
+    fit_artifact_exists = file.exists(
+      file.path(cache_dir, paste0("car_grid_", CAR_BENCHMARK_GRID, "_fit.rds"))
+    ),
+    warning_count = NA_integer_,
+    warnings = failure,
+    r_version = as.character(getRversion()),
+    inla_version = as.character(packageVersion("INLA")),
+    split_sha256 = EXPECTED_SPLIT_SHA256
+  )
+  write_atomic_parquet(
+    result,
+    file.path(result_dir, "benchmark_metrics.parquet")
+  )
+  result
+}
+
+run_capped_car_benchmark <- function(audit, check_log) {
+  dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+  completed <- load_verified_benchmark_completion()
+  if (!is.null(completed)) {
+    message("Reusing verified completed full-league CAR benchmark")
+    print(completed$metrics, width = Inf)
+    return(invisible(completed))
+  }
+  lock <- acquire_benchmark_lock()
+  on.exit(release_benchmark_lock(lock), add = TRUE)
+  wall_started <- proc.time()[["elapsed"]]
+  job <- parallel::mcparallel(
+    car_benchmark_worker(audit, check_log),
+    detached = FALSE,
+    silent = FALSE
+  )
+  lock <- update_benchmark_lock(lock, job$pid)
+  peak_rss_mb <- 0
+  cpu_by_pid <- numeric()
+  next_report_seconds <- 60
+
+  repeat {
+    elapsed <- proc.time()[["elapsed"]] - wall_started
+    snapshot <- process_tree_snapshot(job$pid)
+    peak_rss_mb <- max(peak_rss_mb, snapshot$rss_mb)
+    if (length(snapshot$cpu_seconds) > 0L) {
+      for (pid in names(snapshot$cpu_seconds)) {
+        previous <- unname(cpu_by_pid[pid])
+        if (length(previous) == 0L || is.na(previous)) previous <- 0
+        cpu_by_pid[pid] <- max(previous, snapshot$cpu_seconds[[pid]])
+      }
+    }
+    collected <- parallel::mccollect(job, wait = FALSE)
+    if (!is.null(collected)) {
+      value <- collected[[1]]
+      total_cpu <- sum(cpu_by_pid, na.rm = TRUE)
+      if (inherits(value, "try-error")) {
+        failure <- paste("benchmark child failed:", as.character(value))
+        result <- write_car_timeout_result(
+          audit, elapsed, total_cpu, peak_rss_mb, failure
+        )
+        print(result, width = Inf)
+        stop(failure, call. = FALSE)
+      }
+      value$metrics <- value$metrics |>
+        mutate(
+          watchdog_wall_elapsed_sec = elapsed,
+          approximate_process_tree_cpu_sec = total_cpu,
+          approximate_peak_process_tree_rss_mb = peak_rss_mb,
+          memory_measurement = paste(
+            "maximum one-second sampled resident memory across the R worker",
+            "and its visible descendants"
+          ),
+          cpu_measurement = paste(
+            "sum of maximum sampled CPU time for each visible process-tree PID"
+          )
+        )
+      save_car_benchmark_completion_checkpoint(value)
+      write_car_benchmark_results(value)
+      print(value$metrics, width = Inf)
+      print(value$uncertainty, width = Inf)
+      return(invisible(value))
+    }
+    if (elapsed >= CAR_BENCHMARK_CEILING_SEC) {
+      remaining <- terminate_process_tree(job$pid)
+      parallel::mccollect(job, wait = FALSE)
+      result <- write_car_timeout_result(
+        audit,
+        elapsed,
+        sum(cpu_by_pid, na.rm = TRUE),
+        peak_rss_mb
+      ) |>
+        mutate(remaining_processes_after_termination = length(remaining))
+      print(result, width = Inf)
+      return(invisible(result))
+    }
+    if (elapsed >= next_report_seconds) {
+      message(
+        "WATCHDOG elapsed_sec=", round(elapsed, 1),
+        " approximate_cpu_sec=", round(sum(cpu_by_pid, na.rm = TRUE), 1),
+        " peak_rss_mb=", round(peak_rss_mb, 1)
+      )
+      next_report_seconds <- next_report_seconds + 60
+    }
+    Sys.sleep(1)
+  }
 }
 
 attach_sparse_outcomes <- function(intervals, validation) {
@@ -1399,7 +2032,7 @@ run_audit <- function(check_log) {
 check_log <- new_check_log()
 audit <- run_audit(check_log)
 
-if (mode == "audit") {
+if (mode %in% c("audit", "car-benchmark-audit")) {
   audit_summary <- tibble(
     season = season,
     experiment_scope = EXPERIMENT_SCOPE,
@@ -1409,11 +2042,16 @@ if (mode == "audit") {
     validation_fold = VALIDATION_FOLD,
     sealed_test_fold = SEALED_TEST_FOLD,
     split_sha256 = EXPECTED_SPLIT_SHA256,
-    fallback_sample_sha256 = EXPECTED_SAMPLE_SHA256,
+    fallback_sample_sha256 = ACTIVE_SAMPLE_SHA256,
     frozen_settings_passed = all(bind_rows(check_log$records)$passed),
     fold5_outcomes_read = FALSE
   )
   print(audit_summary, width = Inf)
+  quit(save = "no", status = 0L)
+}
+
+if (mode == "car-benchmark") {
+  run_capped_car_benchmark(audit, check_log)
   quit(save = "no", status = 0L)
 }
 
