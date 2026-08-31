@@ -15,8 +15,12 @@ if (length(args) < 2L) {
   stop(
     paste(
       "Usage: Rscript R/spatial_gam_aggregation_benchmark.R <season>",
-      "<audit|compare40|compare40_discrete|benchmark318|record_timeout>",
-      "[nondiscrete|discrete] [elapsed_seconds]"
+      paste0(
+        "<audit|compare40|compare40_discrete|compare40_parallel|",
+        "benchmark318|benchmark318_parallel|record_timeout|",
+        "record_parallel_timeout>"
+      ),
+      "[method_or_workers] [elapsed_seconds]"
     ),
     call. = FALSE
   )
@@ -29,14 +33,23 @@ if (season != "2025-26") {
   stop("The frozen experiment is registered only for 2025-26", call. = FALSE)
 }
 if (!mode %in% c(
-  "audit", "compare40", "compare40_discrete", "benchmark318",
-  "record_timeout"
+  "audit", "compare40", "compare40_discrete", "compare40_parallel",
+  "benchmark318", "benchmark318_parallel", "record_timeout",
+  "record_parallel_timeout"
 )) {
   stop("Unknown benchmark mode", call. = FALSE)
 }
 if (mode %in% c("benchmark318", "record_timeout") &&
     !method %in% c("nondiscrete", "discrete")) {
   stop("benchmark method must be nondiscrete or discrete", call. = FALSE)
+}
+if (mode %in% c(
+  "compare40_parallel", "benchmark318_parallel", "record_parallel_timeout"
+)) {
+  worker_count <- suppressWarnings(as.integer(method))
+  if (is.na(worker_count) || worker_count < 2L) {
+    stop("parallel modes require a worker count of at least two", call. = FALSE)
+  }
 }
 
 FITTING_FOLDS <- 1:3
@@ -54,6 +67,8 @@ POSTERIOR_DRAWS <- 4000L
 MODEL_THREADS <- 1L
 EXPECTED_ALL_PLAYERS <- 318L
 EXPECTED_FALLBACK_PLAYERS <- 40L
+EXPECTED_PHYSICAL_CORES <- 10L
+EXPECTED_LOGICAL_CORES <- 10L
 EXPECTED_SPLIT_SHA256 <- paste0(
   "aaee94c1e8380999190aea5f00f8c02c738db6438ffe7b7a1a761d19c5a6ee33"
 )
@@ -97,6 +112,10 @@ result_dir <- file.path(
 equivalence_path <- file.path(result_dir, "aggregation_equivalence.parquet")
 discrete_path <- file.path(result_dir, "discrete_approximation.parquet")
 benchmark_path <- file.path(result_dir, "full_league_benchmark.parquet")
+parallel_equivalence_path <- file.path(result_dir, "parallel_equivalence.parquet")
+parallel_benchmark_path <- file.path(
+  result_dir, "full_league_parallel_benchmark.parquet"
+)
 
 METADATA_COLUMNS <- c(
   "GAME_ID", "PLAYER_ID", "PLAYER_NAME", "LOC_X", "LOC_Y",
@@ -162,6 +181,9 @@ verify_environment <- function() {
   expected <- c(
     mgcv = "1.9.4", arrow = "25.0.0", dplyr = "1.2.1", tidyr = "1.3.2"
   )
+  invisible(lapply(names(expected), function(package) {
+    loadNamespace(package)
+  }))
   found <- vapply(names(expected), function(package) {
     as.character(packageVersion(package))
   }, character(1))
@@ -390,7 +412,7 @@ draw_averaged_predictions <- function(fit, lattice) {
   unlist(pieces, use.names = FALSE)
 }
 
-fit_gam_form <- function(data, lattice, response, discrete) {
+fit_gam_form <- function(data, lattice, response, discrete, cluster = NULL) {
   formula <- gam_formula(response)
   started <- proc.time()[["elapsed"]]
   captured <- capture_conditions(mgcv::bam(
@@ -402,6 +424,7 @@ fit_gam_form <- function(data, lattice, response, discrete) {
     select = FALSE,
     gamma = 1,
     nthreads = MODEL_THREADS,
+    cluster = cluster,
     na.action = na.fail
   ))
   fit_elapsed <- proc.time()[["elapsed"]] - started
@@ -431,6 +454,425 @@ fit_gam_form <- function(data, lattice, response, discrete) {
     warnings = captured$warnings,
     messages = captured$messages
   )
+}
+
+process_cpu_seconds <- function() {
+  timing <- proc.time()
+  unname(timing[["user.self"]] + timing[["sys.self"]])
+}
+
+r_heap_max_mb <- function() {
+  sum(gc()[, "max used", drop = TRUE] * c(56, 8) / 1024^2)
+}
+
+cluster_cpu_seconds <- function(cluster) {
+  values <- parallel::clusterCall(cluster, function() {
+    timing <- proc.time()
+    unname(timing[["user.self"]] + timing[["sys.self"]])
+  })
+  sum(unlist(values, use.names = FALSE))
+}
+
+cluster_heap_max_mb <- function(cluster) {
+  values <- parallel::clusterCall(cluster, function() {
+    sum(gc()[, "max used", drop = TRUE] * c(56, 8) / 1024^2)
+  })
+  sum(unlist(values, use.names = FALSE))
+}
+
+load_exact_fallback_fit <- function(inputs) {
+  path <- file.path(cache_dir, "fallback40_aggregated_exact_fit.rds")
+  if (!file.exists(path)) {
+    stop("The completed exact 40-player fit is missing", call. = FALSE)
+  }
+  fit <- readRDS(path)
+  evidence <- read_parquet(equivalence_path) |> as_tibble()
+  expected_formula <- paste(deparse(gam_formula("aggregated")), collapse = " ")
+  found_formula <- paste(deparse(fit$formula), collapse = " ")
+  if (nrow(evidence) != 1L ||
+      !identical(evidence$fold4_outcomes_read[[1]], FALSE) ||
+      !identical(evidence$fold5_outcomes_read[[1]], FALSE) ||
+      !isTRUE(fit$converged) || length(coef(fit)) != 800L ||
+      length(fit$smooth) != EXPECTED_FALLBACK_PLAYERS || length(fit$sp) != 1L ||
+      !isTRUE(all.equal(
+        unname(fit$sp), evidence$smoothing_parameter_aggregated,
+        tolerance = .Machine$double.eps^0.5
+      )) || found_formula != expected_formula ||
+      nrow(inputs$data$aggregated) != evidence$observed_player_cells) {
+    stop("The completed exact 40-player fit failed provenance checks", call. = FALSE)
+  }
+  list(
+    fit = fit,
+    md5 = unname(tools::md5sum(path)),
+    evidence = evidence
+  )
+}
+
+compare_parallel <- function(worker_count) {
+  setup_started <- proc.time()[["elapsed"]]
+  inputs <- build_inputs("fallback40")
+  exact <- load_exact_fallback_fit(inputs)
+  setup_elapsed <- proc.time()[["elapsed"]] - setup_started
+
+  exact_edf <- smooth_edf(exact$fit)
+  exact_plugin <- plogis(as.numeric(predict(
+    exact$fit, newdata = inputs$data$lattice, type = "link", discrete = FALSE
+  )))
+  exact_draw_probability <- draw_averaged_predictions(
+    exact$fit, inputs$data$lattice
+  )
+
+  cluster <- parallel::makeCluster(worker_count, type = "PSOCK")
+  cluster_stopped <- FALSE
+  on.exit({
+    if (!cluster_stopped) parallel::stopCluster(cluster)
+  }, add = TRUE)
+  worker_cpu_before <- cluster_cpu_seconds(cluster)
+  parent_cpu_before <- process_cpu_seconds()
+  parallel_fit <- fit_gam_form(
+    inputs$data$aggregated,
+    inputs$data$lattice,
+    "aggregated",
+    discrete = FALSE,
+    cluster = cluster
+  )
+  parent_cpu_elapsed <- process_cpu_seconds() - parent_cpu_before
+  worker_cpu_elapsed <- cluster_cpu_seconds(cluster) - worker_cpu_before
+  approximate_peak_r_heap_mb <- r_heap_max_mb() + cluster_heap_max_mb(cluster)
+  parallel::stopCluster(cluster)
+  cluster_stopped <- TRUE
+
+  observed_probability_difference <- max(abs(
+    fitted(exact$fit) - fitted(parallel_fit$fit)
+  ))
+  lattice_probability_difference <- max(abs(
+    exact_plugin - parallel_fit$plugin
+  ))
+  draw_probability_difference <- max(abs(
+    exact_draw_probability - parallel_fit$draw_probability
+  ))
+  log_sp_difference <- abs(log(exact$fit$sp) - log(parallel_fit$fit$sp))
+  edf_difference <- max(abs(exact_edf - parallel_fit$edf))
+  passed <- observed_probability_difference <= AGGREGATION_PROBABILITY_TOLERANCE &&
+    lattice_probability_difference <= AGGREGATION_PROBABILITY_TOLERANCE &&
+    draw_probability_difference <= AGGREGATION_PROBABILITY_TOLERANCE &&
+    log_sp_difference <= AGGREGATION_LOG_SP_TOLERANCE &&
+    edf_difference <= AGGREGATION_EDF_TOLERANCE
+
+  fit_path <- file.path(cache_dir, "fallback40_aggregated_parallel_fit.rds")
+  save_atomic_rds(parallel_fit$fit, fit_path)
+  result <- tibble(
+    season = season,
+    scope = "predeclared_40_player_fallback",
+    method = "exact_nondiscrete_psock_cluster",
+    grid_width = GRID_WIDTH,
+    fitting_folds = inputs$folds,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    physical_cores = EXPECTED_PHYSICAL_CORES,
+    logical_cores = EXPECTED_LOGICAL_CORES,
+    worker_count = worker_count,
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    setup_elapsed_sec = setup_elapsed,
+    exact_single_fit_elapsed_sec = exact$evidence$aggregated_fit_elapsed_sec,
+    parallel_fit_elapsed_sec = parallel_fit$fit_elapsed_sec,
+    parallel_prediction_elapsed_sec = parallel_fit$prediction_elapsed_sec,
+    parent_cpu_elapsed_sec = parent_cpu_elapsed,
+    worker_cpu_elapsed_sec = worker_cpu_elapsed,
+    total_cpu_elapsed_sec = parent_cpu_elapsed + worker_cpu_elapsed,
+    approximate_peak_r_heap_mb_sum = approximate_peak_r_heap_mb,
+    smoothing_parameter_exact = unname(exact$fit$sp),
+    smoothing_parameter_parallel = unname(parallel_fit$fit$sp),
+    maximum_smooth_edf_exact = max(exact_edf),
+    maximum_smooth_edf_parallel = max(parallel_fit$edf),
+    maximum_observed_probability_difference = observed_probability_difference,
+    maximum_lattice_probability_difference = lattice_probability_difference,
+    maximum_draw_probability_difference = draw_probability_difference,
+    absolute_log_smoothing_parameter_difference = log_sp_difference,
+    maximum_smooth_edf_difference = edf_difference,
+    probability_tolerance = AGGREGATION_PROBABILITY_TOLERANCE,
+    log_smoothing_parameter_tolerance = AGGREGATION_LOG_SP_TOLERANCE,
+    edf_tolerance = AGGREGATION_EDF_TOLERANCE,
+    warning_count = length(parallel_fit$warnings),
+    warnings = paste(parallel_fit$warnings, collapse = " | "),
+    reference_fit_md5 = exact$md5,
+    parallel_fit_md5 = unname(tools::md5sum(fit_path)),
+    passed = passed,
+    split_sha256 = inputs$split_sha256,
+    fallback_sample_sha256 = inputs$fallback_sample_sha256
+  )
+  write_atomic_parquet(result, parallel_equivalence_path)
+  print(result, width = Inf)
+  if (!passed) {
+    stop("The exact parallel fit exceeded numerical-rounding tolerances",
+         call. = FALSE)
+  }
+}
+
+benchmark_full_league_parallel <- function(worker_count, worker_pid_path = NULL) {
+  total_wall_started <- proc.time()[["elapsed"]]
+  parent_cpu_started <- process_cpu_seconds()
+  setup_started <- proc.time()[["elapsed"]]
+  inputs <- build_inputs("all318")
+  setup_elapsed <- proc.time()[["elapsed"]] - setup_started
+
+  cluster <- parallel::makeCluster(worker_count, type = "PSOCK")
+  cluster_stopped <- FALSE
+  on.exit({
+    if (!cluster_stopped) parallel::stopCluster(cluster)
+  }, add = TRUE)
+  if (!is.null(worker_pid_path)) {
+    save_atomic_rds(
+      as.integer(unlist(parallel::clusterCall(cluster, Sys.getpid))),
+      worker_pid_path
+    )
+  }
+  worker_cpu_before <- cluster_cpu_seconds(cluster)
+  fit <- fit_gam_form(
+    inputs$data$aggregated,
+    inputs$data$lattice,
+    "aggregated",
+    discrete = FALSE,
+    cluster = cluster
+  )
+  worker_cpu_elapsed <- cluster_cpu_seconds(cluster) - worker_cpu_before
+  approximate_peak_r_heap_mb <- r_heap_max_mb() + cluster_heap_max_mb(cluster)
+  parallel::stopCluster(cluster)
+  cluster_stopped <- TRUE
+
+  total_wall_elapsed <- proc.time()[["elapsed"]] - total_wall_started
+  parent_cpu_elapsed <- process_cpu_seconds() - parent_cpu_started
+  fit_path <- file.path(cache_dir, "all318_aggregated_parallel_fit.rds")
+  save_atomic_rds(fit$fit, fit_path)
+  result <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "exact_nondiscrete_psock_cluster",
+    grid_width = GRID_WIDTH,
+    fitting_folds = inputs$folds,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    physical_cores = EXPECTED_PHYSICAL_CORES,
+    logical_cores = EXPECTED_LOGICAL_CORES,
+    worker_count = worker_count,
+    completed = TRUE,
+    timed_out = FALSE,
+    runtime_ceiling_sec = 1800,
+    setup_elapsed_sec = setup_elapsed,
+    fit_elapsed_sec = fit$fit_elapsed_sec,
+    prediction_elapsed_sec = fit$prediction_elapsed_sec,
+    total_wall_elapsed_sec = total_wall_elapsed,
+    parent_cpu_elapsed_sec = parent_cpu_elapsed,
+    worker_cpu_elapsed_sec = worker_cpu_elapsed,
+    total_cpu_elapsed_sec = parent_cpu_elapsed + worker_cpu_elapsed,
+    cpu_measurement = "R proc.time for parent plus cluster-reported worker CPU",
+    peak_memory_mb = approximate_peak_r_heap_mb,
+    memory_measurement = paste(
+      "sum of per-process maximum R heaps; upper bound because peaks",
+      "may not coincide"
+    ),
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = length(coef(fit$fit)),
+    smooth_count = length(fit$fit$smooth),
+    smoothing_parameter_count = length(fit$fit$sp),
+    smoothing_parameter = unname(fit$fit$sp),
+    maximum_smooth_edf = max(fit$edf),
+    model_object_bytes = as.numeric(object.size(fit$fit)),
+    serialized_model_bytes = as.numeric(file.size(fit_path)),
+    serialized_model_md5 = unname(tools::md5sum(fit_path)),
+    warning_count = length(fit$warnings),
+    warnings = paste(fit$warnings, collapse = " | "),
+    message_count = length(fit$messages),
+    messages = paste(fit$messages, collapse = " | "),
+    split_sha256 = inputs$split_sha256
+  )
+  write_atomic_parquet(result, parallel_benchmark_path)
+  print(result, width = Inf)
+}
+
+parse_ps_cpu_seconds <- function(values) {
+  vapply(values, function(value) {
+    day_parts <- strsplit(value, "-", fixed = TRUE)[[1]]
+    days <- if (length(day_parts) == 2L) as.numeric(day_parts[[1]]) else 0
+    clock <- strsplit(tail(day_parts, 1L), ":", fixed = TRUE)[[1]]
+    clock <- as.numeric(clock)
+    if (length(clock) == 3L) {
+      seconds <- clock[[1]] * 3600 + clock[[2]] * 60 + clock[[3]]
+    } else if (length(clock) == 2L) {
+      seconds <- clock[[1]] * 60 + clock[[2]]
+    } else {
+      seconds <- clock[[1]]
+    }
+    days * 86400 + seconds
+  }, numeric(1))
+}
+
+process_tree_snapshot <- function(root_pid, additional_pids = integer()) {
+  output <- system2(
+    "ps", c("-axo", "pid=,ppid=,rss=,time="), stdout = TRUE
+  )
+  process_table <- read.table(
+    text = output,
+    col.names = c("pid", "ppid", "rss_kb", "cpu_time"),
+    colClasses = c("integer", "integer", "numeric", "character")
+  )
+  descendants <- unique(c(as.integer(root_pid), as.integer(additional_pids)))
+  repeat {
+    children <- process_table$pid[process_table$ppid %in% descendants]
+    expanded <- sort(unique(c(descendants, children)))
+    if (identical(expanded, sort(unique(descendants)))) break
+    descendants <- expanded
+  }
+  selected <- process_table |>
+    filter(pid %in% descendants)
+  list(
+    pids = selected$pid,
+    rss_mb = sum(selected$rss_kb) / 1024,
+    cpu_seconds = sum(parse_ps_cpu_seconds(selected$cpu_time))
+  )
+}
+
+terminate_process_tree <- function(root_pid, additional_pids = integer()) {
+  snapshot <- process_tree_snapshot(root_pid, additional_pids)
+  for (pid in rev(snapshot$pids)) {
+    try(tools::pskill(pid, signal = 15L), silent = TRUE)
+  }
+  Sys.sleep(5)
+  remaining <- process_tree_snapshot(root_pid, additional_pids)$pids
+  for (pid in rev(remaining)) {
+    try(tools::pskill(pid, signal = 9L), silent = TRUE)
+  }
+  invisible(length(remaining) == 0L)
+}
+
+run_capped_parallel_benchmark <- function(worker_count) {
+  ceiling_seconds <- 1800
+  wall_started <- proc.time()[["elapsed"]]
+  dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+  worker_pid_path <- tempfile(
+    pattern = "active_parallel_worker_pids-",
+    tmpdir = cache_dir,
+    fileext = ".rds"
+  )
+  job <- parallel::mcparallel(
+    benchmark_full_league_parallel(worker_count, worker_pid_path),
+    detached = FALSE,
+    silent = FALSE
+  )
+  peak_rss_mb <- 0
+  last_cpu_seconds <- 0
+  next_report_seconds <- 60
+
+  repeat {
+    elapsed <- proc.time()[["elapsed"]] - wall_started
+    worker_pids <- if (file.exists(worker_pid_path)) {
+      tryCatch(readRDS(worker_pid_path), error = function(condition) integer())
+    } else {
+      integer()
+    }
+    snapshot <- process_tree_snapshot(job$pid, worker_pids)
+    peak_rss_mb <- max(peak_rss_mb, snapshot$rss_mb)
+    last_cpu_seconds <- max(last_cpu_seconds, snapshot$cpu_seconds)
+    collected <- parallel::mccollect(job, wait = FALSE)
+    if (!is.null(collected)) {
+      value <- collected[[1]]
+      if (inherits(value, "try-error")) {
+        stop("The capped parallel benchmark child failed: ", value, call. = FALSE)
+      }
+      result <- read_parquet(parallel_benchmark_path) |>
+        as_tibble() |>
+        mutate(
+          watchdog_wall_elapsed_sec = elapsed,
+          watchdog_last_process_tree_cpu_sec = last_cpu_seconds,
+          watchdog_peak_process_tree_rss_mb = peak_rss_mb,
+          watchdog_termination = "completed_before_ceiling"
+        )
+      write_atomic_parquet(result, parallel_benchmark_path)
+      print(result, width = Inf)
+      return(invisible(result))
+    }
+    if (elapsed >= ceiling_seconds) {
+      terminate_process_tree(job$pid, worker_pids)
+      parallel::mccollect(job, wait = FALSE)
+      record_parallel_timeout(
+        worker_count,
+        elapsed,
+        last_cpu_seconds,
+        peak_rss_mb
+      )
+      return(invisible(NULL))
+    }
+    if (elapsed >= next_report_seconds) {
+      message(
+        "WATCHDOG elapsed_sec=", round(elapsed, 1),
+        " process_tree_cpu_sec=", round(last_cpu_seconds, 1),
+        " peak_process_tree_rss_mb=", round(peak_rss_mb, 1)
+      )
+      next_report_seconds <- next_report_seconds + 60
+    }
+    Sys.sleep(1)
+  }
+}
+
+record_parallel_timeout <- function(worker_count, elapsed_seconds, cpu_seconds,
+                                    peak_memory_mb) {
+  inputs <- build_inputs("all318")
+  result <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "exact_nondiscrete_psock_cluster",
+    grid_width = GRID_WIDTH,
+    fitting_folds = paste(FITTING_FOLDS, collapse = ","),
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    physical_cores = EXPECTED_PHYSICAL_CORES,
+    logical_cores = EXPECTED_LOGICAL_CORES,
+    worker_count = worker_count,
+    completed = FALSE,
+    timed_out = TRUE,
+    runtime_ceiling_sec = 1800,
+    setup_elapsed_sec = NA_real_,
+    fit_elapsed_sec = NA_real_,
+    prediction_elapsed_sec = NA_real_,
+    total_wall_elapsed_sec = as.numeric(elapsed_seconds),
+    parent_cpu_elapsed_sec = as.numeric(cpu_seconds),
+    worker_cpu_elapsed_sec = NA_real_,
+    total_cpu_elapsed_sec = NA_real_,
+    cpu_measurement = paste(
+      "watchdog-visible master CPU only; PSOCK worker CPU unavailable because",
+      "macOS reparented workers during this timed-out run"
+    ),
+    peak_memory_mb = as.numeric(peak_memory_mb),
+    memory_measurement = paste(
+      "maximum sampled descendant RSS before worker reparenting; the value is",
+      "an incomplete process-tree measurement afterward"
+    ),
+    players = EXPECTED_ALL_PLAYERS,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = EXPECTED_ALL_PLAYERS * GAM_BASIS_SIZE,
+    smooth_count = EXPECTED_ALL_PLAYERS,
+    smoothing_parameter_count = 1L,
+    smoothing_parameter = NA_real_,
+    maximum_smooth_edf = NA_real_,
+    model_object_bytes = NA_real_,
+    serialized_model_bytes = NA_real_,
+    serialized_model_md5 = NA_character_,
+    warning_count = NA_integer_,
+    warnings = "process exceeded the predeclared wall-time ceiling",
+    message_count = NA_integer_,
+    messages = "",
+    split_sha256 = EXPECTED_SPLIT_SHA256
+  )
+  write_atomic_parquet(result, parallel_benchmark_path)
+  print(result, width = Inf)
 }
 
 build_inputs <- function(scope = c("fallback40", "all318")) {
@@ -726,11 +1168,29 @@ if (mode == "audit") {
   compare_aggregation()
 } else if (mode == "compare40_discrete") {
   compare_discrete()
+} else if (mode == "compare40_parallel") {
+  compare_parallel(worker_count)
 } else if (mode == "benchmark318") {
   benchmark_full_league(discrete = method == "discrete")
+} else if (mode == "benchmark318_parallel") {
+  run_capped_parallel_benchmark(worker_count)
 } else if (mode == "record_timeout") {
   if (length(args) != 4L) {
     stop("record_timeout requires method and elapsed seconds", call. = FALSE)
   }
   record_timeout(method, as.numeric(args[[4]]))
+} else if (mode == "record_parallel_timeout") {
+  if (length(args) != 6L) {
+    stop(paste(
+      "record_parallel_timeout requires workers, elapsed seconds, CPU seconds,",
+      "and peak memory MB"
+    ),
+         call. = FALSE)
+  }
+  record_parallel_timeout(
+    worker_count,
+    as.numeric(args[[4]]),
+    as.numeric(args[[5]]),
+    as.numeric(args[[6]])
+  )
 }
