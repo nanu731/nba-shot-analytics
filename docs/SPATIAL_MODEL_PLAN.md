@@ -562,6 +562,28 @@ Fold-4 and fold-5 make/miss outcomes remained sealed. Treat this as a
 runtime-interrupted computation, not a statistical model failure; do not start
 a replacement run without an explicit new decision.
 
+**Exact-GAM operational recovery, 2026-09-01:** the interrupted exact-GAM attempt
+was archived without deletion under the dated identifier
+`attempt=20260901T054422Z`. Its tracked Parquet manifest records ten original
+and archived paths, byte sizes, and matching pre/post SHA-256 hashes, and it
+identifies the termination as external rather than a statistical model failure.
+
+The active repository path is now
+`/Users/narayanlekhi/projects/nba-shot-analytics`. It moved as one complete Git
+directory from the macOS-protected Documents location. The generated
+LaunchAgent files use absolute paths, so moving the repository back later is
+supported only after regenerating and revalidating both plists.
+
+The dedicated audit-only LaunchAgent
+`com.narayanlekhi.nba-shot-analytics.exact-gam-smoke` completed one run from the
+new path with launchd exit code zero. It used the shared exact-GAM wrapper and
+R executable, verified all 318 players, 116,955 folds-1-to-3 shots, and the
+frozen input hash, and preserved false fold-4/fold-5 outcome-access flags. The
+atomic marker recorded zero PSOCK workers and confirmed that fitting,
+prediction, and uncertainty simulation never started. The smoke LaunchAgent
+was unloaded after verification; the real exact-GAM LaunchAgent was never
+loaded or started.
+
 R-INLA is not installed from ordinary CRAN. It uses its own repository, compiled
 binaries, and depends on spatial and sparse-matrix infrastructure including
 `fmesher` and `Matrix`. Stable R-INLA 26.8.7 and its required dependencies were
