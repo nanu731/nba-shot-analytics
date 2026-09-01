@@ -236,6 +236,16 @@ construction](https://www.stat.ethz.ch/R-manual/R-devel/library/mgcv/html/factor
 [`bam()` fitting choices](https://stat.ethz.ch/R-manual/R-devel/library/mgcv/help/bam.html),
 and [`lpmatrix` prediction](https://www.stat.ethz.ch/R-manual/R-devel/library/mgcv/html/predict.bam.html).
 
+**Approved computational approximation, 2026-09-01:** because the frozen exact
+full-league GAM was impractical, Narayan approved one training-only feasibility
+run with `mgcv::bam(discrete = TRUE)` on the fixed approximately 4-foot grid.
+The formula, 318 player intercepts, 318 player-specific `k = 20` smooths, shared
+`id = 1` smoothing parameter, fREML method, seeds, 4,000 coefficient draws,
+prediction lattice, and posterior-predictive uncertainty calculation remain
+unchanged. Prediction uses `predict.bam(type = "lpmatrix", discrete = TRUE)`.
+This is a computational approximation, not the frozen exact GAM, and must be
+labeled that way in every later comparison.
+
 #### Bayesian CAR
 
 Use the same player-cell rows, adding `NA` outcome rows for zero-attempt cells so
@@ -527,6 +537,30 @@ environment compatibility warning because `arrow` was built under R 4.6.1 while
 the frozen runtime is R 4.6.0; Arrow operations completed successfully. Fold-4
 and fold-5 make/miss outcomes were not read, so this establishes computational
 feasibility only and says nothing about predictive accuracy.
+
+**Measured discrete-GAM evidence, 2026-09-01:** the existing 40-player,
+folds-1-to-3 comparison showed the computational benefit and the approximation
+cost. `discrete = TRUE` reduced fitting time from 29.9 seconds to 1.94 seconds,
+but it failed every pre-declared exact-equivalence tolerance: the maximum
+observed-cell probability difference was 0.00730, the maximum full-lattice
+difference was 0.0207, the mean lattice difference was 0.00130, the absolute
+log smoothing-parameter difference was 0.0172, and the maximum smooth-EDF
+difference was 0.0363. The tolerances were 0.0001, 0.0005, 0.00001, 0.01, and
+0.01 respectively. This evidence rules out calling the discrete computation
+numerically equivalent to the exact GAM.
+
+The first all-318-player discrete-GAM attempt used the same 116,955 fitting
+shots, 19,475 observed player-cells, 49,608-row lattice, 6,360 coefficients,
+318 smooths, and one shared smoothing parameter. The machine or task was
+suspended during execution, so the watchdog observed 2,519 seconds of wall time
+but only approximately 609 seconds of process-tree CPU time before enforcing the
+pre-declared 1,800-second wall-time ceiling on wake. Sampled peak resident memory
+was approximately 3,305 MB. No fit, probabilities, uncertainty result, or atomic
+completion checkpoint was published, and model warnings or convergence could
+not be assessed. A follow-up process check found no benchmark process alive.
+Fold-4 and fold-5 make/miss outcomes remained sealed. Treat this as a
+runtime-interrupted computation, not a statistical model failure; do not start
+a replacement run without an explicit new decision.
 
 R-INLA is not installed from ordinary CRAN. It uses its own repository, compiled
 binaries, and depends on spatial and sparse-matrix infrastructure including

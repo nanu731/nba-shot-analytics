@@ -18,7 +18,7 @@ if (length(args) < 2L) {
       paste0(
         "<audit|compare40|compare40_discrete|compare40_parallel|",
         "benchmark318|benchmark318_parallel|record_timeout|",
-        "record_parallel_timeout>"
+        "record_parallel_timeout|discrete318-audit|discrete318-run>"
       ),
       "[method_or_workers] [elapsed_seconds]"
     ),
@@ -35,7 +35,7 @@ if (season != "2025-26") {
 if (!mode %in% c(
   "audit", "compare40", "compare40_discrete", "compare40_parallel",
   "benchmark318", "benchmark318_parallel", "record_timeout",
-  "record_parallel_timeout"
+  "record_parallel_timeout", "discrete318-audit", "discrete318-run"
 )) {
   stop("Unknown benchmark mode", call. = FALSE)
 }
@@ -63,8 +63,11 @@ MIN_GAMES <- 20L
 MIN_ATTEMPTS <- 250L
 GAM_BASIS_SIZE <- 20L
 GAM_DRAW_SEED <- 20260901L
+PREDICTIVE_SEED <- 20260903L
 POSTERIOR_DRAWS <- 4000L
 MODEL_THREADS <- 1L
+DISCRETE_RUNTIME_CEILING_SEC <- 1800
+SURFACE_TOLERANCE <- 1e-8
 EXPECTED_ALL_PLAYERS <- 318L
 EXPECTED_FALLBACK_PLAYERS <- 40L
 EXPECTED_PHYSICAL_CORES <- 10L
@@ -115,6 +118,14 @@ benchmark_path <- file.path(result_dir, "full_league_benchmark.parquet")
 parallel_equivalence_path <- file.path(result_dir, "parallel_equivalence.parquet")
 parallel_benchmark_path <- file.path(
   result_dir, "full_league_parallel_benchmark.parquet"
+)
+discrete_cache_dir <- file.path(
+  "data", "cache", "spatial_gam_discrete_full_league_benchmark",
+  paste0("season=", season)
+)
+discrete_result_dir <- file.path(
+  "data", "processed", "spatial_gam_discrete_full_league_benchmark",
+  paste0("season=", season)
 )
 
 METADATA_COLUMNS <- c(
@@ -402,7 +413,7 @@ draw_averaged_predictions <- function(fit, lattice) {
     rows <- which(lattice$PLAYER_ID == player_ids[[position]])
     design <- predict(
       fit, newdata = lattice[rows, ], type = "lpmatrix",
-      discrete = isTRUE(fit$discrete)
+      discrete = isTRUE(fit$dinfo$para.discrete)
     )
     active <- which(colSums(abs(design)) > 0)
     eta <- design[, active, drop = FALSE] %*%
@@ -890,6 +901,8 @@ build_inputs <- function(scope = c("fallback40", "all318")) {
     data = data,
     training_shots = nrow(training),
     players = length(selected),
+    player_ids = selected,
+    metadata = metadata,
     folds = paste(FITTING_FOLDS, collapse = ","),
     split_sha256 = EXPECTED_SPLIT_SHA256,
     fallback_sample_sha256 = EXPECTED_SAMPLE_SHA256
@@ -1141,7 +1154,957 @@ record_timeout <- function(method, elapsed_seconds) {
   print(result, width = Inf)
 }
 
-if (mode == "audit") {
+new_discrete_check_log <- function() {
+  new.env(parent = emptyenv())
+}
+
+discrete_check <- function(log, check, condition, detail) {
+  row <- tibble(
+    check = check,
+    passed = isTRUE(condition),
+    detail = as.character(detail)
+  )
+  log$records <- c(log$records, list(row))
+  if (!isTRUE(condition)) {
+    stop("DISCRETE GAM SANITY CHECK FAILED: ", check, " — ", detail,
+         call. = FALSE)
+  }
+  invisible(NULL)
+}
+
+save_new_atomic_rds <- function(object, path) {
+  if (file.exists(path)) {
+    stop("Refusing to replace an existing benchmark artifact: ", path,
+         call. = FALSE)
+  }
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  temporary <- tempfile(
+    pattern = paste0(basename(path), ".partial-"),
+    tmpdir = dirname(path)
+  )
+  saveRDS(object, temporary, compress = FALSE)
+  if (!file.rename(temporary, path)) {
+    stop("Could not atomically publish benchmark artifact; partial preserved: ",
+         temporary, call. = FALSE)
+  }
+  invisible(path)
+}
+
+write_new_atomic_parquet <- function(table, path) {
+  if (file.exists(path)) {
+    stop("Refusing to replace an existing benchmark result: ", path,
+         call. = FALSE)
+  }
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  temporary <- tempfile(
+    pattern = paste0(basename(path), ".partial-"),
+    tmpdir = dirname(path),
+    fileext = ".parquet"
+  )
+  write_parquet(table, temporary)
+  if (!file.rename(temporary, path)) {
+    stop("Could not atomically publish benchmark result; partial preserved: ",
+         temporary, call. = FALSE)
+  }
+  invisible(path)
+}
+
+write_discrete_stage <- function(stage) {
+  dir.create(discrete_cache_dir, recursive = TRUE, showWarnings = FALSE)
+  path <- file.path(discrete_cache_dir, "stage_heartbeat.rds")
+  temporary <- tempfile(pattern = "stage_heartbeat.rds.partial-",
+                        tmpdir = discrete_cache_dir)
+  saveRDS(
+    list(
+      stage = stage,
+      timestamp_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+      process_id = Sys.getpid()
+    ),
+    temporary
+  )
+  if (!file.rename(temporary, path)) {
+    stop("Could not publish the atomic benchmark stage heartbeat", call. = FALSE)
+  }
+  invisible(path)
+}
+
+assign_fixed_grid <- function(shots, grid) {
+  nx <- attr(grid, "nx")
+  ny <- attr(grid, "ny")
+  assigned <- shots |>
+    mutate(
+      x_index = pmin(
+        as.integer(floor((LOC_X - COURT_X_MIN) / GRID_WIDTH)) + 1L,
+        nx
+      ),
+      y_index = pmin(
+        as.integer(floor((LOC_Y - COURT_Y_MIN) / GRID_WIDTH)) + 1L,
+        ny
+      ),
+      cell_id = (y_index - 1L) * nx + x_index
+    )
+  if (any(!assigned$cell_id %in% grid$cell_id)) {
+    stop("A metadata row failed fixed-grid assignment", call. = FALSE)
+  }
+  assigned
+}
+
+load_discrete_reference_evidence <- function() {
+  if (!file.exists(discrete_path)) {
+    stop("The completed 40-player exact-versus-discrete evidence is missing",
+         call. = FALSE)
+  }
+  evidence <- read_parquet(discrete_path) |>
+    as_tibble()
+  valid <- nrow(evidence) == 1L &&
+    identical(evidence$players[[1]], EXPECTED_FALLBACK_PLAYERS) &&
+    identical(evidence$fitting_folds[[1]], paste(FITTING_FOLDS, collapse = ",")) &&
+    identical(evidence$fold4_outcomes_read[[1]], FALSE) &&
+    identical(evidence$fold5_outcomes_read[[1]], FALSE) &&
+    identical(evidence$split_sha256[[1]], EXPECTED_SPLIT_SHA256) &&
+    identical(evidence$fallback_sample_sha256[[1]], EXPECTED_SAMPLE_SHA256)
+  if (!valid) {
+    stop("The 40-player discrete evidence failed provenance checks", call. = FALSE)
+  }
+  evidence
+}
+
+prepare_discrete_full_inputs <- function(check_log) {
+  setup_started <- proc.time()[["elapsed"]]
+  inputs <- build_inputs("all318")
+  reference <- load_discrete_reference_evidence()
+  grid <- inputs$data$grid
+  validation_metadata <- inputs$metadata |>
+    filter(fold == 4L, PLAYER_ID %in% inputs$player_ids) |>
+    arrange(GAME_ID, PLAYER_ID, LOC_X, LOC_Y)
+  discrete_check(
+    check_log, "exactly_318_eligible_players",
+    inputs$players == EXPECTED_ALL_PLAYERS &&
+      length(inputs$player_ids) == EXPECTED_ALL_PLAYERS,
+    paste(inputs$players, "eligible players")
+  )
+  discrete_check(
+    check_log, "fitting_outcomes_only_folds_1_to_3",
+    identical(inputs$folds, paste(FITTING_FOLDS, collapse = ",")),
+    paste("fitting folds", inputs$folds)
+  )
+  discrete_check(
+    check_log, "fold4_metadata_has_no_outcome",
+    nrow(validation_metadata) > 0L &&
+      !"SHOT_MADE_FLAG" %in% names(validation_metadata),
+    paste(nrow(validation_metadata), "fold-4 metadata rows; no outcome column")
+  )
+  discrete_check(
+    check_log, "fold5_outcomes_sealed",
+    !"SHOT_MADE_FLAG" %in% names(inputs$metadata),
+    "full-season metadata contains no make/miss outcome column"
+  )
+  discrete_check(
+    check_log, "fixed_four_foot_grid",
+    nrow(grid) == GRID_CELLS && GRID_WIDTH == 40L,
+    paste(nrow(grid), "cells at width", GRID_WIDTH)
+  )
+  validation_counts <- validation_metadata |>
+    assign_fixed_grid(grid) |>
+    count(PLAYER_ID, cell_id, name = "validation_attempts")
+  lattice <- inputs$data$lattice |>
+    left_join(validation_counts, by = c("PLAYER_ID", "cell_id")) |>
+    mutate(validation_attempts = coalesce(as.integer(validation_attempts), 0L)) |>
+    arrange(PLAYER_ID, cell_id)
+  training_counts <- inputs$data$aggregated |>
+    summarise(fitting_attempts = sum(attempts), .by = PLAYER_ID) |>
+    right_join(tibble(PLAYER_ID = inputs$player_ids), by = "PLAYER_ID") |>
+    arrange(fitting_attempts, PLAYER_ID)
+  discrete_check(
+    check_log, "every_player_has_fitting_attempts",
+    !anyNA(training_counts$fitting_attempts) &&
+      all(training_counts$fitting_attempts > 0L),
+    paste(min(training_counts$fitting_attempts), "minimum fitting attempts")
+  )
+  sparse_players <- training_counts |>
+    mutate(volume_quarter = ntile(row_number(), 4L)) |>
+    filter(volume_quarter == 1L) |>
+    arrange(PLAYER_ID)
+  discrete_check(
+    check_log, "sparse_player_definition",
+    nrow(sparse_players) == 80L,
+    "80 players in the bottom quarter by folds-1-to-3 attempts"
+  )
+  inputs$data$lattice <- lattice
+  inputs$validation_metadata_rows <- nrow(validation_metadata)
+  inputs$sparse_players <- sparse_players
+  inputs$reference <- reference
+  inputs$setup_elapsed_sec <- proc.time()[["elapsed"]] - setup_started
+  inputs
+}
+
+minimum_discrete_surface_rmse <- function(centered_surface) {
+  surface_matrix <- matrix(
+    centered_surface,
+    nrow = GRID_CELLS,
+    ncol = EXPECTED_ALL_PLAYERS
+  )
+  distances <- as.matrix(dist(t(surface_matrix))) / sqrt(GRID_CELLS)
+  distances[lower.tri(distances, diag = TRUE)] <- NA_real_
+  min(distances, na.rm = TRUE)
+}
+
+simulate_discrete_totals <- function(probability_draws, attempts) {
+  simulated <- matrix(
+    rbinom(
+      length(probability_draws),
+      size = rep(as.integer(attempts), times = POSTERIOR_DRAWS),
+      prob = as.vector(probability_draws)
+    ),
+    nrow = nrow(probability_draws),
+    ncol = POSTERIOR_DRAWS
+  )
+  colSums(simulated)
+}
+
+fit_full_league_discrete_gam <- function(inputs, check_log) {
+  formula <- gam_formula("aggregated")
+  expected_formula <- paste(
+    deparse(gam_formula("aggregated")), collapse = " "
+  )
+  write_discrete_stage("fitting_discrete_gam")
+  fit_started <- proc.time()[["elapsed"]]
+  captured <- capture_conditions(mgcv::bam(
+    formula,
+    family = binomial(link = "logit"),
+    data = inputs$data$aggregated,
+    method = "fREML",
+    discrete = TRUE,
+    select = FALSE,
+    gamma = 1,
+    nthreads = MODEL_THREADS,
+    na.action = na.fail
+  ))
+  fit_elapsed <- proc.time()[["elapsed"]] - fit_started
+  fit <- captured$value
+  edf <- smooth_edf(fit)
+  discrete_check(
+    check_log, "gam_formula_unchanged",
+    paste(deparse(fit$formula), collapse = " ") == expected_formula,
+    expected_formula
+  )
+  discrete_check(
+    check_log, "discrete_amendment_active",
+    isTRUE(fit$dinfo$para.discrete),
+    "mgcv fit records para.discrete = TRUE"
+  )
+  discrete_check(
+    check_log, "gam_converged",
+    isTRUE(fit$converged),
+    paste("converged =", fit$converged)
+  )
+  discrete_check(
+    check_log, "gam_finite_coefficients",
+    all(is.finite(coef(fit))),
+    paste(length(coef(fit)), "finite coefficients")
+  )
+  discrete_check(
+    check_log, "gam_coefficient_count",
+    length(coef(fit)) == EXPECTED_ALL_PLAYERS * GAM_BASIS_SIZE,
+    paste(length(coef(fit)), "coefficients")
+  )
+  discrete_check(
+    check_log, "gam_one_shared_smoothing_parameter",
+    length(fit$sp) == 1L,
+    paste(length(fit$sp), "smoothing parameter")
+  )
+  discrete_check(
+    check_log, "gam_one_smooth_per_player",
+    length(fit$smooth) == EXPECTED_ALL_PLAYERS,
+    paste(length(fit$smooth), "player-specific smooths")
+  )
+  discrete_check(
+    check_log, "gam_basis_ceiling_not_exhausted",
+    all(edf < 0.95 * (GAM_BASIS_SIZE - 1L)),
+    paste("maximum smooth EDF", format(max(edf), digits = 10))
+  )
+
+  write_discrete_stage("drawing_and_predicting_full_lattice")
+  prediction_started <- proc.time()[["elapsed"]]
+  covariance <- vcov(fit, unconditional = TRUE)
+  discrete_check(
+    check_log, "gam_finite_unconditional_covariance",
+    all(is.finite(covariance)),
+    paste(nrow(covariance), "by", ncol(covariance), "finite covariance")
+  )
+  set_frozen_rng(GAM_DRAW_SEED)
+  coefficient_draws <- mgcv::rmvn(
+    POSTERIOR_DRAWS,
+    mu = coef(fit),
+    V = covariance
+  )
+  player_levels <- levels(inputs$data$lattice$player_factor)
+  probabilities <- numeric(nrow(inputs$data$lattice))
+  centered_links <- numeric(nrow(inputs$data$lattice))
+  sparse_draws <- vector("list", nrow(inputs$sparse_players))
+  names(sparse_draws) <- as.character(inputs$sparse_players$PLAYER_ID)
+  for (player_position in seq_along(player_levels)) {
+    player_level <- player_levels[[player_position]]
+    rows <- which(inputs$data$lattice$player_factor == player_level)
+    player_lattice <- inputs$data$lattice[rows, ]
+    design <- predict(
+      fit,
+      newdata = player_lattice,
+      type = "lpmatrix",
+      discrete = TRUE
+    )
+    active <- which(colSums(abs(design)) > 0)
+    eta_draws <- design[, active, drop = FALSE] %*%
+      t(coefficient_draws[, active, drop = FALSE])
+    probability_draws <- plogis(eta_draws)
+    probabilities[rows] <- rowMeans(probability_draws)
+    plugin_link <- as.numeric(
+      design[, active, drop = FALSE] %*% coef(fit)[active]
+    )
+    centered_links[rows] <- plugin_link - mean(plugin_link)
+    sparse_name <- as.character(player_level)
+    if (sparse_name %in% names(sparse_draws)) {
+      used <- player_lattice$validation_attempts > 0L
+      sparse_draws[[sparse_name]] <- list(
+        probabilities = probability_draws[used, , drop = FALSE],
+        attempts = player_lattice$validation_attempts[used]
+      )
+    }
+  }
+  prediction_elapsed <- proc.time()[["elapsed"]] - prediction_started
+  discrete_check(
+    check_log, "gam_finite_predictions",
+    all(is.finite(probabilities)),
+    paste(length(probabilities), "finite draw-averaged probabilities")
+  )
+  discrete_check(
+    check_log, "gam_probability_bounds",
+    all(probabilities >= 0 & probabilities <= 1),
+    paste("range", paste(range(probabilities), collapse = " to "))
+  )
+  minimum_rmse <- minimum_discrete_surface_rmse(centered_links)
+  discrete_check(
+    check_log, "gam_distinct_player_surfaces",
+    is.finite(minimum_rmse) && minimum_rmse > SURFACE_TOLERANCE,
+    paste("minimum centered-surface RMSE", format(minimum_rmse, digits = 10))
+  )
+
+  write_discrete_stage("simulating_sparse_player_uncertainty")
+  uncertainty_started <- proc.time()[["elapsed"]]
+  set_frozen_rng(PREDICTIVE_SEED)
+  sparse_intervals <- lapply(names(sparse_draws), function(player_id) {
+    values <- sparse_draws[[player_id]]
+    if (is.null(values) || nrow(values$probabilities) == 0L) {
+      stop("A sparse player has no fold-4 metadata support", call. = FALSE)
+    }
+    total_draws <- simulate_discrete_totals(
+      values$probabilities,
+      values$attempts
+    )
+    tibble(
+      PLAYER_ID = as.integer(player_id),
+      validation_attempts = sum(values$attempts),
+      interval_lower = as.numeric(quantile(total_draws, 0.05, names = FALSE)),
+      interval_upper = as.numeric(quantile(total_draws, 0.95, names = FALSE))
+    ) |>
+      mutate(interval_width = interval_upper - interval_lower)
+  }) |>
+    bind_rows() |>
+    arrange(PLAYER_ID)
+  uncertainty_elapsed <- proc.time()[["elapsed"]] - uncertainty_started
+  discrete_check(
+    check_log, "gam_sparse_uncertainty_dimensions",
+    nrow(sparse_intervals) == 80L &&
+      n_distinct(sparse_intervals$PLAYER_ID) == 80L,
+    paste(nrow(sparse_intervals), "sparse-player intervals")
+  )
+  discrete_check(
+    check_log, "gam_sparse_uncertainty_finite_ordered",
+    all(is.finite(sparse_intervals$interval_lower)) &&
+      all(is.finite(sparse_intervals$interval_upper)) &&
+      all(is.finite(sparse_intervals$interval_width)) &&
+      all(sparse_intervals$interval_lower >= 0) &&
+      all(sparse_intervals$interval_lower <= sparse_intervals$interval_upper) &&
+      all(sparse_intervals$interval_upper <= sparse_intervals$validation_attempts),
+    "all 90% posterior-predictive intervals are finite, ordered, and feasible"
+  )
+  checks <- bind_rows(check_log$records)
+  discrete_check(
+    check_log, "all_applicable_checks_passed",
+    all(checks$passed),
+    paste(nrow(checks), "prior checks passed")
+  )
+  checks <- bind_rows(check_log$records)
+
+  write_discrete_stage("all_checks_passed_serializing_fit")
+  fit_path <- file.path(discrete_cache_dir, "gam_discrete_grid_40_fit.rds")
+  model_object_bytes <- as.numeric(object.size(fit))
+  save_new_atomic_rds(fit, fit_path)
+  metrics <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_discrete_approximation",
+    specification_id = "frozen-gam-grid40-discrete-computation-v1",
+    formula = expected_formula,
+    grid_width = GRID_WIDTH,
+    fitting_folds = paste(FITTING_FOLDS, collapse = ","),
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    completed = TRUE,
+    timed_out = FALSE,
+    failed = FALSE,
+    runtime_ceiling_sec = DISCRETE_RUNTIME_CEILING_SEC,
+    setup_elapsed_sec = inputs$setup_elapsed_sec,
+    fit_elapsed_sec = fit_elapsed,
+    prediction_elapsed_sec = prediction_elapsed,
+    uncertainty_elapsed_sec = uncertainty_elapsed,
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = length(coef(fit)),
+    smooth_count = length(fit$smooth),
+    basis_size = GAM_BASIS_SIZE,
+    smoothing_parameter_count = length(fit$sp),
+    smoothing_parameter = unname(fit$sp),
+    maximum_smooth_edf = max(edf),
+    minimum_centered_surface_rmse = minimum_rmse,
+    minimum_probability = min(probabilities),
+    maximum_probability = max(probabilities),
+    posterior_draws = POSTERIOR_DRAWS,
+    gam_draw_seed = GAM_DRAW_SEED,
+    predictive_seed = PREDICTIVE_SEED,
+    model_object_bytes = model_object_bytes,
+    serialized_model_bytes = as.numeric(file.size(fit_path)),
+    serialized_model_md5 = unname(tools::md5sum(fit_path)),
+    warning_count = length(captured$warnings),
+    warnings = paste(captured$warnings, collapse = " | "),
+    message_count = length(captured$messages),
+    messages = paste(captured$messages, collapse = " | "),
+    r_version = as.character(getRversion()),
+    mgcv_version = as.character(packageVersion("mgcv")),
+    arrow_version = as.character(packageVersion("arrow")),
+    dplyr_version = as.character(packageVersion("dplyr")),
+    tidyr_version = as.character(packageVersion("tidyr")),
+    split_sha256 = EXPECTED_SPLIT_SHA256
+  )
+  rm(coefficient_draws, covariance, sparse_draws, fit)
+  gc()
+  list(
+    metrics = metrics,
+    probabilities = tibble(
+      PLAYER_ID = inputs$data$lattice$PLAYER_ID,
+      cell_id = inputs$data$lattice$cell_id,
+      probability = probabilities
+    ),
+    sparse_intervals = sparse_intervals,
+    checks = checks
+  )
+}
+
+discrete_result_paths <- function() {
+  file.path(
+    discrete_result_dir,
+    c(
+      "benchmark_metrics.parquet", "uncertainty_summary.parquet",
+      "sanity_checks.parquet", "exact_discrete_reference.parquet",
+      "environment_notices.parquet"
+    )
+  )
+}
+
+write_discrete_results <- function(result, reference) {
+  paths <- discrete_result_paths()
+  uncertainty_summary <- result$sparse_intervals |>
+    summarise(
+      sparse_player_count = n(),
+      minimum_interval_width = min(interval_width),
+      mean_interval_width = mean(interval_width),
+      maximum_interval_width = max(interval_width),
+      all_intervals_finite_ordered_feasible = TRUE
+    ) |>
+    mutate(
+      season = season,
+      scope = "all_318_eligible_players_training_only",
+      method = "aggregated_discrete_approximation",
+      grid_width = GRID_WIDTH,
+      fold4_outcomes_read = FALSE,
+      fold5_outcomes_read = FALSE,
+      .before = 1
+    )
+  checks <- result$checks |>
+    mutate(
+      season = season,
+      scope = "all_318_eligible_players_training_only",
+      method = "aggregated_discrete_approximation",
+      grid_width = GRID_WIDTH,
+      fold4_outcomes_read = FALSE,
+      fold5_outcomes_read = FALSE,
+      .before = 1
+    )
+  reference_summary <- reference |>
+    transmute(
+      season,
+      scope,
+      comparison = "40-player exact versus discrete training-only evidence",
+      grid_width,
+      fitting_folds,
+      fold4_outcomes_read,
+      fold5_outcomes_read,
+      players,
+      training_shots,
+      observed_player_cells,
+      exact_fit_elapsed_sec,
+      discrete_fit_elapsed_sec,
+      maximum_observed_probability_difference,
+      maximum_lattice_probability_difference,
+      mean_lattice_probability_difference,
+      maximum_draw_probability_difference,
+      absolute_log_smoothing_parameter_difference,
+      maximum_smooth_edf_difference,
+      observed_probability_tolerance,
+      lattice_probability_tolerance,
+      mean_probability_tolerance,
+      log_smoothing_parameter_tolerance,
+      edf_tolerance,
+      passed,
+      split_sha256,
+      fallback_sample_sha256
+    )
+  environment_notices <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    severity = "compatibility_warning",
+    source = "arrow package startup",
+    notice = paste(
+      "arrow was built under R 4.6.1 while the frozen runtime is R 4.6.0;",
+      "Arrow operations and every benchmark check completed successfully"
+    ),
+    package_build = packageDescription("arrow")$Built,
+    model_warning_count = result$metrics$warning_count,
+    model_message_count = result$metrics$message_count,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE
+  )
+  tables <- list(
+    result$metrics,
+    uncertainty_summary,
+    checks,
+    reference_summary,
+    environment_notices
+  )
+  for (index in seq_along(paths)) {
+    write_new_atomic_parquet(tables[[index]], paths[[index]])
+  }
+}
+
+save_discrete_completion <- function(result) {
+  if (!all(result$checks$passed)) {
+    stop("Refusing to publish completion before every check passes",
+         call. = FALSE)
+  }
+  fit_path <- file.path(discrete_cache_dir, "gam_discrete_grid_40_fit.rds")
+  if (!file.exists(fit_path) ||
+      !identical(
+        unname(tools::md5sum(fit_path)),
+        result$metrics$serialized_model_md5[[1]]
+      )) {
+    stop("The discrete fit artifact is missing or has the wrong hash",
+         call. = FALSE)
+  }
+  checkpoint <- list(
+    complete = TRUE,
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_discrete_approximation",
+    specification_id = "frozen-gam-grid40-discrete-computation-v1",
+    split_sha256 = EXPECTED_SPLIT_SHA256,
+    player_count = EXPECTED_ALL_PLAYERS,
+    grid_width = GRID_WIDTH,
+    fit_md5 = result$metrics$serialized_model_md5[[1]],
+    result = result
+  )
+  save_new_atomic_rds(
+    checkpoint,
+    file.path(discrete_cache_dir, "benchmark_complete_checkpoint.rds")
+  )
+}
+
+load_discrete_completion <- function() {
+  checkpoint_path <- file.path(
+    discrete_cache_dir, "benchmark_complete_checkpoint.rds"
+  )
+  if (!file.exists(checkpoint_path)) return(NULL)
+  checkpoint <- tryCatch(
+    readRDS(checkpoint_path),
+    error = function(condition) {
+      stop("Existing discrete benchmark checkpoint is unreadable and was preserved: ",
+           conditionMessage(condition), call. = FALSE)
+    }
+  )
+  fit_path <- file.path(discrete_cache_dir, "gam_discrete_grid_40_fit.rds")
+  valid <- is.list(checkpoint) &&
+    isTRUE(checkpoint$complete) &&
+    identical(checkpoint$season, season) &&
+    identical(checkpoint$scope, "all_318_eligible_players_training_only") &&
+    identical(checkpoint$method, "aggregated_discrete_approximation") &&
+    identical(
+      checkpoint$specification_id,
+      "frozen-gam-grid40-discrete-computation-v1"
+    ) &&
+    identical(checkpoint$split_sha256, EXPECTED_SPLIT_SHA256) &&
+    identical(checkpoint$player_count, EXPECTED_ALL_PLAYERS) &&
+    identical(checkpoint$grid_width, GRID_WIDTH) &&
+    nrow(checkpoint$result$probabilities) == EXPECTED_ALL_PLAYERS * GRID_CELLS &&
+    nrow(checkpoint$result$sparse_intervals) == 80L &&
+    nrow(checkpoint$result$metrics) == 1L &&
+    isTRUE(checkpoint$result$metrics$completed[[1]]) &&
+    all(checkpoint$result$checks$passed) &&
+    file.exists(fit_path) &&
+    identical(checkpoint$fit_md5, unname(tools::md5sum(fit_path))) &&
+    all(file.exists(discrete_result_paths()))
+  if (!valid) {
+    stop("Existing discrete benchmark checkpoint is inconsistent; artifacts were preserved",
+         call. = FALSE)
+  }
+  checkpoint
+}
+
+acquire_discrete_lock <- function() {
+  dir.create(discrete_cache_dir, recursive = TRUE, showWarnings = FALSE)
+  lock_path <- file.path(discrete_cache_dir, "active_run.lock")
+  if (!dir.create(lock_path, recursive = FALSE, showWarnings = FALSE)) {
+    owner <- tryCatch(
+      readRDS(file.path(lock_path, "owner.rds")),
+      error = function(condition) NULL
+    )
+    owner_pids <- if (is.null(owner)) integer() else {
+      unique(as.integer(c(owner$parent_pid, owner$child_pid)))
+    }
+    active <- vapply(owner_pids, function(pid) {
+      length(system2("ps", c("-p", pid, "-o", "pid="), stdout = TRUE)) > 0L
+    }, logical(1))
+    if (any(active)) {
+      stop("DUPLICATE RUN SAFEGUARD: a discrete GAM benchmark is active",
+           call. = FALSE)
+    }
+    stop(
+      "A stale discrete GAM run lock was preserved; inspect it before restarting",
+      call. = FALSE
+    )
+  }
+  owner <- list(
+    parent_pid = Sys.getpid(),
+    child_pid = NA_integer_,
+    started_at = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    season = season,
+    mode = mode
+  )
+  saveRDS(owner, file.path(lock_path, "owner.rds"))
+  list(path = lock_path, owner = owner)
+}
+
+update_discrete_lock <- function(lock, child_pid) {
+  lock$owner$child_pid <- as.integer(child_pid)
+  temporary <- tempfile(pattern = "owner.rds.partial-", tmpdir = lock$path)
+  saveRDS(lock$owner, temporary)
+  if (!file.rename(temporary, file.path(lock$path, "owner.rds"))) {
+    stop("Could not atomically update the discrete benchmark lock",
+         call. = FALSE)
+  }
+  lock
+}
+
+release_discrete_lock <- function(lock) {
+  owner <- tryCatch(
+    readRDS(file.path(lock$path, "owner.rds")),
+    error = function(condition) NULL
+  )
+  if (!is.null(owner) && identical(owner$parent_pid, Sys.getpid())) {
+    unlink(lock$path, recursive = TRUE)
+  }
+  invisible(NULL)
+}
+
+discrete_process_tree_snapshot <- function(root_pid) {
+  output <- system2(
+    "ps", c("-axo", "pid=,ppid=,rss=,time="), stdout = TRUE
+  )
+  process_table <- read.table(
+    text = output,
+    col.names = c("pid", "ppid", "rss_kb", "cpu_time"),
+    colClasses = c("integer", "integer", "numeric", "character")
+  )
+  descendants <- as.integer(root_pid)
+  repeat {
+    children <- process_table$pid[process_table$ppid %in% descendants]
+    expanded <- sort(unique(c(descendants, children)))
+    if (identical(expanded, sort(unique(descendants)))) break
+    descendants <- expanded
+  }
+  selected <- process_table |>
+    filter(pid %in% descendants)
+  list(
+    pids = selected$pid,
+    rss_mb = sum(selected$rss_kb) / 1024,
+    cpu_seconds = setNames(
+      parse_ps_cpu_seconds(selected$cpu_time),
+      as.character(selected$pid)
+    )
+  )
+}
+
+terminate_discrete_worker <- function(worker_pid) {
+  snapshot <- discrete_process_tree_snapshot(worker_pid)
+  for (pid in rev(snapshot$pids)) {
+    try(tools::pskill(pid, signal = 15L), silent = TRUE)
+  }
+  Sys.sleep(5)
+  remaining <- discrete_process_tree_snapshot(worker_pid)$pids
+  for (pid in rev(remaining)) {
+    try(tools::pskill(pid, signal = 9L), silent = TRUE)
+  }
+  Sys.sleep(1)
+  discrete_process_tree_snapshot(worker_pid)$pids
+}
+
+write_discrete_failure <- function(inputs, elapsed, cpu_seconds, peak_rss_mb,
+                                   failure, timed_out) {
+  stage_path <- file.path(discrete_cache_dir, "stage_heartbeat.rds")
+  last_stage <- if (file.exists(stage_path)) {
+    tryCatch(
+      readRDS(stage_path)$stage,
+      error = function(condition) "unreadable_stage_heartbeat"
+    )
+  } else {
+    "unknown_no_stage_heartbeat"
+  }
+  result <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_discrete_approximation",
+    specification_id = "frozen-gam-grid40-discrete-computation-v1",
+    grid_width = GRID_WIDTH,
+    fitting_folds = paste(FITTING_FOLDS, collapse = ","),
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    completed = FALSE,
+    timed_out = timed_out,
+    failed = !timed_out,
+    failure = failure,
+    last_confirmed_stage = last_stage,
+    runtime_ceiling_sec = DISCRETE_RUNTIME_CEILING_SEC,
+    setup_elapsed_sec = inputs$setup_elapsed_sec,
+    fit_elapsed_sec = NA_real_,
+    prediction_elapsed_sec = NA_real_,
+    uncertainty_elapsed_sec = NA_real_,
+    total_wall_elapsed_sec = as.numeric(elapsed),
+    approximate_process_tree_cpu_sec = as.numeric(cpu_seconds),
+    approximate_peak_process_tree_rss_mb = as.numeric(peak_rss_mb),
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = EXPECTED_ALL_PLAYERS * GAM_BASIS_SIZE,
+    smooth_count = EXPECTED_ALL_PLAYERS,
+    basis_size = GAM_BASIS_SIZE,
+    smoothing_parameter_count = 1L,
+    smoothing_parameter = NA_real_,
+    posterior_draws = POSTERIOR_DRAWS,
+    gam_draw_seed = GAM_DRAW_SEED,
+    predictive_seed = PREDICTIVE_SEED,
+    model_object_bytes = NA_real_,
+    serialized_model_bytes = NA_real_,
+    serialized_model_md5 = NA_character_,
+    warning_count = NA_integer_,
+    warnings = failure,
+    r_version = as.character(getRversion()),
+    mgcv_version = as.character(packageVersion("mgcv")),
+    arrow_version = as.character(packageVersion("arrow")),
+    dplyr_version = as.character(packageVersion("dplyr")),
+    tidyr_version = as.character(packageVersion("tidyr")),
+    split_sha256 = EXPECTED_SPLIT_SHA256
+  )
+  write_new_atomic_parquet(
+    result,
+    file.path(discrete_result_dir, "benchmark_metrics.parquet")
+  )
+  result
+}
+
+write_discrete_termination_status <- function(elapsed, immediate_visible,
+                                              final_active) {
+  status <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_discrete_approximation",
+    total_wall_elapsed_sec = as.numeric(elapsed),
+    visible_processes_immediately_after_termination = as.integer(immediate_visible),
+    active_benchmark_processes_after_followup = as.integer(final_active),
+    fit_artifact_exists = file.exists(
+      file.path(discrete_cache_dir, "gam_discrete_grid_40_fit.rds")
+    ),
+    completion_checkpoint_exists = file.exists(
+      file.path(discrete_cache_dir, "benchmark_complete_checkpoint.rds")
+    ),
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE
+  )
+  write_new_atomic_parquet(
+    status,
+    file.path(discrete_result_dir, "termination_status.parquet")
+  )
+  status
+}
+
+audit_discrete_full_league <- function() {
+  check_log <- new_discrete_check_log()
+  inputs <- prepare_discrete_full_inputs(check_log)
+  audit <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_discrete_approximation",
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = EXPECTED_ALL_PLAYERS * GAM_BASIS_SIZE,
+    smooth_count = EXPECTED_ALL_PLAYERS,
+    sparse_players = nrow(inputs$sparse_players),
+    fitting_folds = inputs$folds,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    reference_40_player_equivalence_passed = inputs$reference$passed[[1]],
+    frozen_preflight_checks_passed = all(bind_rows(check_log$records)$passed),
+    split_sha256 = inputs$split_sha256
+  )
+  print(audit, width = Inf)
+  invisible(audit)
+}
+
+run_capped_discrete_full_league <- function() {
+  completed <- load_discrete_completion()
+  if (!is.null(completed)) {
+    message("Reusing verified completed full-league discrete GAM benchmark")
+    print(completed$result$metrics, width = Inf)
+    return(invisible(completed))
+  }
+  existing_files <- c(
+    file.path(discrete_cache_dir, "gam_discrete_grid_40_fit.rds"),
+    list.files(
+      discrete_cache_dir,
+      pattern = "partial|checkpoint|stage",
+      full.names = TRUE
+    ),
+    if (dir.exists(discrete_result_dir)) {
+      list.files(discrete_result_dir, full.names = TRUE)
+    } else {
+      character()
+    }
+  )
+  if (any(file.exists(existing_files))) {
+    stop(
+      "Incomplete discrete benchmark artifacts were preserved; inspect before restarting",
+      call. = FALSE
+    )
+  }
+
+  wall_started <- proc.time()[["elapsed"]]
+  check_log <- new_discrete_check_log()
+  inputs <- prepare_discrete_full_inputs(check_log)
+  lock <- acquire_discrete_lock()
+  on.exit(release_discrete_lock(lock), add = TRUE)
+  job <- parallel::mcparallel(
+    fit_full_league_discrete_gam(inputs, check_log),
+    detached = FALSE,
+    silent = FALSE
+  )
+  lock <- update_discrete_lock(lock, job$pid)
+  peak_rss_mb <- 0
+  cpu_by_pid <- numeric()
+  next_report_seconds <- 60
+
+  repeat {
+    elapsed <- proc.time()[["elapsed"]] - wall_started
+    snapshot <- discrete_process_tree_snapshot(Sys.getpid())
+    peak_rss_mb <- max(peak_rss_mb, snapshot$rss_mb)
+    if (length(snapshot$cpu_seconds) > 0L) {
+      for (pid in names(snapshot$cpu_seconds)) {
+        previous <- unname(cpu_by_pid[pid])
+        if (length(previous) == 0L || is.na(previous)) previous <- 0
+        cpu_by_pid[pid] <- max(previous, snapshot$cpu_seconds[[pid]])
+      }
+    }
+    collected <- parallel::mccollect(job, wait = FALSE)
+    if (!is.null(collected)) {
+      value <- collected[[1]]
+      total_cpu <- sum(cpu_by_pid, na.rm = TRUE)
+      if (inherits(value, "try-error")) {
+        failure <- paste("discrete GAM benchmark child failed:", value)
+        result <- write_discrete_failure(
+          inputs, elapsed, total_cpu, peak_rss_mb, failure, FALSE
+        )
+        print(result, width = Inf)
+        stop(failure, call. = FALSE)
+      }
+      value$metrics <- value$metrics |>
+        mutate(
+          total_wall_elapsed_sec = elapsed,
+          approximate_process_tree_cpu_sec = total_cpu,
+          approximate_peak_process_tree_rss_mb = peak_rss_mb,
+          cpu_measurement = paste(
+            "sum of maximum one-second sampled CPU time for each visible",
+            "R process-tree PID"
+          ),
+          memory_measurement = paste(
+            "maximum one-second sampled resident memory across the parent",
+            "R process and its visible descendants"
+          )
+        )
+      write_discrete_results(value, inputs$reference)
+      save_discrete_completion(value)
+      print(value$metrics, width = Inf)
+      return(invisible(value))
+    }
+    if (elapsed >= DISCRETE_RUNTIME_CEILING_SEC) {
+      remaining <- terminate_discrete_worker(job$pid)
+      parallel::mccollect(job, wait = FALSE)
+      Sys.sleep(1)
+      final_active <- length(discrete_process_tree_snapshot(job$pid)$pids)
+      result <- write_discrete_failure(
+        inputs,
+        elapsed,
+        sum(cpu_by_pid, na.rm = TRUE),
+        peak_rss_mb,
+        "wall-time ceiling reached",
+        TRUE
+      )
+      termination <- write_discrete_termination_status(
+        elapsed,
+        length(remaining),
+        final_active
+      )
+      print(result, width = Inf)
+      print(termination, width = Inf)
+      return(invisible(result))
+    }
+    if (elapsed >= next_report_seconds) {
+      message(
+        "WATCHDOG elapsed_sec=", round(elapsed, 1),
+        " approximate_cpu_sec=", round(sum(cpu_by_pid, na.rm = TRUE), 1),
+        " peak_rss_mb=", round(peak_rss_mb, 1)
+      )
+      next_report_seconds <- (floor(elapsed / 60) + 1) * 60
+    }
+    Sys.sleep(1)
+  }
+}
+
+if (mode == "discrete318-audit") {
+  audit_discrete_full_league()
+} else if (mode == "discrete318-run") {
+  run_capped_discrete_full_league()
+} else if (mode == "audit") {
   fallback <- build_inputs("fallback40")
   all_players <- build_inputs("all318")
   audit <- tibble(
