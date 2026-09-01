@@ -3,14 +3,24 @@
 # Generate a machine-local LaunchAgent plist without installing or starting it.
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) > 1L || (length(args) == 1L && args[[1L]] %in% c("-h", "--help"))) {
+if (any(args %in% c("-h", "--help"))) {
   cat(
-    "Usage: Rscript R/generate_spatial_exact_gam_launchagent.R [ABSOLUTE_OUTPUT_PATH]\n",
+    paste(
+      "Usage: Rscript R/generate_spatial_exact_gam_launchagent.R",
+      "[--smoke] [ABSOLUTE_OUTPUT_PATH]\n"
+    ),
     "Generates and validates a local plist; it does not install or start a job.\n",
     sep = ""
   )
-  quit(status = if (length(args) == 1L) 0L else 2L)
+  quit(status = 0L)
 }
+unknown_flags <- args[startsWith(args, "--") & args != "--smoke"]
+if (length(unknown_flags) > 0L) {
+  stop("Unknown option(s): ", paste(unknown_flags, collapse = ", "), call. = FALSE)
+}
+smoke_mode <- "--smoke" %in% args
+path_args <- args[!startsWith(args, "--")]
+if (length(path_args) > 1L) stop("Provide at most one output path", call. = FALSE)
 
 script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
 if (length(script_arg) != 1L) {
@@ -19,15 +29,19 @@ if (length(script_arg) != 1L) {
 }
 script_path <- normalizePath(sub("^--file=", "", script_arg), mustWork = TRUE)
 repository_path <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
+profile_name <- if (smoke_mode) "exact-gam-smoke" else "exact-gam"
+template_name <- paste0(
+  "com.narayanlekhi.nba-shot-analytics.", profile_name, ".plist.in"
+)
+plist_name <- sub("[.]in$", "", template_name)
 template_path <- file.path(
-  repository_path, "R", "com.narayanlekhi.nba-shot-analytics.exact-gam.plist.in"
+  repository_path, "R", template_name
 )
 runner_path <- file.path(repository_path, "R", "run_spatial_exact_gam_long.sh")
 default_output <- file.path(
-  repository_path, "data", "cache", "launchagents",
-  "com.narayanlekhi.nba-shot-analytics.exact-gam.plist"
+  repository_path, "data", "cache", "launchagents", plist_name
 )
-output_path <- if (length(args) == 1L) args[[1L]] else default_output
+output_path <- if (length(path_args) == 1L) path_args[[1L]] else default_output
 
 is_absolute <- startsWith(output_path, "/")
 if (!is_absolute) stop("The generated plist path must be absolute", call. = FALSE)
@@ -64,8 +78,12 @@ contents <- paste(readLines(template_path, warn = FALSE), collapse = "\n")
 replacements <- c(
   "__RUNNER_PATH__" = xml_escape(runner_path),
   "__REPOSITORY_PATH__" = xml_escape(repository_path),
-  "__LAUNCHD_STDOUT_PATH__" = xml_escape(file.path(launchd_log_dir, "launchd.stdout.log")),
-  "__LAUNCHD_STDERR_PATH__" = xml_escape(file.path(launchd_log_dir, "launchd.stderr.log"))
+  "__LAUNCHD_STDOUT_PATH__" = xml_escape(file.path(
+    launchd_log_dir, paste0(profile_name, ".launchd.stdout.log")
+  )),
+  "__LAUNCHD_STDERR_PATH__" = xml_escape(file.path(
+    launchd_log_dir, paste0(profile_name, ".launchd.stderr.log")
+  ))
 )
 for (placeholder in names(replacements)) {
   contents <- gsub(placeholder, replacements[[placeholder]], contents, fixed = TRUE)
@@ -92,8 +110,9 @@ stale_paths <- c(
   )
 )
 cat("Generated and validated: ", output_path, "\n", sep = "")
+cat("Profile: ", if (smoke_mode) "audit-only smoke" else "real exact GAM", "\n", sep = "")
 cat("The plist was not installed, loaded, or started.\n")
-if (any(file.exists(stale_paths))) {
+if (!smoke_mode && any(file.exists(stale_paths))) {
   cat(
     "Recovery warning: preserved interrupted-run artifacts will make the exact runner refuse a future start until they are reviewed.\n"
   )

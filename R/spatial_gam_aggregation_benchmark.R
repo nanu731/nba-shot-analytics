@@ -19,7 +19,8 @@ if (length(args) < 2L) {
         "<audit|compare40|compare40_discrete|compare40_parallel|",
         "benchmark318|benchmark318_parallel|record_timeout|",
         "record_parallel_timeout|discrete318-audit|discrete318-run|",
-        "exact318-long-audit|exact318-long-run>"
+        "exact318-long-audit|exact318-long-run|",
+        "exact318-launchagent-smoke>"
       ),
       "[method_or_workers] [elapsed_seconds]"
     ),
@@ -37,9 +38,14 @@ if (!mode %in% c(
   "audit", "compare40", "compare40_discrete", "compare40_parallel",
   "benchmark318", "benchmark318_parallel", "record_timeout",
   "record_parallel_timeout", "discrete318-audit", "discrete318-run",
-  "exact318-long-audit", "exact318-long-run"
+  "exact318-long-audit", "exact318-long-run", "exact318-launchagent-smoke"
 )) {
   stop("Unknown benchmark mode", call. = FALSE)
+}
+if (identical(Sys.getenv("SPATIAL_EXACT_SMOKE_ONLY"), "1") &&
+    mode != "exact318-launchagent-smoke") {
+  stop("SMOKE SAFEGUARD: audit-only environment cannot dispatch another mode",
+       call. = FALSE)
 }
 if (mode %in% c("benchmark318", "record_timeout") &&
     !method %in% c("nondiscrete", "discrete")) {
@@ -138,6 +144,10 @@ exact_long_cache_dir <- file.path(
 )
 exact_long_result_dir <- file.path(
   "data", "processed", "spatial_gam_exact_full_league_benchmark",
+  paste0("season=", season)
+)
+exact_smoke_root_dir <- file.path(
+  "data", "cache", "spatial_gam_exact_launchagent_smoke",
   paste0("season=", season)
 )
 
@@ -2843,6 +2853,142 @@ audit_exact_long_run <- function() {
   invisible(audit)
 }
 
+run_launchagent_smoke <- function() {
+  if (!identical(Sys.getenv("SPATIAL_EXACT_SMOKE_ONLY"), "1")) {
+    stop("SMOKE SAFEGUARD: audit-only environment flag is required",
+         call. = FALSE)
+  }
+  expected_label <- "com.narayanlekhi.nba-shot-analytics.exact-gam-smoke"
+  smoke_label <- Sys.getenv("SPATIAL_EXACT_SMOKE_LABEL")
+  smoke_run_id <- Sys.getenv("SPATIAL_EXACT_SMOKE_RUN_ID")
+  smoke_dir <- Sys.getenv("SPATIAL_EXACT_SMOKE_DIR")
+  if (!identical(smoke_label, expected_label)) {
+    stop("SMOKE SAFEGUARD: unexpected LaunchAgent label", call. = FALSE)
+  }
+  if (!grepl("^[0-9]{8}T[0-9]{6}Z-[0-9]+$", smoke_run_id)) {
+    stop("SMOKE SAFEGUARD: invalid smoke run identifier", call. = FALSE)
+  }
+  expected_dir <- file.path(
+    exact_smoke_root_dir, paste0("attempt=", smoke_run_id)
+  )
+  if (!dir.exists(smoke_dir) ||
+      normalizePath(smoke_dir, mustWork = TRUE) !=
+        normalizePath(expected_dir, mustWork = TRUE)) {
+    stop("SMOKE SAFEGUARD: attempt directory does not match the runner",
+         call. = FALSE)
+  }
+
+  write_smoke_rds <- function(value, filename) {
+    path <- file.path(smoke_dir, filename)
+    if (file.exists(path)) {
+      stop("SMOKE SAFEGUARD: refusing to overwrite ", path, call. = FALSE)
+    }
+    temporary <- tempfile(
+      pattern = paste0(filename, ".partial-"), tmpdir = smoke_dir
+    )
+    saveRDS(value, temporary)
+    if (!file.rename(temporary, path)) {
+      stop("Could not atomically publish smoke artifact: ", filename,
+           call. = FALSE)
+    }
+    invisible(path)
+  }
+  write_smoke_stage <- function(stage) {
+    path <- file.path(smoke_dir, "stage_heartbeat.rds")
+    temporary <- tempfile(
+      pattern = "stage_heartbeat.rds.partial-", tmpdir = smoke_dir
+    )
+    saveRDS(list(
+      stage = stage,
+      timestamp_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+      process_id = Sys.getpid(),
+      model_fitting_allowed = FALSE
+    ), temporary)
+    if (!file.rename(temporary, path)) {
+      stop("Could not atomically publish smoke stage", call. = FALSE)
+    }
+    invisible(path)
+  }
+
+  lock_path <- file.path(exact_smoke_root_dir, "active_smoke.lock")
+  if (!dir.create(lock_path, recursive = FALSE, showWarnings = FALSE)) {
+    stop("DUPLICATE SMOKE SAFEGUARD: active smoke lock exists",
+         call. = FALSE)
+  }
+  smoke_succeeded <- FALSE
+  on.exit({
+    if (dir.exists(lock_path)) {
+      closed_name <- if (smoke_succeeded) {
+        "closed_smoke.lock"
+      } else {
+        "failed_smoke.lock"
+      }
+      if (!file.rename(lock_path, file.path(smoke_dir, closed_name))) {
+        warning("Could not preserve and close the smoke lock", call. = FALSE)
+      }
+    }
+  }, add = TRUE)
+
+  caffeinate <- verify_caffeinate_guard()
+  owner <- list(
+    label = smoke_label,
+    run_id = smoke_run_id,
+    runner_pid = Sys.getpid(),
+    caffeinate_pid = caffeinate$pid,
+    caffeinate_command = caffeinate$command,
+    r_mode = mode,
+    arguments = commandArgs(trailingOnly = TRUE),
+    started_at_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    model_fitting_allowed = FALSE,
+    fitting_started = FALSE,
+    prediction_started = FALSE,
+    uncertainty_started = FALSE
+  )
+  saveRDS(owner, file.path(lock_path, "owner.rds"))
+  write_smoke_rds(owner, "pid_metadata.rds")
+  write_smoke_stage("audit_preflight")
+
+  audit <- audit_exact_long_run()
+  if (
+    nrow(audit) != 1L || audit$players[[1L]] != EXPECTED_ALL_PLAYERS ||
+    audit$training_shots[[1L]] != 116955L ||
+    !identical(audit$fold4_outcomes_read[[1L]], FALSE) ||
+    !identical(audit$fold5_outcomes_read[[1L]], FALSE) ||
+    !isTRUE(audit$frozen_preflight_checks_passed[[1L]])
+  ) {
+    stop("SMOKE SAFEGUARD: audit result did not match the frozen preflight",
+         call. = FALSE)
+  }
+
+  write_smoke_stage("audit_passed_writing_completion")
+  completion <- list(
+    label = smoke_label,
+    run_id = smoke_run_id,
+    completed_at_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    exit_expected = 0L,
+    players = audit$players[[1L]],
+    training_shots = audit$training_shots[[1L]],
+    observed_player_cells = audit$observed_player_cells[[1L]],
+    full_lattice_rows = audit$full_lattice_rows[[1L]],
+    fitting_folds = audit$fitting_folds[[1L]],
+    input_sha256 = audit$input_sha256[[1L]],
+    split_sha256 = audit$split_sha256[[1L]],
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    model_fitting_allowed = FALSE,
+    fitting_started = FALSE,
+    prediction_started = FALSE,
+    uncertainty_started = FALSE,
+    psock_workers_started = 0L,
+    checks_passed = TRUE
+  )
+  write_smoke_rds(completion, "completion_marker.rds")
+  write_smoke_stage("smoke_complete")
+  smoke_succeeded <- TRUE
+  print(completion)
+  invisible(completion)
+}
+
 run_exact_long_full_league <- function() {
   completed <- load_exact_completion()
   if (!is.null(completed)) {
@@ -3103,6 +3249,8 @@ run_exact_long_full_league <- function() {
 
 if (mode == "exact318-long-audit") {
   audit_exact_long_run()
+} else if (mode == "exact318-launchagent-smoke") {
+  run_launchagent_smoke()
 } else if (mode == "exact318-long-run") {
   run_exact_long_full_league()
 } else if (mode == "discrete318-audit") {
