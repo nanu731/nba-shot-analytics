@@ -1839,7 +1839,7 @@ release_discrete_lock <- function(lock) {
   invisible(NULL)
 }
 
-discrete_process_tree_snapshot <- function(root_pid) {
+discrete_process_tree_snapshot <- function(root_pid, additional_pids = integer()) {
   output <- system2(
     "ps", c("-axo", "pid=,ppid=,rss=,time="), stdout = TRUE
   )
@@ -1848,7 +1848,7 @@ discrete_process_tree_snapshot <- function(root_pid) {
     col.names = c("pid", "ppid", "rss_kb", "cpu_time"),
     colClasses = c("integer", "integer", "numeric", "character")
   )
-  descendants <- as.integer(root_pid)
+  descendants <- unique(as.integer(c(root_pid, additional_pids)))
   repeat {
     children <- process_table$pid[process_table$ppid %in% descendants]
     expanded <- sort(unique(c(descendants, children)))
@@ -2946,13 +2946,6 @@ run_exact_long_full_league <- function() {
 
   repeat {
     elapsed <- as.numeric(difftime(Sys.time(), wall_started_time, units = "secs"))
-    snapshot <- discrete_process_tree_snapshot(Sys.getpid())
-    peak_rss_mb <- max(peak_rss_mb, snapshot$rss_mb)
-    for (pid in names(snapshot$cpu_seconds)) {
-      previous <- unname(cpu_by_pid[pid])
-      if (length(previous) == 0L || is.na(previous)) previous <- 0
-      cpu_by_pid[pid] <- max(previous, snapshot$cpu_seconds[[pid]])
-    }
     worker_pid_path <- file.path(exact_long_cache_dir, "psock_worker_pids.rds")
     if (file.exists(worker_pid_path) && length(worker_pids) == 0L) {
       worker_pids <- tryCatch(
@@ -2966,6 +2959,13 @@ run_exact_long_full_league <- function() {
         write_exact_metadata(metadata)
         exact_log_event("PSOCK workers published: ", paste(worker_pids, collapse = ","))
       }
+    }
+    snapshot <- discrete_process_tree_snapshot(Sys.getpid(), worker_pids)
+    peak_rss_mb <- max(peak_rss_mb, snapshot$rss_mb)
+    for (pid in names(snapshot$cpu_seconds)) {
+      previous <- unname(cpu_by_pid[pid])
+      if (length(previous) == 0L || is.na(previous)) previous <- 0
+      cpu_by_pid[pid] <- max(previous, snapshot$cpu_seconds[[pid]])
     }
 
     if (elapsed >= next_persisted_sample) {
