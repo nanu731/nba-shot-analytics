@@ -18,7 +18,8 @@ if (length(args) < 2L) {
       paste0(
         "<audit|compare40|compare40_discrete|compare40_parallel|",
         "benchmark318|benchmark318_parallel|record_timeout|",
-        "record_parallel_timeout|discrete318-audit|discrete318-run>"
+        "record_parallel_timeout|discrete318-audit|discrete318-run|",
+        "exact318-long-audit|exact318-long-run>"
       ),
       "[method_or_workers] [elapsed_seconds]"
     ),
@@ -35,7 +36,8 @@ if (season != "2025-26") {
 if (!mode %in% c(
   "audit", "compare40", "compare40_discrete", "compare40_parallel",
   "benchmark318", "benchmark318_parallel", "record_timeout",
-  "record_parallel_timeout", "discrete318-audit", "discrete318-run"
+  "record_parallel_timeout", "discrete318-audit", "discrete318-run",
+  "exact318-long-audit", "exact318-long-run"
 )) {
   stop("Unknown benchmark mode", call. = FALSE)
 }
@@ -67,6 +69,9 @@ PREDICTIVE_SEED <- 20260903L
 POSTERIOR_DRAWS <- 4000L
 MODEL_THREADS <- 1L
 DISCRETE_RUNTIME_CEILING_SEC <- 1800
+EXACT_LONG_WORKERS <- 2L
+EXACT_LONG_SAMPLE_INTERVAL_SEC <- 60
+EXACT_LONG_MIN_FREE_GIB <- 20
 SURFACE_TOLERANCE <- 1e-8
 EXPECTED_ALL_PLAYERS <- 318L
 EXPECTED_FALLBACK_PLAYERS <- 40L
@@ -125,6 +130,14 @@ discrete_cache_dir <- file.path(
 )
 discrete_result_dir <- file.path(
   "data", "processed", "spatial_gam_discrete_full_league_benchmark",
+  paste0("season=", season)
+)
+exact_long_cache_dir <- file.path(
+  "data", "cache", "spatial_gam_exact_full_league_benchmark",
+  paste0("season=", season)
+)
+exact_long_result_dir <- file.path(
+  "data", "processed", "spatial_gam_exact_full_league_benchmark",
   paste0("season=", season)
 )
 
@@ -2100,7 +2113,999 @@ run_capped_discrete_full_league <- function() {
   }
 }
 
-if (mode == "discrete318-audit") {
+# Recoverable, no-timeout runner for the frozen exact full-league GAM. The
+# statistical model below deliberately mirrors fit_full_league_discrete_gam();
+# only discrete=FALSE and the already-verified two-worker PSOCK cluster differ.
+new_exact_check_log <- function() {
+  new.env(parent = emptyenv())
+}
+
+exact_check <- function(log, check, condition, detail) {
+  row <- tibble(
+    check = check,
+    passed = isTRUE(condition),
+    detail = as.character(detail)
+  )
+  log$records <- c(log$records, list(row))
+  if (!isTRUE(condition)) {
+    stop("EXACT GAM SANITY CHECK FAILED: ", check, " — ", detail,
+         call. = FALSE)
+  }
+  invisible(NULL)
+}
+
+write_exact_stage <- function(stage) {
+  dir.create(exact_long_cache_dir, recursive = TRUE, showWarnings = FALSE)
+  path <- file.path(exact_long_cache_dir, "stage_heartbeat.rds")
+  temporary <- tempfile(pattern = "stage_heartbeat.rds.partial-",
+                        tmpdir = exact_long_cache_dir)
+  saveRDS(
+    list(
+      stage = stage,
+      timestamp_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+      process_id = Sys.getpid()
+    ),
+    temporary
+  )
+  if (!file.rename(temporary, path)) {
+    stop("Could not publish the exact-run stage heartbeat", call. = FALSE)
+  }
+  invisible(path)
+}
+
+write_exact_metadata <- function(metadata) {
+  dir.create(exact_long_cache_dir, recursive = TRUE, showWarnings = FALSE)
+  path <- file.path(exact_long_cache_dir, "pid_metadata.rds")
+  temporary <- tempfile(pattern = "pid_metadata.rds.partial-",
+                        tmpdir = exact_long_cache_dir)
+  saveRDS(metadata, temporary)
+  if (!file.rename(temporary, path)) {
+    stop("Could not atomically publish exact-run PID metadata", call. = FALSE)
+  }
+  invisible(path)
+}
+
+exact_log_event <- function(...) {
+  dir.create(exact_long_cache_dir, recursive = TRUE, showWarnings = FALSE)
+  line <- paste0(
+    format(Sys.time(), tz = "UTC", usetz = TRUE), " ", paste0(..., collapse = "")
+  )
+  cat(line, "\n", file = file.path(exact_long_cache_dir, "run_events.log"),
+      append = TRUE)
+  message(line)
+  flush.console()
+}
+
+disk_free_gib <- function(path) {
+  output <- system2("df", c("-Pk", path), stdout = TRUE)
+  if (length(output) < 2L) {
+    stop("Could not measure free disk space", call. = FALSE)
+  }
+  fields <- strsplit(trimws(tail(output, 1L)), "[[:space:]]+")[[1]]
+  if (length(fields) < 4L || !is.finite(as.numeric(fields[[4]]))) {
+    stop("Could not parse free disk space", call. = FALSE)
+  }
+  as.numeric(fields[[4]]) / 1024^2
+}
+
+parent_pid <- function(pid = Sys.getpid()) {
+  output <- system2("ps", c("-p", as.integer(pid), "-o", "ppid="), stdout = TRUE)
+  value <- suppressWarnings(as.integer(trimws(output[[1]])))
+  if (length(value) != 1L || is.na(value)) {
+    stop("Could not determine the process parent", call. = FALSE)
+  }
+  value
+}
+
+process_command <- function(pid) {
+  output <- system2(
+    "ps", c("-p", as.integer(pid), "-o", "command="), stdout = TRUE
+  )
+  paste(output, collapse = " ")
+}
+
+verify_caffeinate_guard <- function() {
+  pid <- suppressWarnings(as.integer(Sys.getenv("SPATIAL_EXACT_CAFFEINATE_PID")))
+  if (length(pid) != 1L || is.na(pid)) {
+    stop(
+      "SLEEP-PREVENTION SAFEGUARD: use R/run_spatial_exact_gam_long.sh",
+      call. = FALSE
+    )
+  }
+  command <- process_command(pid)
+  expected_wait <- paste0("-w ", Sys.getpid(), "([[:space:]]|$)")
+  if (!grepl("(^|/)caffeinate([[:space:]]|$)", command) ||
+      !grepl(expected_wait, command)) {
+    stop("SLEEP-PREVENTION SAFEGUARD: caffeinate guard is absent or mismatched",
+         call. = FALSE)
+  }
+  list(pid = pid, command = command)
+}
+
+prepare_exact_full_inputs <- function(check_log, write_signature = FALSE) {
+  inputs <- prepare_discrete_full_inputs(check_log)
+  exact_check(
+    check_log, "frozen_training_shot_count",
+    inputs$training_shots == 116955L,
+    paste(inputs$training_shots, "folds-1-to-3 shots")
+  )
+  exact_check(
+    check_log, "frozen_observed_player_cell_count",
+    nrow(inputs$data$aggregated) == 19475L,
+    paste(nrow(inputs$data$aggregated), "observed player-cells")
+  )
+  exact_check(
+    check_log, "frozen_lattice_dimensions",
+    nrow(inputs$data$lattice) == EXPECTED_ALL_PLAYERS * GRID_CELLS,
+    paste(nrow(inputs$data$lattice), "player-cell lattice rows")
+  )
+  signature <- list(
+    season = season,
+    split_sha256 = inputs$split_sha256,
+    player_ids = inputs$player_ids,
+    aggregated = inputs$data$aggregated,
+    lattice = select(
+      inputs$data$lattice, PLAYER_ID, cell_id, x_ft, y_ft, player_factor,
+      validation_attempts
+    )
+  )
+  signature_path <- file.path(exact_long_cache_dir, "input_signature.rds")
+  if (write_signature) {
+    save_new_atomic_rds(signature, signature_path)
+  } else {
+    temporary <- tempfile(fileext = ".rds")
+    on.exit(unlink(temporary), add = TRUE)
+    saveRDS(signature, temporary, compress = FALSE)
+    signature_path <- temporary
+  }
+  inputs$input_sha256 <- sha256_file(signature_path)
+  inputs
+}
+
+acquire_exact_lock <- function() {
+  dir.create(exact_long_cache_dir, recursive = TRUE, showWarnings = FALSE)
+  lock_path <- file.path(exact_long_cache_dir, "active_run.lock")
+  if (!dir.create(lock_path, recursive = FALSE, showWarnings = FALSE)) {
+    owner <- tryCatch(
+      readRDS(file.path(lock_path, "owner.rds")),
+      error = function(condition) NULL
+    )
+    owner_pids <- if (is.null(owner)) integer() else {
+      unique(as.integer(c(owner$runner_pid, owner$model_pid, owner$worker_pids)))
+    }
+    active <- vapply(owner_pids, function(pid) {
+      length(system2("ps", c("-p", pid, "-o", "pid="), stdout = TRUE)) > 0L
+    }, logical(1))
+    if (any(active)) {
+      stop("DUPLICATE RUN SAFEGUARD: an exact GAM run is active", call. = FALSE)
+    }
+    stop("A stale exact GAM lock was preserved; inspect it before any restart",
+         call. = FALSE)
+  }
+  owner <- list(
+    runner_pid = Sys.getpid(), model_pid = NA_integer_, worker_pids = integer(),
+    started_at_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    season = season, mode = mode
+  )
+  saveRDS(owner, file.path(lock_path, "owner.rds"))
+  list(path = lock_path, owner = owner)
+}
+
+update_exact_lock <- function(lock, model_pid = NULL, worker_pids = NULL) {
+  if (!is.null(model_pid)) lock$owner$model_pid <- as.integer(model_pid)
+  if (!is.null(worker_pids)) lock$owner$worker_pids <- as.integer(worker_pids)
+  temporary <- tempfile(pattern = "owner.rds.partial-", tmpdir = lock$path)
+  saveRDS(lock$owner, temporary)
+  if (!file.rename(temporary, file.path(lock$path, "owner.rds"))) {
+    stop("Could not atomically update the exact-run lock", call. = FALSE)
+  }
+  lock
+}
+
+release_exact_lock <- function(lock) {
+  owner <- tryCatch(
+    readRDS(file.path(lock$path, "owner.rds")),
+    error = function(condition) NULL
+  )
+  if (!is.null(owner) && identical(owner$runner_pid, Sys.getpid())) {
+    unlink(lock$path, recursive = TRUE)
+  }
+  invisible(NULL)
+}
+
+fit_full_league_exact_gam <- function(inputs, check_log) {
+  formula <- gam_formula("aggregated")
+  expected_formula <- paste(deparse(formula), collapse = " ")
+  worker_pid_path <- file.path(exact_long_cache_dir, "psock_worker_pids.rds")
+  write_exact_stage("creating_two_worker_psock_cluster")
+  cluster <- parallel::makeCluster(EXACT_LONG_WORKERS, type = "PSOCK")
+  cluster_stopped <- FALSE
+  on.exit({
+    if (!cluster_stopped) parallel::stopCluster(cluster)
+  }, add = TRUE)
+  worker_pids <- as.integer(unlist(parallel::clusterCall(cluster, Sys.getpid)))
+  save_new_atomic_rds(worker_pids, worker_pid_path)
+
+  write_exact_stage("fitting_exact_gam")
+  fit_started <- proc.time()[["elapsed"]]
+  fit_cpu_started <- process_cpu_seconds()
+  captured <- capture_conditions(mgcv::bam(
+    formula,
+    family = binomial(link = "logit"),
+    data = inputs$data$aggregated,
+    method = "fREML",
+    discrete = FALSE,
+    select = FALSE,
+    gamma = 1,
+    nthreads = MODEL_THREADS,
+    cluster = cluster,
+    na.action = na.fail
+  ))
+  fit_elapsed <- proc.time()[["elapsed"]] - fit_started
+  fit_child_cpu <- process_cpu_seconds() - fit_cpu_started
+  fit <- captured$value
+  parallel::stopCluster(cluster)
+  cluster_stopped <- TRUE
+  write_exact_stage("exact_fit_returned_workers_stopped")
+
+  edf <- smooth_edf(fit)
+  exact_check(
+    check_log, "gam_formula_unchanged",
+    paste(deparse(fit$formula), collapse = " ") == expected_formula,
+    expected_formula
+  )
+  exact_check(
+    check_log, "exact_nondiscrete_computation",
+    !isTRUE(fit$dinfo$para.discrete),
+    "mgcv fit is not discrete"
+  )
+  exact_check(
+    check_log, "two_worker_psock_structure",
+    length(worker_pids) == EXACT_LONG_WORKERS &&
+      length(unique(worker_pids)) == EXACT_LONG_WORKERS,
+    paste(worker_pids, collapse = ",")
+  )
+  exact_check(
+    check_log, "gam_converged", isTRUE(fit$converged),
+    paste("converged =", fit$converged)
+  )
+  exact_check(
+    check_log, "gam_no_model_warnings", length(captured$warnings) == 0L,
+    if (length(captured$warnings)) paste(captured$warnings, collapse = " | ") else "none"
+  )
+  exact_check(
+    check_log, "gam_finite_coefficients", all(is.finite(coef(fit))),
+    paste(length(coef(fit)), "finite coefficients")
+  )
+  exact_check(
+    check_log, "gam_coefficient_count",
+    length(coef(fit)) == EXPECTED_ALL_PLAYERS * GAM_BASIS_SIZE,
+    paste(length(coef(fit)), "coefficients")
+  )
+  exact_check(
+    check_log, "gam_one_shared_smoothing_parameter", length(fit$sp) == 1L,
+    paste(length(fit$sp), "smoothing parameter")
+  )
+  exact_check(
+    check_log, "gam_one_smooth_per_player",
+    length(fit$smooth) == EXPECTED_ALL_PLAYERS,
+    paste(length(fit$smooth), "player-specific smooths")
+  )
+  exact_check(
+    check_log, "gam_basis_ceiling_not_exhausted",
+    all(edf < 0.95 * (GAM_BASIS_SIZE - 1L)),
+    paste("maximum smooth EDF", format(max(edf), digits = 10))
+  )
+
+  write_exact_stage("drawing_and_predicting_full_lattice")
+  prediction_started <- proc.time()[["elapsed"]]
+  covariance <- vcov(fit, unconditional = TRUE)
+  exact_check(
+    check_log, "gam_finite_unconditional_covariance",
+    all(is.finite(covariance)),
+    paste(nrow(covariance), "by", ncol(covariance), "finite covariance")
+  )
+  set_frozen_rng(GAM_DRAW_SEED)
+  coefficient_draws <- mgcv::rmvn(
+    POSTERIOR_DRAWS, mu = coef(fit), V = covariance
+  )
+  player_levels <- levels(inputs$data$lattice$player_factor)
+  probabilities <- numeric(nrow(inputs$data$lattice))
+  centered_links <- numeric(nrow(inputs$data$lattice))
+  sparse_draws <- vector("list", nrow(inputs$sparse_players))
+  names(sparse_draws) <- as.character(inputs$sparse_players$PLAYER_ID)
+  for (player_position in seq_along(player_levels)) {
+    player_level <- player_levels[[player_position]]
+    rows <- which(inputs$data$lattice$player_factor == player_level)
+    player_lattice <- inputs$data$lattice[rows, ]
+    design <- predict(
+      fit, newdata = player_lattice, type = "lpmatrix", discrete = FALSE
+    )
+    active <- which(colSums(abs(design)) > 0)
+    eta_draws <- design[, active, drop = FALSE] %*%
+      t(coefficient_draws[, active, drop = FALSE])
+    probability_draws <- plogis(eta_draws)
+    probabilities[rows] <- rowMeans(probability_draws)
+    plugin_link <- as.numeric(
+      design[, active, drop = FALSE] %*% coef(fit)[active]
+    )
+    centered_links[rows] <- plugin_link - mean(plugin_link)
+    sparse_name <- as.character(player_level)
+    if (sparse_name %in% names(sparse_draws)) {
+      used <- player_lattice$validation_attempts > 0L
+      sparse_draws[[sparse_name]] <- list(
+        probabilities = probability_draws[used, , drop = FALSE],
+        attempts = player_lattice$validation_attempts[used]
+      )
+    }
+  }
+  prediction_elapsed <- proc.time()[["elapsed"]] - prediction_started
+  exact_check(
+    check_log, "gam_finite_predictions", all(is.finite(probabilities)),
+    paste(length(probabilities), "finite draw-averaged probabilities")
+  )
+  exact_check(
+    check_log, "gam_probability_bounds",
+    all(probabilities >= 0 & probabilities <= 1),
+    paste("range", paste(range(probabilities), collapse = " to "))
+  )
+  minimum_rmse <- minimum_discrete_surface_rmse(centered_links)
+  exact_check(
+    check_log, "gam_distinct_player_surfaces",
+    is.finite(minimum_rmse) && minimum_rmse > SURFACE_TOLERANCE,
+    paste("minimum centered-surface RMSE", format(minimum_rmse, digits = 10))
+  )
+
+  write_exact_stage("simulating_sparse_player_uncertainty")
+  uncertainty_started <- proc.time()[["elapsed"]]
+  set_frozen_rng(PREDICTIVE_SEED)
+  sparse_intervals <- lapply(names(sparse_draws), function(player_id) {
+    values <- sparse_draws[[player_id]]
+    if (is.null(values) || nrow(values$probabilities) == 0L) {
+      stop("A sparse player has no fold-4 metadata support", call. = FALSE)
+    }
+    total_draws <- simulate_discrete_totals(values$probabilities, values$attempts)
+    tibble(
+      PLAYER_ID = as.integer(player_id),
+      validation_attempts = sum(values$attempts),
+      interval_lower = as.numeric(quantile(total_draws, 0.05, names = FALSE)),
+      interval_upper = as.numeric(quantile(total_draws, 0.95, names = FALSE))
+    ) |>
+      mutate(interval_width = interval_upper - interval_lower)
+  }) |>
+    bind_rows() |>
+    arrange(PLAYER_ID)
+  uncertainty_elapsed <- proc.time()[["elapsed"]] - uncertainty_started
+  exact_check(
+    check_log, "gam_sparse_uncertainty_dimensions",
+    nrow(sparse_intervals) == 80L && n_distinct(sparse_intervals$PLAYER_ID) == 80L,
+    paste(nrow(sparse_intervals), "sparse-player intervals")
+  )
+  exact_check(
+    check_log, "gam_sparse_uncertainty_finite_ordered",
+    all(is.finite(sparse_intervals$interval_lower)) &&
+      all(is.finite(sparse_intervals$interval_upper)) &&
+      all(is.finite(sparse_intervals$interval_width)) &&
+      all(sparse_intervals$interval_lower >= 0) &&
+      all(sparse_intervals$interval_lower <= sparse_intervals$interval_upper) &&
+      all(sparse_intervals$interval_upper <= sparse_intervals$validation_attempts),
+    "all 90% posterior-predictive intervals are finite, ordered, and feasible"
+  )
+  checks <- bind_rows(check_log$records)
+  exact_check(
+    check_log, "all_applicable_checks_passed", all(checks$passed),
+    paste(nrow(checks), "prior checks passed")
+  )
+  checks <- bind_rows(check_log$records)
+
+  write_exact_stage("all_checks_passed_serializing_fit")
+  fit_path <- file.path(exact_long_cache_dir, "gam_exact_grid_40_fit.rds")
+  model_object_bytes <- as.numeric(object.size(fit))
+  save_new_atomic_rds(fit, fit_path)
+  metrics <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_exact_nondiscrete_two_worker_psock",
+    specification_id = "frozen-gam-grid40-exact-long-v1",
+    formula = expected_formula,
+    grid_width = GRID_WIDTH,
+    fitting_folds = paste(FITTING_FOLDS, collapse = ","),
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    completed = TRUE, timed_out = FALSE, failed = FALSE,
+    runtime_ceiling_sec = NA_real_,
+    setup_elapsed_sec = inputs$setup_elapsed_sec,
+    fit_elapsed_sec = fit_elapsed,
+    fit_child_cpu_sec = fit_child_cpu,
+    prediction_elapsed_sec = prediction_elapsed,
+    uncertainty_elapsed_sec = uncertainty_elapsed,
+    worker_count = EXACT_LONG_WORKERS,
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = length(coef(fit)),
+    smooth_count = length(fit$smooth),
+    basis_size = GAM_BASIS_SIZE,
+    smoothing_parameter_count = length(fit$sp),
+    smoothing_parameter = unname(fit$sp),
+    maximum_smooth_edf = max(edf),
+    minimum_centered_surface_rmse = minimum_rmse,
+    minimum_probability = min(probabilities),
+    maximum_probability = max(probabilities),
+    posterior_draws = POSTERIOR_DRAWS,
+    gam_draw_seed = GAM_DRAW_SEED,
+    predictive_seed = PREDICTIVE_SEED,
+    model_object_bytes = model_object_bytes,
+    serialized_model_bytes = as.numeric(file.size(fit_path)),
+    serialized_model_md5 = unname(tools::md5sum(fit_path)),
+    warning_count = length(captured$warnings),
+    warnings = paste(captured$warnings, collapse = " | "),
+    message_count = length(captured$messages),
+    messages = paste(captured$messages, collapse = " | "),
+    r_version = as.character(getRversion()),
+    mgcv_version = as.character(packageVersion("mgcv")),
+    arrow_version = as.character(packageVersion("arrow")),
+    dplyr_version = as.character(packageVersion("dplyr")),
+    tidyr_version = as.character(packageVersion("tidyr")),
+    split_sha256 = EXPECTED_SPLIT_SHA256,
+    input_sha256 = inputs$input_sha256
+  )
+  rm(coefficient_draws, covariance, sparse_draws, fit)
+  gc()
+  list(
+    metrics = metrics,
+    probabilities = tibble(
+      PLAYER_ID = inputs$data$lattice$PLAYER_ID,
+      cell_id = inputs$data$lattice$cell_id,
+      probability = probabilities
+    ),
+    sparse_intervals = sparse_intervals,
+    checks = checks,
+    worker_pids = worker_pids
+  )
+}
+
+exact_result_paths <- function() {
+  file.path(
+    exact_long_result_dir,
+    c(
+      "benchmark_metrics.parquet", "uncertainty_summary.parquet",
+      "sanity_checks.parquet", "environment_notices.parquet"
+    )
+  )
+}
+
+write_exact_results <- function(result) {
+  paths <- exact_result_paths()
+  uncertainty_summary <- result$sparse_intervals |>
+    summarise(
+      sparse_player_count = n(),
+      minimum_interval_width = min(interval_width),
+      mean_interval_width = mean(interval_width),
+      maximum_interval_width = max(interval_width),
+      all_intervals_finite_ordered_feasible = TRUE
+    ) |>
+    mutate(
+      season = season,
+      scope = "all_318_eligible_players_training_only",
+      method = "aggregated_exact_nondiscrete_two_worker_psock",
+      grid_width = GRID_WIDTH,
+      fold4_outcomes_read = FALSE,
+      fold5_outcomes_read = FALSE,
+      .before = 1
+    )
+  checks <- result$checks |>
+    mutate(
+      season = season,
+      scope = "all_318_eligible_players_training_only",
+      method = "aggregated_exact_nondiscrete_two_worker_psock",
+      grid_width = GRID_WIDTH,
+      fold4_outcomes_read = FALSE,
+      fold5_outcomes_read = FALSE,
+      .before = 1
+    )
+  environment_notices <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    severity = "compatibility_warning",
+    source = "arrow package startup",
+    notice = paste(
+      "arrow was built under R 4.6.1 while the frozen runtime is R 4.6.0;",
+      "all completed exact-GAM checks passed"
+    ),
+    package_build = packageDescription("arrow")$Built,
+    model_warning_count = result$metrics$warning_count,
+    model_message_count = result$metrics$message_count,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE
+  )
+  tables <- list(result$metrics, uncertainty_summary, checks, environment_notices)
+  for (index in seq_along(paths)) {
+    write_new_atomic_parquet(tables[[index]], paths[[index]])
+  }
+}
+
+save_exact_completion <- function(result) {
+  if (!all(result$checks$passed)) {
+    stop("Refusing to publish exact completion before every check passes",
+         call. = FALSE)
+  }
+  fit_path <- file.path(exact_long_cache_dir, "gam_exact_grid_40_fit.rds")
+  if (!file.exists(fit_path) ||
+      !identical(
+        unname(tools::md5sum(fit_path)),
+        result$metrics$serialized_model_md5[[1]]
+      )) {
+    stop("The exact fit artifact is missing or has the wrong hash",
+         call. = FALSE)
+  }
+  checkpoint <- list(
+    complete = TRUE,
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_exact_nondiscrete_two_worker_psock",
+    specification_id = "frozen-gam-grid40-exact-long-v1",
+    split_sha256 = EXPECTED_SPLIT_SHA256,
+    input_sha256 = result$metrics$input_sha256[[1]],
+    player_count = EXPECTED_ALL_PLAYERS,
+    grid_width = GRID_WIDTH,
+    fit_md5 = result$metrics$serialized_model_md5[[1]],
+    result = result
+  )
+  save_new_atomic_rds(
+    checkpoint,
+    file.path(exact_long_cache_dir, "benchmark_complete_checkpoint.rds")
+  )
+}
+
+load_exact_completion <- function() {
+  checkpoint_path <- file.path(
+    exact_long_cache_dir, "benchmark_complete_checkpoint.rds"
+  )
+  if (!file.exists(checkpoint_path)) return(NULL)
+  checkpoint <- tryCatch(
+    readRDS(checkpoint_path),
+    error = function(condition) {
+      stop("Existing exact checkpoint is unreadable and was preserved: ",
+           conditionMessage(condition), call. = FALSE)
+    }
+  )
+  fit_path <- file.path(exact_long_cache_dir, "gam_exact_grid_40_fit.rds")
+  signature_path <- file.path(exact_long_cache_dir, "input_signature.rds")
+  valid <- is.list(checkpoint) && isTRUE(checkpoint$complete) &&
+    identical(checkpoint$season, season) &&
+    identical(checkpoint$scope, "all_318_eligible_players_training_only") &&
+    identical(
+      checkpoint$method, "aggregated_exact_nondiscrete_two_worker_psock"
+    ) &&
+    identical(checkpoint$specification_id, "frozen-gam-grid40-exact-long-v1") &&
+    identical(checkpoint$split_sha256, EXPECTED_SPLIT_SHA256) &&
+    identical(checkpoint$player_count, EXPECTED_ALL_PLAYERS) &&
+    identical(checkpoint$grid_width, GRID_WIDTH) &&
+    nrow(checkpoint$result$probabilities) == EXPECTED_ALL_PLAYERS * GRID_CELLS &&
+    nrow(checkpoint$result$sparse_intervals) == 80L &&
+    nrow(checkpoint$result$metrics) == 1L &&
+    isTRUE(checkpoint$result$metrics$completed[[1]]) &&
+    all(checkpoint$result$checks$passed) &&
+    file.exists(fit_path) && file.exists(signature_path) &&
+    identical(checkpoint$fit_md5, unname(tools::md5sum(fit_path))) &&
+    identical(checkpoint$input_sha256, sha256_file(signature_path)) &&
+    all(file.exists(exact_result_paths()))
+  if (!valid) {
+    stop("Existing exact checkpoint is inconsistent; artifacts were preserved",
+         call. = FALSE)
+  }
+  checkpoint
+}
+
+active_pids <- function(pids) {
+  pids <- unique(as.integer(pids[is.finite(pids)]))
+  pids[vapply(pids, function(pid) {
+    length(system2("ps", c("-p", pid, "-o", "pid="), stdout = TRUE)) > 0L
+  }, logical(1))]
+}
+
+terminate_exact_processes <- function(root_pid, extra_pids = integer()) {
+  tree <- discrete_process_tree_snapshot(root_pid)$pids
+  targets <- unique(c(tree, active_pids(extra_pids)))
+  for (pid in rev(targets)) {
+    try(tools::pskill(pid, signal = 15L), silent = TRUE)
+  }
+  Sys.sleep(5)
+  remaining <- active_pids(targets)
+  for (pid in rev(remaining)) {
+    try(tools::pskill(pid, signal = 9L), silent = TRUE)
+  }
+  Sys.sleep(1)
+  active_pids(targets)
+}
+
+write_exact_failure <- function(inputs, elapsed, cpu_seconds, peak_rss_mb,
+                                failure, orphan_count) {
+  stage_path <- file.path(exact_long_cache_dir, "stage_heartbeat.rds")
+  last_stage <- if (file.exists(stage_path)) {
+    tryCatch(readRDS(stage_path)$stage,
+             error = function(condition) "unreadable_stage_heartbeat")
+  } else {
+    "unknown_no_stage_heartbeat"
+  }
+  result <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_exact_nondiscrete_two_worker_psock",
+    specification_id = "frozen-gam-grid40-exact-long-v1",
+    grid_width = GRID_WIDTH,
+    fitting_folds = paste(FITTING_FOLDS, collapse = ","),
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    completed = FALSE, timed_out = FALSE, failed = TRUE,
+    failure = failure,
+    last_confirmed_stage = last_stage,
+    runtime_ceiling_sec = NA_real_,
+    total_wall_elapsed_sec = as.numeric(elapsed),
+    approximate_process_tree_cpu_sec = as.numeric(cpu_seconds),
+    approximate_peak_process_tree_rss_mb = as.numeric(peak_rss_mb),
+    remaining_orphan_processes = as.integer(orphan_count),
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = EXPECTED_ALL_PLAYERS * GAM_BASIS_SIZE,
+    smooth_count = EXPECTED_ALL_PLAYERS,
+    basis_size = GAM_BASIS_SIZE,
+    smoothing_parameter_count = 1L,
+    posterior_draws = POSTERIOR_DRAWS,
+    gam_draw_seed = GAM_DRAW_SEED,
+    predictive_seed = PREDICTIVE_SEED,
+    r_version = as.character(getRversion()),
+    mgcv_version = as.character(packageVersion("mgcv")),
+    split_sha256 = EXPECTED_SPLIT_SHA256,
+    input_sha256 = inputs$input_sha256
+  )
+  write_new_atomic_parquet(
+    result, file.path(exact_long_result_dir, "benchmark_failure.parquet")
+  )
+  result
+}
+
+other_full_gam_processes <- function() {
+  output <- suppressWarnings(system2(
+    "ps", c("-axo", "pid=,command="), stdout = TRUE, stderr = TRUE
+  ))
+  if (length(output) == 0L || !is.null(attr(output, "status"))) {
+    stop("Could not inspect the process table for duplicate GAM runs",
+         call. = FALSE)
+  }
+  pid <- suppressWarnings(as.integer(sub("^ *([0-9]+).*$", "\\1", output)))
+  table <- tibble(
+    pid = pid,
+    command = trimws(sub("^ *[0-9]+ +", "", output))
+  ) |>
+    filter(!is.na(pid))
+  ancestors <- integer()
+  ancestor <- Sys.getpid()
+  for (index in seq_len(10L)) {
+    ancestor <- parent_pid(ancestor)
+    ancestors <- c(ancestors, ancestor)
+    if (ancestor <= 1L) break
+  }
+  table |>
+    filter(
+      !pid %in% c(Sys.getpid(), ancestors),
+      grepl("spatial_gam_aggregation_benchmark[.]R", command),
+      grepl(
+        "exact318-long-run|discrete318-run|benchmark318_parallel|benchmark318",
+        command
+      )
+    )
+}
+
+audit_exact_long_run <- function() {
+  check_log <- new_exact_check_log()
+  inputs <- prepare_exact_full_inputs(check_log, write_signature = FALSE)
+  reference <- read_parquet(parallel_equivalence_path) |>
+    as_tibble()
+  exact_check(
+    check_log, "verified_two_worker_equivalence_reference",
+    nrow(reference) == 1L && reference$worker_count[[1]] == EXACT_LONG_WORKERS &&
+      isTRUE(reference$passed[[1]]) &&
+      identical(reference$fold4_outcomes_read[[1]], FALSE) &&
+      identical(reference$fold5_outcomes_read[[1]], FALSE),
+    "40-player exact two-worker PSOCK comparison passed"
+  )
+  exact_check(
+    check_log, "no_other_full_league_gam_process",
+    nrow(other_full_gam_processes()) == 0L,
+    "no exact or discrete full-league GAM R process is active"
+  )
+  audit <- tibble(
+    season = season,
+    scope = "all_318_eligible_players_training_only",
+    method = "aggregated_exact_nondiscrete_two_worker_psock",
+    players = inputs$players,
+    training_shots = inputs$training_shots,
+    observed_player_cells = nrow(inputs$data$aggregated),
+    full_lattice_rows = nrow(inputs$data$lattice),
+    coefficient_count = EXPECTED_ALL_PLAYERS * GAM_BASIS_SIZE,
+    smooth_count = EXPECTED_ALL_PLAYERS,
+    smoothing_parameter_count = 1L,
+    worker_count = EXACT_LONG_WORKERS,
+    posterior_draws = POSTERIOR_DRAWS,
+    fitting_folds = inputs$folds,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    input_sha256 = inputs$input_sha256,
+    split_sha256 = inputs$split_sha256,
+    frozen_preflight_checks_passed = all(bind_rows(check_log$records)$passed)
+  )
+  print(audit, width = Inf)
+  invisible(audit)
+}
+
+run_exact_long_full_league <- function() {
+  completed <- load_exact_completion()
+  if (!is.null(completed)) {
+    message("Reusing verified completed full-league exact GAM checkpoint")
+    print(completed$result$metrics, width = Inf)
+    return(invisible(completed))
+  }
+  existing_files <- c(
+    if (dir.exists(exact_long_cache_dir)) {
+      list.files(exact_long_cache_dir, all.files = TRUE, full.names = TRUE) |>
+        setdiff(c(
+          file.path(exact_long_cache_dir, "."),
+          file.path(exact_long_cache_dir, "..")
+        ))
+    } else {
+      character()
+    },
+    if (dir.exists(exact_long_result_dir)) {
+      list.files(exact_long_result_dir, all.files = TRUE, full.names = TRUE) |>
+        setdiff(c(
+          file.path(exact_long_result_dir, "."),
+          file.path(exact_long_result_dir, "..")
+        ))
+    } else {
+      character()
+    }
+  )
+  current_console_log <- Sys.getenv("SPATIAL_EXACT_CONSOLE_LOG")
+  if (nzchar(current_console_log)) {
+    existing_files <- setdiff(existing_files, current_console_log)
+  }
+  if (length(existing_files) > 0L) {
+    stop(
+      "Incomplete exact-run artifacts were preserved; inspect before restarting",
+      call. = FALSE
+    )
+  }
+
+  caffeinate <- verify_caffeinate_guard()
+  free_gib <- disk_free_gib(".")
+  if (free_gib < EXACT_LONG_MIN_FREE_GIB) {
+    stop(
+      "DISK SAFEGUARD: fewer than ", EXACT_LONG_MIN_FREE_GIB,
+      " GiB are free; exact fit was not started", call. = FALSE
+    )
+  }
+  if (nrow(other_full_gam_processes()) > 0L) {
+    stop("DUPLICATE RUN SAFEGUARD: another full-league GAM is active",
+         call. = FALSE)
+  }
+
+  wall_started_time <- Sys.time()
+  lock <- acquire_exact_lock()
+  on.exit(release_exact_lock(lock), add = TRUE)
+  check_log <- new_exact_check_log()
+  inputs <- prepare_exact_full_inputs(check_log, write_signature = TRUE)
+  metadata <- list(
+    season = season,
+    mode = mode,
+    specification_id = "frozen-gam-grid40-exact-long-v1",
+    runner_pid = Sys.getpid(),
+    model_pid = NA_integer_,
+    worker_pids = integer(),
+    caffeinate_pid = caffeinate$pid,
+    caffeinate_command = caffeinate$command,
+    started_at_utc = format(wall_started_time, tz = "UTC", usetz = TRUE),
+    last_updated_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    stage_path = file.path(exact_long_cache_dir, "stage_heartbeat.rds"),
+    console_log_path = current_console_log,
+    event_log_path = file.path(exact_long_cache_dir, "run_events.log"),
+    resource_samples_path = file.path(exact_long_cache_dir, "resource_samples.rds"),
+    free_disk_gib_at_start = free_gib,
+    runtime_ceiling_sec = NA_real_,
+    fold4_outcomes_read = FALSE,
+    fold5_outcomes_read = FALSE,
+    input_sha256 = inputs$input_sha256,
+    split_sha256 = inputs$split_sha256
+  )
+  write_exact_metadata(metadata)
+  write_exact_stage("launching_exact_model_child")
+  exact_log_event(
+    "START runner_pid=", Sys.getpid(), " caffeinate_pid=", caffeinate$pid,
+    " free_disk_gib=", round(free_gib, 2), " no_runtime_ceiling"
+  )
+
+  job <- parallel::mcparallel(
+    fit_full_league_exact_gam(inputs, check_log),
+    detached = FALSE,
+    silent = FALSE
+  )
+  lock <- update_exact_lock(lock, model_pid = job$pid)
+  metadata$model_pid <- as.integer(job$pid)
+  metadata$last_updated_utc <- format(Sys.time(), tz = "UTC", usetz = TRUE)
+  write_exact_metadata(metadata)
+
+  samples <- tibble()
+  cpu_by_pid <- numeric()
+  peak_rss_mb <- 0
+  next_persisted_sample <- 0
+  worker_pids <- integer()
+
+  repeat {
+    elapsed <- as.numeric(difftime(Sys.time(), wall_started_time, units = "secs"))
+    snapshot <- discrete_process_tree_snapshot(Sys.getpid())
+    peak_rss_mb <- max(peak_rss_mb, snapshot$rss_mb)
+    for (pid in names(snapshot$cpu_seconds)) {
+      previous <- unname(cpu_by_pid[pid])
+      if (length(previous) == 0L || is.na(previous)) previous <- 0
+      cpu_by_pid[pid] <- max(previous, snapshot$cpu_seconds[[pid]])
+    }
+    worker_pid_path <- file.path(exact_long_cache_dir, "psock_worker_pids.rds")
+    if (file.exists(worker_pid_path) && length(worker_pids) == 0L) {
+      worker_pids <- tryCatch(
+        as.integer(readRDS(worker_pid_path)),
+        error = function(condition) integer()
+      )
+      if (length(worker_pids) > 0L) {
+        lock <- update_exact_lock(lock, worker_pids = worker_pids)
+        metadata$worker_pids <- worker_pids
+        metadata$last_updated_utc <- format(Sys.time(), tz = "UTC", usetz = TRUE)
+        write_exact_metadata(metadata)
+        exact_log_event("PSOCK workers published: ", paste(worker_pids, collapse = ","))
+      }
+    }
+
+    if (elapsed >= next_persisted_sample) {
+      stage_path <- file.path(exact_long_cache_dir, "stage_heartbeat.rds")
+      stage <- if (file.exists(stage_path)) {
+        tryCatch(readRDS(stage_path)$stage,
+                 error = function(condition) "unreadable_stage")
+      } else {
+        "stage_not_yet_published"
+      }
+      pressure <- tryCatch(
+        paste(system2("memory_pressure", "-Q", stdout = TRUE), collapse = " | "),
+        error = function(condition) conditionMessage(condition)
+      )
+      current_free_gib <- disk_free_gib(".")
+      samples <- bind_rows(samples, tibble(
+        timestamp_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+        elapsed_sec = elapsed,
+        stage = stage,
+        visible_process_count = length(snapshot$pids),
+        visible_pids = paste(snapshot$pids, collapse = ","),
+        process_tree_rss_mb = snapshot$rss_mb,
+        cumulative_sampled_cpu_sec = sum(cpu_by_pid, na.rm = TRUE),
+        free_disk_gib = current_free_gib,
+        memory_pressure = pressure
+      ))
+      save_atomic_rds(
+        samples, file.path(exact_long_cache_dir, "resource_samples.rds")
+      )
+      metadata$last_updated_utc <- format(Sys.time(), tz = "UTC", usetz = TRUE)
+      metadata$last_stage <- stage
+      metadata$last_elapsed_sec <- elapsed
+      metadata$last_process_tree_rss_mb <- snapshot$rss_mb
+      metadata$last_sampled_cpu_sec <- sum(cpu_by_pid, na.rm = TRUE)
+      metadata$last_free_disk_gib <- current_free_gib
+      write_exact_metadata(metadata)
+      exact_log_event(
+        "RESOURCE elapsed_sec=", round(elapsed, 1), " stage=", stage,
+        " cpu_sec=", round(sum(cpu_by_pid, na.rm = TRUE), 1),
+        " rss_mb=", round(snapshot$rss_mb, 1),
+        " free_disk_gib=", round(current_free_gib, 2)
+      )
+      next_persisted_sample <- elapsed + EXACT_LONG_SAMPLE_INTERVAL_SEC
+      if (current_free_gib < 2) {
+        remaining <- terminate_exact_processes(job$pid, worker_pids)
+        result <- write_exact_failure(
+          inputs, elapsed, sum(cpu_by_pid, na.rm = TRUE), peak_rss_mb,
+          "critical disk safeguard: fewer than 2 GiB remained",
+          length(remaining)
+        )
+        print(result, width = Inf)
+        stop("Exact GAM stopped because disk space became critically low",
+             call. = FALSE)
+      }
+      if (length(active_pids(caffeinate$pid)) != 1L) {
+        remaining <- terminate_exact_processes(job$pid, worker_pids)
+        result <- write_exact_failure(
+          inputs, elapsed, sum(cpu_by_pid, na.rm = TRUE), peak_rss_mb,
+          "macOS caffeinate sleep-prevention guard exited unexpectedly",
+          length(remaining)
+        )
+        print(result, width = Inf)
+        stop("Exact GAM stopped because sleep prevention was lost",
+             call. = FALSE)
+      }
+    }
+
+    collected <- parallel::mccollect(job, wait = FALSE)
+    if (!is.null(collected)) {
+      value <- collected[[1]]
+      elapsed <- as.numeric(difftime(Sys.time(), wall_started_time, units = "secs"))
+      if (inherits(value, "try-error")) {
+        remaining <- terminate_exact_processes(job$pid, worker_pids)
+        failure <- paste("exact GAM model child failed:", value)
+        result <- write_exact_failure(
+          inputs, elapsed, sum(cpu_by_pid, na.rm = TRUE), peak_rss_mb,
+          failure, length(remaining)
+        )
+        exact_log_event("FAILURE ", failure)
+        print(result, width = Inf)
+        stop(failure, call. = FALSE)
+      }
+      remaining <- active_pids(worker_pids)
+      if (length(remaining) > 0L) {
+        remaining <- terminate_exact_processes(job$pid, remaining)
+      }
+      orphan_check <- tibble(
+        check = "no_orphan_psock_workers_after_completion",
+        passed = length(remaining) == 0L,
+        detail = paste(length(remaining), "workers remained")
+      )
+      if (!orphan_check$passed[[1]]) {
+        failure <- "EXACT GAM SANITY CHECK FAILED: PSOCK workers remained"
+        result <- write_exact_failure(
+          inputs, elapsed, sum(cpu_by_pid, na.rm = TRUE), peak_rss_mb,
+          failure, length(remaining)
+        )
+        print(result, width = Inf)
+        stop(failure, call. = FALSE)
+      }
+      value$checks <- bind_rows(value$checks, orphan_check)
+      value$metrics <- value$metrics |>
+        mutate(
+          total_wall_elapsed_sec = elapsed,
+          approximate_process_tree_cpu_sec = sum(cpu_by_pid, na.rm = TRUE),
+          approximate_peak_process_tree_rss_mb = peak_rss_mb,
+          resource_sample_count = nrow(samples),
+          free_disk_gib_at_start = free_gib,
+          free_disk_gib_at_completion = disk_free_gib("."),
+          caffeinate_pid = caffeinate$pid,
+          sleep_prevention_verified = TRUE,
+          orphan_process_count_after_completion = length(remaining),
+          cpu_measurement = paste(
+            "sum of maximum five-second sampled CPU time for each visible",
+            "R process-tree PID"
+          ),
+          memory_measurement = paste(
+            "maximum sampled resident memory across runner, model child,",
+            "and visible PSOCK workers"
+          )
+        )
+      write_exact_results(value)
+      save_exact_completion(value)
+      write_exact_stage("complete_checkpoint_published")
+      exact_log_event(
+        "COMPLETE elapsed_sec=", round(elapsed, 1),
+        " fit_md5=", value$metrics$serialized_model_md5[[1]]
+      )
+      print(value$metrics, width = Inf)
+      return(invisible(value))
+    }
+    Sys.sleep(5)
+  }
+}
+
+if (mode == "exact318-long-audit") {
+  audit_exact_long_run()
+} else if (mode == "exact318-long-run") {
+  run_exact_long_full_league()
+} else if (mode == "discrete318-audit") {
   audit_discrete_full_league()
 } else if (mode == "discrete318-run") {
   run_capped_discrete_full_league()
