@@ -419,6 +419,48 @@ rather than repaired silently.
 If neither condition holds, choose GAM. If CAR is clearly worse on held-out log
 loss, an uncertainty difference does not override that failure.
 
+### Frozen full-league fold-4 comparison
+
+**Pre-evaluation freeze, 2026-09-02:** the representative 40-player fallback
+selected the approximately 4-foot grid before the full-league fits were run.
+That grid is fixed for this preliminary all-318-player comparison. The completed
+exact GAM and CAR fits both use folds 1-3, so fold 4 may now measure full-league
+predictive behavior without refitting either model. This is not the sealed final
+test, and it cannot change the grid, formula, priors, smoothing, or prediction
+rules.
+
+- The primary metric is pooled per-shot binomial log loss. Probabilities are
+  clipped to `[1e-15, 1 - 1e-15]` only inside logarithms. Lower is better.
+- Report the paired difference as GAM minus CAR, so a positive value favors CAR.
+  Use 2,000 paired whole-game bootstrap resamples, seed `20260904`, and the
+  percentile 95% interval. This is the sign-reversed form of the existing
+  CAR-minus-GAM rule, not a new decision rule.
+- For calibration, create ten equal-count groups separately for each model and
+  report each group's predicted probability, observed make rate, and gap. Also
+  report weighted mean absolute decile gap, maximum absolute decile gap, and
+  per-player predicted-versus-observed total-make error. Use the same bootstrap
+  game weights to compare weighted mean absolute decile gap. CAR is materially
+  worse calibrated only if the entire 95% interval for GAM-minus-CAR calibration
+  error is below zero.
+- For sparse-player uncertainty, use the already frozen bottom 80 players by
+  folds-1-to-3 attempt count and evaluate the saved 90% posterior-predictive
+  intervals for fold-4 total makes. Report coverage and average width. The saved
+  checkpoints retain intervals but not joint cell-level draws, so these fold-4
+  uncertainty results are descriptive: they cannot satisfy the planned
+  whole-game uncertainty-bootstrap condition or override the primary metric.
+- Evidence favors CAR only when the full log-loss interval is above zero and
+  CAR is not materially worse calibrated under the rule above. Evidence favors
+  GAM when the full log-loss interval is below zero. Otherwise the fold-4 result
+  is practically tied. Secondary measures do not override the primary result.
+- The evaluation output is frozen to eight small Parquet tables: one manifest,
+  one model-level metric table, calibration bins, player-level calibration,
+  sparse-player intervals, one aggregate bootstrap summary, one interpretation
+  record, and sanity checks. No shot-level or bootstrap-draw rows are saved.
+- `R/spatial_full_league_fold4_comparison.R` must pass audit mode and be
+  committed and pushed before fold-4 outcomes are opened. Its only outcome
+  loader accepts fold 4 exactly and rejects fold 5 before selecting the outcome
+  column. Settings and output definitions may not change after the run begins.
+
 ## Approved Bayesian CAR package
 
 **Recommendation:** use R-INLA's `inla()` with a binomial likelihood and a
