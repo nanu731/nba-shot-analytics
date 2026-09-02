@@ -329,8 +329,9 @@ and the [`logitbeta` prior](https://inla.r-inla-download.org/r-inla.org/doc/prio
   `20260830` for the game split, `20260831` for the fallback player sample,
   `20260901` for GAM coefficient draws, `20260902` for R-INLA posterior draws,
   and reset seed `20260903` before each model's posterior-predictive binomial
-  draws. Use `20260904` for fold-4 whole-game bootstrap resamples and `20260905`
-  for fold-5 whole-game bootstrap resamples.
+  draws. Use `20260904` for fold-4 whole-game bootstrap resamples. The final-test
+  amendment below explicitly reuses `20260904` for fold 5; the previously
+  reserved `20260905` seed was never used and is retired.
 - The local, ignored split artifact is
   `data/cache/spatial_pilot/season=2025-26/game_folds.parquet`, SHA-256
   `aaee94c1e8380999190aea5f00f8c02c738db6438ffe7b7a1a761d19c5a6ee33`.
@@ -491,6 +492,43 @@ though it did not tune either model after the full-league fits. Runtime remains
 descriptive only: the training-only CAR fit took 125.206 seconds, whereas the
 exact-GAM fit took 64,452.7 seconds under its no-timeout LaunchAgent method.
 That computational difference did not determine the predictive conclusion.
+
+### Frozen one-time full-league fold-5 final test
+
+**Pre-evaluation amendment, 2026-09-02:** use the existing folds-1-to-3 exact
+GAM and Bayesian CAR fits without refitting, repairing, or changing either
+model. Fold 4 selected the approximately 4-foot shared grid on the
+representative 40-player fallback and then supplied the provisional full-league
+comparison above. Fold 5 is the one-time untouched final predictive test. The
+approach selected by this test may later be refit on all available data for
+website production; that later fit is not another evaluation.
+
+- Reuse the fold-4 primary metric, direction, clipping, calibration summaries,
+  player-total errors, output schema, and interpretation exactly: pooled
+  shot-level binomial log loss; clip to `[1e-15, 1 - 1e-15]` only for logs;
+  report GAM minus CAR, where positive favors CAR; and do not let secondary
+  measures override the primary result.
+- Use 2,000 paired whole-game bootstrap samples, the percentile 95% interval,
+  and seed `20260904`. This explicit final-test instruction supersedes the
+  unused `20260905` reservation above and does not use any fold-5 information.
+- Recreate 90% posterior-predictive total-make intervals for the frozen bottom
+  80 players by folds-1-to-3 volume. Use the saved fits, the frozen 4,000 joint
+  parameter draws and seeds, the fold-5 attempt pattern, and added binomial shot
+  noise. This is prediction from existing models, not refitting.
+- Evidence favors CAR only when the entire paired interval for GAM-minus-CAR
+  log loss is above zero and CAR is not materially worse on the frozen
+  calibration comparison. Evidence favors GAM when that log-loss interval is
+  entirely below zero. Otherwise record a practical tie. Uncertainty and other
+  secondary measures cannot reverse the primary classification.
+- `R/spatial_full_league_fold5_comparison.R` must pass audit mode and be
+  committed and pushed before fold-5 outcomes are opened. The run creates an
+  exclusive ignored access marker before its single outcome read and refuses
+  to run if that marker or any result already exists. It cannot fit or alter a
+  model and saves only eight small aggregate or player-level Parquet tables,
+  never shot-level rows or bootstrap draws.
+- No model, grid, prior, smoothing, prediction, uncertainty, scoring, or
+  interpretation rule may change after the pre-evaluation commit is pushed or
+  after fold 5 is opened.
 
 ## Approved Bayesian CAR package
 
