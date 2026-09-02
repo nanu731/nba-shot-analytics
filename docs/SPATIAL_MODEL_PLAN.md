@@ -461,6 +461,37 @@ rules.
   loader accepts fold 4 exactly and rejects fold 5 before selecting the outcome
   column. Settings and output definitions may not change after the run begins.
 
+**Measured preliminary result, 2026-09-02:** the committed evaluation at
+`42b4038` scored the same 38,820 fold-4 shots from 246 games for both models,
+covering all 318 eligible players. All 34 evaluation checks passed. Exact-GAM
+log loss was `0.6666759`; CAR log loss was `0.6614211`. The GAM-minus-CAR
+difference was `0.0052548`, with a paired whole-game bootstrap 95% interval of
+`[0.0040694, 0.0064287]`. The interval is entirely positive, so this preliminary
+fold-4 evidence favors CAR under the frozen primary rule. This is not a final
+test or permission to alter either model.
+
+Calibration did not provide evidence against that interpretation. Weighted
+absolute decile error was `0.0271601` for GAM and `0.0260283` for CAR; their
+GAM-minus-CAR difference was `0.0011318`, with bootstrap interval
+`[-0.0028915, 0.0050552]`. Maximum absolute decile gaps were `0.0766147` and
+`0.0591602`. Player-total mean absolute errors were nearly identical: `4.9903`
+makes for GAM and `5.0054` for CAR. These secondary summaries do not override
+the primary log-loss result.
+
+Sparse-player uncertainty was also nearly identical. Both 90% interval sets
+covered 77 of 80 players (`96.25%`); average widths were `15.1519` makes for GAM
+and `15.1150` for CAR. This does not show a clear CAR uncertainty advantage, and
+the saved interval-only artifacts do not support the planned whole-game
+uncertainty bootstrap.
+
+Fold 5 make/miss outcomes remain sealed. The result is preliminary for an
+additional reason: the representative 40-player subset of fold 4 previously
+selected the shared grid, so fold 4 is not an untouched final holdout even
+though it did not tune either model after the full-league fits. Runtime remains
+descriptive only: the training-only CAR fit took 125.206 seconds, whereas the
+exact-GAM fit took 64,452.7 seconds under its no-timeout LaunchAgent method.
+That computational difference did not determine the predictive conclusion.
+
 ## Approved Bayesian CAR package
 
 **Recommendation:** use R-INLA's `inla()` with a binomial likelihood and a
@@ -719,8 +750,8 @@ performance.
 
 ## Open decisions
 
-- Which of the pre-registered 3-, 4-, or 5-foot grids the training-only selection
-  chooses, and whether that prediction grid remains appropriate for relocation.
+- Whether the fallback-selected approximately 4-foot prediction grid remains
+  appropriate for relocation after the model comparison is complete.
 - Exact definition of demonstrated ability.
 - Exact rule for spreading relocated shots.
 - Whether the public uncertainty range should be 80%, 90%, or 95%.
