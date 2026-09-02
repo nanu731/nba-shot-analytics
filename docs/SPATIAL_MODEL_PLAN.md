@@ -584,6 +584,48 @@ prediction, and uncertainty simulation never started. The smoke LaunchAgent
 was unloaded after verification; the real exact-GAM LaunchAgent was never
 loaded or started.
 
+**Measured full-league exact-GAM feasibility, 2026-09-02:** the real user
+LaunchAgent completed one no-timeout training-only run for all 318 eligible
+players and exited with status zero without restarting. The fixed approximately
+4-foot grid contained 19,475 observed player-cells and 49,608 player-cell
+prediction rows built from 116,955 fold-1-to-3 shots. The fit used the frozen
+grouped-binomial formula, 318 player intercepts, 318 player-specific thin-plate
+smooths with `k = 20`, one shared `id = 1` smoothing parameter, fREML,
+`discrete = FALSE`, and two PSOCK workers. It then used the frozen 4,000 GAM
+coefficient draws and posterior-predictive seed.
+
+The atomic completion checkpoint has SHA-256
+`eaeb947ec92e51f17b3c8273bb0584226a60f47fb84bd523f66152a2c7f3c453`.
+It references serialized-fit MD5 `0c378a0eba332161f6a689bcf952f5a1` and the
+frozen input SHA-256 `9608cd06ef83ab0866ad1c81f8d25802326d3f91cc349a81c570f46103eaae47`.
+The existing recovery entry point revalidated those references before the fit
+was loaded for independent structural checks.
+
+Setup took 6.508 seconds, fitting took 64,452.7 seconds (17 hours, 54 minutes,
+13 seconds), full-lattice prediction took 689.438 seconds, uncertainty took
+1.444 seconds, and total wall time was 65,197.32 seconds (18 hours, 6 minutes,
+37 seconds). Approximate sampled process-tree CPU time was 66,851.51 seconds
+and peak resident memory was 3,416.453 MB. Free disk space changed from
+134.493 GiB at startup to 128.787 GiB at completion. The in-memory model was
+1,324,936,224 bytes and the ignored serialized fit was 4,611,989,583 bytes.
+CPU and memory are periodic process-tree samples rather than exact operating-
+system accounting.
+
+All 28 applicable pre-validation checks passed. The fit reported full
+convergence after four outer iterations, maximum absolute gradient
+`1.964493e-09`, no captured model warnings or messages, smoothing parameter
+`0.8724094`, and maximum player-smooth EDF `8.663187`. All 49,608 draw-averaged
+probabilities were finite and between 0.00537 and 0.93584. Every player had a
+distinct centered surface, and all 80 sparse-player 90% posterior-predictive
+intervals were finite, ordered, and feasible. The only recorded environment
+notice during fitting was that Arrow was built under R 4.6.1 while the frozen
+runtime was R 4.6.0. Runner shutdown emitted two benign `ps` status-1 warnings
+while confirming that the already-exited PSOCK worker PIDs were gone; the saved
+no-orphan check passed. Fold-4 and fold-5 make-or-miss outcomes remained sealed.
+This establishes that the exact full-league GAM is computationally feasible
+through the LaunchAgent method; it does not measure held-out accuracy or choose
+a winner.
+
 R-INLA is not installed from ordinary CRAN. It uses its own repository, compiled
 binaries, and depends on spatial and sparse-matrix infrastructure including
 `fmesher` and `Matrix`. Stable R-INLA 26.8.7 and its required dependencies were
