@@ -576,6 +576,70 @@ fold-4 fallback, and the final comparison covers only one NBA season. A later
 all-data CAR fit may be used for production, but it is not another evaluation
 and must not be presented as one.
 
+## Frozen all-data CAR production fit
+
+**Pre-fit registration, 2026-09-02:** model selection and final predictive
+testing ended immutably at result commit `f7d7a15`. CAR won under the frozen
+rule. Fold 5 may now enter the production fit only because that one-time final
+evaluation is complete; production diagnostics cannot revise the comparison,
+select another model, or be reported as predictive accuracy.
+
+The production fit uses the exact 318-player eligibility set stored in the
+comparison input artifact with SHA-256
+`9608cd06ef83ab0866ad1c81f8d25802326d3f91cc349a81c570f46103eaae47`.
+The eligibility rule may be reproduced as a check, but it may not add or remove
+a player. Metadata-only preparation establishes 194,987 qualifying shots in
+1,230 games across folds 1 through 5, with fold counts 38,794, 38,827, 39,334,
+38,820, and 39,212. On the fixed approximately 4-foot grid these shots occupy
+22,447 player-cells. The full surface remains 318 players by 156 cells, or
+49,608 rows.
+
+The model is the selected frozen R-INLA specification above without any change:
+
+- grouped binomial makes and attempts, with `NA` outcomes only for empty
+  prediction cells;
+- one Normal(0, 1000) intercept per player and one independent replicated
+  `besagproper2` surface per player;
+- shared precision and dependence parameters with the frozen `pc.prec(1,
+  0.01)` and `logitbeta(1, 1)` priors;
+- the same unscaled, connected binary rook graph, court boundaries,
+  `constr = FALSE`, `diagonal = 0`, simplified-Laplace strategy, one thread,
+  package versions, and `safe = FALSE` behavior; and
+- 4,000 joint posterior draws with seed `20260902`, followed by seed `20260903`
+  for posterior-predictive binomial shot noise.
+
+`R/spatial_car_production.R` has three isolated modes. `audit` reads metadata
+and verifies the final selection. `prepare` reads all five authorized folds,
+builds the fixed aggregate lattice, and atomically freezes input and
+configuration without fitting. `run` is the only mode containing the model
+call; it requires committed hashes, a clean pushed pre-fit revision, and an
+exclusive lock. It has no arbitrary runtime ceiling and will never overwrite
+an incomplete or completed artifact.
+
+The production namespace is
+`data/cache/spatial_car_production/season=2025-26/`. It is separate from every
+comparison, fallback, and benchmark namespace. The ignored atomic artifacts
+are the input, configuration, fit, 49,608-row player-cell surface, 318-row
+player uncertainty summary, hyperparameter summary, model checkpoint,
+completion checkpoint, stages, PIDs, and resource samples. The fit retains the
+R-INLA joint posterior configuration required to generate later relocation
+uncertainty. The local surface records point probabilities plus 90% posterior
+probability intervals for every player-cell. Player summaries use the same
+draws plus binomial shot noise to form 90% intervals for total makes.
+
+The small tracked output is frozen to six Parquet files: production manifest,
+surface QA, player uncertainty summary, hyperparameter summary, sanity checks,
+and environment notices. It contains no shot-level or posterior-draw records.
+The prepared input SHA-256 is
+`395fff094a138035e84d3f332da9c0058be10919a192d707f8bd275345422ec6`;
+the configuration SHA-256 is
+`fc072f03e0579f32eba941717c4c8767912b72f82584d7e4842c6dab2699a80e`.
+Both were frozen before `run` was allowed to call R-INLA.
+
+No prediction comparison, validation score, relocation, slider, point-gain
+estimate, or 0-100 score is part of this production fit. The implementation and
+these settings cannot change after production outputs are viewed.
+
 ## Approved Bayesian CAR package
 
 **Recommendation:** use R-INLA's `inla()` with a binomial likelihood and a
