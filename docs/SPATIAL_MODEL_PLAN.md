@@ -530,6 +530,17 @@ website production; that later fit is not another evaluation.
   interpretation rule may change after the pre-evaluation commit is pushed or
   after fold 5 is opened.
 
+**Pre-outcome recovery record, 2026-09-02:** the first execution from pre-test
+commit `49d98bb` stopped during outcome-free GAM uncertainty setup. R selected
+the generic linear-model covariance path because the evaluation process had not
+attached the already-frozen `mgcv` package; the serialized exact GAM itself and
+its stored covariance were intact. No fold-5 access marker or result was
+created, no fold-5 make/miss outcome was read, and neither model was refit. The
+recovery adds an explicit `library(mgcv)` declaration so the same frozen
+`vcov(..., unconditional = TRUE)` calculation dispatches to `vcov.gam`. This is
+an execution correction only; every model and evaluation rule above is
+unchanged.
+
 ## Approved Bayesian CAR package
 
 **Recommendation:** use R-INLA's `inla()` with a binomial likelihood and a

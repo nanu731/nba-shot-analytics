@@ -8,6 +8,7 @@
 suppressPackageStartupMessages({
   library(arrow)
   library(dplyr)
+  library(mgcv)
   library(tidyr)
 })
 
