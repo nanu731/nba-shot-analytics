@@ -541,6 +541,41 @@ recovery adds an explicit `library(mgcv)` declaration so the same frozen
 an execution correction only; every model and evaluation rule above is
 unchanged.
 
+**Measured final result, 2026-09-02:** after recovery commit `5d47e6b` was
+pushed, the one-time evaluation scored the same 39,212 fold-5 shots from 246
+games for both models and represented all 318 eligible players. Neither model
+was refit. All 46 frozen artifact, access, prediction, uncertainty, bootstrap,
+and output checks passed. Exact-GAM log loss was `0.6639103`; CAR log loss was
+`0.6596804`. The GAM-minus-CAR difference was `0.0042299`, with a 2,000-sample
+paired whole-game bootstrap 95% interval of `[0.0030254, 0.0053456]`. Because
+the interval is entirely positive and CAR was not materially worse calibrated,
+the frozen final-test rule favors CAR.
+
+Calibration was close and does not weaken that conclusion. Weighted absolute
+decile error was `0.0250503` for GAM and `0.0262130` for CAR. The
+GAM-minus-CAR calibration-error difference was `-0.0011627`, with bootstrap
+interval `[-0.0039865, 0.0044110]`; that interval crosses zero. Maximum absolute
+decile gaps were `0.0702017` for GAM and `0.0523686` for CAR. Player-total mean
+absolute error was `5.0490` makes for GAM and `5.0200` for CAR; root-mean-square
+error was `6.4290` and `6.3732`, respectively. Mean observed-minus-predicted
+bias was `-0.3976` makes for GAM and `-0.3291` for CAR.
+
+For the 80 sparse players, GAM's 90% posterior-predictive intervals covered 76
+players (`95.0%`) with average width `14.8625` makes. CAR covered 75
+(`93.75%`) with average width `14.9769`. This does not show a CAR uncertainty
+advantage and does not override the primary metric. The bootstrap used the
+precommitted RNG kind, seed `20260904`, and fixed 2,000-draw code path; no
+second fold-5 outcome read was made merely to repeat the one-time final test.
+
+This is the final predictive comparison for these folds-1-to-3 fits, not a
+claim that the two approaches have similar computational cost. The recorded
+training times remain about 17.9 hours for exact GAM and 125.2 seconds for CAR;
+fold-5 uncertainty regeneration took 94.1 and 54.9 seconds, respectively. The
+approximately 4-foot grid was selected earlier on the representative 40-player
+fold-4 fallback, and the final comparison covers only one NBA season. A later
+all-data CAR fit may be used for production, but it is not another evaluation
+and must not be presented as one.
+
 ## Approved Bayesian CAR package
 
 **Recommendation:** use R-INLA's `inla()` with a binomial likelihood and a
