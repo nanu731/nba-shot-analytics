@@ -1,7 +1,8 @@
 # Spatial Shot Relocation: Living Plan
 
-**Status:** Planning. An isolated training-only feasibility pilot exists; no
-production spatial model or relocation simulation has been built.
+**Status:** CAR won the frozen final prediction test and the verified all-data
+CAR production model now exists. Relocation, slider behavior, and the 0-100
+score remain unbuilt.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.
@@ -639,6 +640,42 @@ Both were frozen before `run` was allowed to call R-INLA.
 No prediction comparison, validation score, relocation, slider, point-gain
 estimate, or 0-100 score is part of this production fit. The implementation and
 these settings cannot change after production outputs are viewed.
+
+**Verified production result, 2026-09-03:** the pre-fit implementation and
+prepared hashes were committed and pushed at `13ba7f7` before the sole model
+fit began. The atomic run then completed on all 194,987 eligible shots from
+1,230 games across folds 1 through 5. It retained the frozen 318-player set,
+22,447 observed player-cells, 156 cells per player, and the complete 49,608-row
+surface. This all-data run is the production fit of the CAR approach selected
+by the final test; it is not an additional evaluation.
+
+Setup took 0.930 seconds, R-INLA fitting took 132.959 seconds, point prediction
+took 0.241 seconds, 4,000-draw uncertainty processing took 83.068 seconds, and
+atomic serialization took 15.441 seconds. Total wall time was 234.383 seconds.
+Periodic process-tree sampling recorded approximately 183.85 CPU seconds and a
+peak resident-memory total of 3,436.19 MB. Free disk space changed from 130.750
+GiB to 124.778 GiB. The in-memory fit was 601,620,664 bytes and its ignored
+serialized form was 2,086,868,948 bytes; CPU and memory values are sampled
+approximations rather than exact operating-system accounting.
+
+All 55 recorded checks and an independent recovery verification passed. R-INLA
+returned `fit$ok = TRUE`, mode status zero, 318 player intercepts, 49,608
+replicated spatial effects, two shared CAR hyperparameters, and no captured fit
+or posterior-sampling warnings or messages. The fitted precision mean was
+2.056 and the dependence mean was 0.949. Point probabilities ranged from
+0.175846 to 0.819166. Every player had a distinct centered spatial surface; all
+cell intervals and all 318 player-total posterior-predictive intervals were
+finite, ordered, and within feasible bounds.
+
+The ignored fit SHA-256 is
+`a8d1cfd71bee21a075b7d1e5848d91544b0bce9230d8c8ef6c246520ce3819c0`.
+The atomic completion checkpoint SHA-256 is
+`c2d6c92b36981feaf5870a58fb7eca84eff399ddd7ed1c7ed39d649c932f923c`;
+its referenced input, configuration, surface, uncertainty, hyperparameter, and
+model-checkpoint hashes were independently matched before the fit was loaded.
+Recovery reused this completion and did not refit the model. The only
+environment notice remains Arrow having been built under R 4.6.1 while the
+frozen runtime is R 4.6.0; every Arrow operation and check completed.
 
 ## Approved Bayesian CAR package
 
