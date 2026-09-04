@@ -565,9 +565,11 @@ run_relocation <- function(audit) {
 
   player_cell <- lattice |>
     mutate(
-      posterior_mean_expected_points_per_shot =
-        if_else(attempts > 0L,
-                rowMeans(probability_draws) * point_value, NA_real_),
+      posterior_mean_expected_points_per_shot = if_else(
+        attempts > 0L, rowMeans(probability_draws) * point_value, NA_real_
+      )
+    ) |>
+    mutate(
       posterior_probability_above_current_mix = support_probability,
       minimum_attempts_pass = attempts >= MIN_ATTEMPTS,
       certainty_pass = coalesce(

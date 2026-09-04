@@ -49,6 +49,14 @@ six slider rows per player, a concentration audit, calculation notices, sanity
 checks, and a method manifest. They contain no posterior draws or shot-level
 records.
 
+The first execution attempt stopped before support classification or gain
+calculation because a full-lattice posterior-mean vector was evaluated inside a
+player-grouped data operation. The correction computes that unchanged vector
+before entering the grouped operation. This is an execution-shape fix only: it
+does not change a threshold, formula, draw, seed, input, or output definition.
+The failed lock is preserved separately, and a corrected pre-result revision
+must be pushed before another attempt.
+
 Before publication, the implementation must verify 318 players, 156 cells per
 player, the frozen production hashes, exact reproduction of the saved posterior
 draw means, valid probabilities and intervals, fixed support, proportional
