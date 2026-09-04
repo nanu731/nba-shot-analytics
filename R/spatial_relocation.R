@@ -567,15 +567,15 @@ run_relocation <- function(audit) {
     mutate(
       posterior_mean_expected_points_per_shot = if_else(
         attempts > 0L, rowMeans(probability_draws) * point_value, NA_real_
-      )
-    ) |>
-    mutate(
+      ),
       posterior_probability_above_current_mix = support_probability,
       minimum_attempts_pass = attempts >= MIN_ATTEMPTS,
       certainty_pass = coalesce(
         posterior_probability_above_current_mix >= MIN_CERTAINTY, FALSE
       ),
-      supported_destination = minimum_attempts_pass & certainty_pass,
+      supported_destination = minimum_attempts_pass & certainty_pass
+    ) |>
+    mutate(
       supported_baseline_share = sum(
         baseline_share[supported_destination], na.rm = TRUE
       ),
@@ -593,6 +593,23 @@ run_relocation <- function(audit) {
       posterior_probability_above_current_mix, minimum_attempts_pass,
       certainty_pass, supported_destination, supported_allocation_weight
     )
+  observed_support <- player_cell$attempts > 0L
+  record_check(
+    "evidence", "support_probabilities_valid",
+    all(is.finite(
+      player_cell$posterior_probability_above_current_mix[observed_support]
+    )) &&
+      all(player_cell$posterior_probability_above_current_mix[
+        observed_support
+      ] >= 0) &&
+      all(player_cell$posterior_probability_above_current_mix[
+        observed_support
+      ] <= 1) &&
+      all(is.na(player_cell$posterior_probability_above_current_mix[
+        !observed_support
+      ])),
+    "all observed-cell support probabilities are finite and empty cells are missing"
+  )
 
   evidence <- player_cell |>
     summarise(
@@ -914,6 +931,7 @@ run_relocation <- function(audit) {
   non_manifest_hashes <- vapply(
     file.path(staging, non_manifest_files), sha256_file, character(1)
   )
+  names(non_manifest_hashes) <- non_manifest_files
   manifest <- tibble(
     season = season,
     method_id = METHOD_ID,

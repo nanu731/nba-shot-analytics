@@ -57,6 +57,15 @@ does not change a threshold, formula, draw, seed, input, or output definition.
 The failed lock is preserved separately, and a corrected pre-result revision
 must be pushed before another attempt.
 
+The one authorized recovery execution also stopped before support classification
+or gain calculation. A second full-lattice vector, containing the support
+probabilities, was still assigned inside that grouped operation. The follow-up
+correction completes the same separation: all row-level posterior summaries are
+attached before the player-level allocation calculation begins. It also fixes
+the names used to place already-computed output hashes into the manifest. No
+player result was published, no model was refit, and no approved method rule
+changed. Another calculation requires a new explicit authorization.
+
 Before publication, the implementation must verify 318 players, 156 cells per
 player, the frozen production hashes, exact reproduction of the saved posterior
 draw means, valid probabilities and intervals, fixed support, proportional
