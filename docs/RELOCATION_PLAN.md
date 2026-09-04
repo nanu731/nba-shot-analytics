@@ -1,7 +1,8 @@
 # Provisional CAR Relocation Plan
 
-**Status:** Planning only. This document does not implement relocation, report
-player gains, define a 0-100 score, or change the selected production model.
+**Status:** Approved implementation frozen before player results. This document
+still does not report gains, define a 0-100 score, or change the selected
+production model.
 
 The final one-time prediction test selected Bayesian CAR, and the verified
 all-data production fit now provides a separate 156-cell probability surface
@@ -9,6 +10,52 @@ for each of 318 players. Those results are immutable. The next question is how
 to use each player's own surface to describe a limited, evidence-supported
 change in shot mix without pretending that the model creates real shot
 opportunities.
+
+## Frozen implementation specification
+
+Narayan approved the first relocation method on 2026-09-04. The implementation
+uses the verified all-data CAR production fit and its 4,000 joint posterior
+draws; it does not fit a model or run another prediction comparison.
+
+- Slider fractions are exactly `0`, `0.05`, `0.10`, `0.15`, `0.20`, and `0.25`.
+- A cell is supported only if the player attempted at least 10 shots there and
+  at least 90% of posterior draws put its expected points per shot above that
+  player's current-mix expected points per shot.
+- A player needs at least two supported cells. Otherwise the status is
+  `insufficient_supported_destinations`, and gains stay missing rather than
+  being reported as zero or used as an efficiency ranking.
+- The supported set is calculated once and is unchanged across slider values.
+- The point value in a player-cell is `2 + observed three-point-attempt share`.
+  Thus a cell containing only twos is worth 2, one containing only threes is
+  worth 3, and a boundary cell uses the player's observed mixture.
+- For player `i`, cell `j`, and draw `b`, cell expected points are
+  `e[i,j,b] = p[i,j,b] * v[i,j]`. The current-mix level in the same draw is
+  `sum(f[i,j] * e[i,j,b])`. This joint-draw comparison preserves uncertainty
+  shared across cells.
+- If `S[i]` is the supported set, its allocation weights are
+  `w[i,j] = f[i,j] / sum(f[i,S[i]])` inside the set and zero elsewhere. At
+  slider `s`, the new distribution is `q[i,j] = (1-s)f[i,j] + s*w[i,j]`.
+  There is no additional destination cap in version one.
+- Each draw's gain is the expected-points difference between `q` and `f`.
+  Results report its posterior mean and 5th-to-95th-percentile interval both
+  across the player's observed season attempt total and per 100 shots. Negative
+  lower interval bounds are retained.
+
+The calculation is registered as `car-proportional-relocation-v1`, uses seed
+`20260902`, and is tied to the production fit and completion hashes. It writes
+new files atomically and refuses to overwrite or compete with an incomplete
+run. Tracked outputs are limited to player-cell support, player evidence status,
+six slider rows per player, a concentration audit, calculation notices, sanity
+checks, and a method manifest. They contain no posterior draws or shot-level
+records.
+
+Before publication, the implementation must verify 318 players, 156 cells per
+player, the frozen production hashes, exact reproduction of the saved posterior
+draw means, valid probabilities and intervals, fixed support, proportional
+allocation, nonnegative shares, unit mass, unchanged attempts, zero gain at
+slider zero, explicit missing results for unsupported players, and consistent
+season and per-100 units. Concentration is reported as evidence; it cannot cause
+a cap to be added after gains are seen.
 
 ## Settled requirements
 
@@ -179,21 +226,16 @@ These labels illustrate the rule and are not player results.
   the play design, spacing, defensive response, or physical opportunity needed
   to create those attempts.
 
-## Decisions Narayan must make before implementation
+## Approved decisions and remaining roadmap
 
-1. **Relocation rule:** approve proportional reallocation with at least two
-   destinations, or choose constrained optimization. Recommendation:
-   proportional, because it is clearer and makes fewer unsupported assumptions.
-2. **Evidence thresholds:** choose the minimum attempts `m` and posterior
-   certainty `c`. Practical options are `m = 5` or `10` and `c = 80%`, `90%`, or
-   `95%`. Recommendation: `m = 10` and `c = 90%`; this is a moderate evidence
-   standard, but it must be approved before gains are viewed.
-3. **Variety safeguard:** use only the two-destination minimum and proportional
-   weights, or also impose a maximum destination share. Recommendation: start
-   without an extra cap, inspect concentration before gain calculation, and
-   pre-register a cap only if that audit shows it is needed.
-4. **Cell point value:** use the player's observed two/three-point mix within
-   each cell or a geometry rule. Recommendation: observed mix, because it
-   handles boundary cells and preserves demonstrated shot type.
-5. **Displayed uncertainty:** choose an 80%, 90%, or 95% interval.
-   Recommendation: 90%, matching the production CAR summaries.
+Narayan approved proportional reallocation, the 10-attempt and 90%-certainty
+thresholds, a two-destination minimum, no extra destination cap, observed
+two/three-point mixture for cell value, and 90% posterior intervals. These
+choices are frozen before calculating player results.
+
+The remaining stages are deliberately separate:
+
+1. verify relocation and review its concentration diagnostic;
+2. define the 0-100 score in a new pre-registered step;
+3. create website-ready exports only after the score is approved; and
+4. request Narayan's approval before modifying `portfolio-site`.
