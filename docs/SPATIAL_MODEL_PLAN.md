@@ -1,8 +1,10 @@
 # Spatial Shot Relocation: Living Plan
 
 **Status:** CAR won the frozen final prediction test and the verified all-data
-CAR production model now exists. Relocation, slider behavior, and the 0-100
-score remain unbuilt.
+CAR production model now exists. The relocation method and slider calculation
+are frozen in code, but no production relocation result has been published: the
+latest authorized run stopped at a pre-publication numerical tolerance check.
+The 0-100 score remains unbuilt.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.

@@ -1,8 +1,10 @@
 # Provisional CAR Relocation Plan
 
-**Status:** Approved implementation frozen before player results. This document
-still does not report gains, define a 0-100 score, or change the selected
-production model.
+**Status:** Approved implementation frozen before player results. An isolated
+technical smoke test passed, but the one authorized production calculation
+stopped at a pre-publication numerical tolerance check. No player result was
+published. This document still does not report gains, define a 0-100 score, or
+change the selected production model.
 
 The final one-time prediction test selected Bayesian CAR, and the verified
 all-data production fit now provides a separate 156-cell probability surface
@@ -65,6 +67,31 @@ attached before the player-level allocation calculation begins. It also fixes
 the names used to place already-computed output hashes into the manifest. No
 player result was published, no model was refit, and no approved method rule
 changed. Another calculation requires a new explicit authorization.
+
+Before the next production attempt, a deterministic two-player technical smoke
+test exercised the corrected grouped-vector operations, both evidence-status
+paths, all six sliders, proportional allocation, uncertainty summaries,
+concentration diagnostics, manifest hash naming and verification, and atomic
+publication. All 17 checks passed. The smoke namespace is separate and marked
+as non-production; it loaded no production artifact and called no model-fitting
+function.
+
+The single production calculation authorized after that smoke test stopped at
+the frozen `attempt_totals_unchanged` check. The largest floating-point
+difference between implied relocated and original attempt totals was
+`2.04636307898909e-12`, just above the absolute tolerance of `1e-12`. The run
+ended in about 62 seconds and published no atomic result or partial output.
+This is a numerical acceptance-check failure, not evidence that the CAR model
+or relocation method failed statistically. The stale lock and exact error
+evidence remain preserved. No automatic retry occurred, and no threshold,
+formula, draw, seed, or allocation rule changed.
+
+Narayan must approve the next pre-result correction. The simplest option is a
+documented, scale-aware tolerance for the redundant implied-attempt check while
+retaining the existing unit-mass check at `1e-12`. The more conservative option
+is to investigate a different algebraic implementation that passes the current
+absolute tolerance. Neither option may be chosen using unpublished player
+results from the stopped run.
 
 Before publication, the implementation must verify 318 players, 156 cells per
 player, the frozen production hashes, exact reproduction of the saved posterior
