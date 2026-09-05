@@ -1,11 +1,9 @@
-# Provisional CAR Relocation Plan
+# CAR Relocation Plan and Results
 
-**Status:** Approved implementation frozen before player results. Narayan
-approved a scale-aware amendment to the redundant attempt-total check after an
-isolated technical smoke test passed and the first production calculation
-stopped on floating-point rounding. No player result was published before this
-amendment. This document still does not report gains, define a 0-100 score, or
-change the selected production model.
+**Status:** The frozen proportional relocation calculation completed and passed
+verification for the production CAR surface. Results remain descriptive model
+estimates. The project has not defined a 0-100 score or started website
+integration.
 
 The final one-time prediction test selected Bayesian CAR, and the verified
 all-data production fit now provides a separate 156-cell probability surface
@@ -99,13 +97,63 @@ attempt scale, a meaningful mismatch, and non-finite values before it reads a
 production artifact. Narayan approved this rule before any relocation result
 was published or viewed.
 
-Before publication, the implementation must verify 318 players, 156 cells per
+## Verified production relocation result
+
+The one authorized calculation from pre-result commit `4382a19` completed on
+2026-09-04 in 101.966 seconds. It used 318 players, 194,987 attempts, 156 cells
+per player, the 49,608-row production surface, and 4,000 joint CAR posterior
+draws. It did not refit a model or run a prediction test. The atomic completion
+checkpoint has SHA-256
+`e06f32b9da196feb9692b66c7c821a0bbaa3aa38d3927990c7afda3c6fc045d4`,
+and all seven published artifact hashes matched it.
+
+The evidence rule supported relocation estimates for 122 players. The other
+196 players had fewer than two destinations meeting both the 10-attempt and
+90%-certainty requirements. Their gain fields remain missing, so readers cannot
+mistake insufficient evidence for a zero-gain estimate. Each player has one row
+for every slider value, for 1,908 rows in total.
+
+The following aggregate table covers the 122 supported players. The interval
+columns show the median of the player-specific 90% lower and upper bounds; they
+do not form an uncertainty interval for the group median.
+
+| Relocated share | Median season gain | Median gain per 100 shots | Median player lower bound | Median player upper bound |
+|---:|---:|---:|---:|---:|
+| 0% | 0.0 | 0.00 | 0.0 | 0.0 |
+| 5% | 9.7 | 1.41 | 5.2 | 14.2 |
+| 10% | 19.3 | 2.81 | 10.5 | 28.3 |
+| 15% | 29.0 | 4.22 | 15.7 | 42.5 |
+| 20% | 38.7 | 5.63 | 20.9 | 56.6 |
+| 25% | 48.3 | 7.03 | 26.2 | 70.8 |
+
+All 47 frozen checks passed. The largest shot-share mass error was
+`2.220446049250313e-15`. The largest implied attempt-total difference was
+`2.046363078989089e-12`, or `2.207511412070209e-15` relative to its comparison
+scale. Unsupported cells received no added share, and supported-cell allocation
+matched the player's existing supported-cell proportions with zero recorded
+error. Slider zero produced exact zero gains. All reported estimates and 90%
+intervals were finite and ordered; no estimated gain had a negative 90% lower
+bound. Posterior sampling produced no captured warning or message. R printed the
+known Arrow build-version notice at startup.
+
+The concentration audit found no supported player above 50% in one cell at any
+slider value. At 25%, the median, 90th-percentile, and maximum largest-cell
+shares were 29.3%, 39.6%, and 48.6%. The median effective cell count fell from
+23.7 at 0% to 9.54 at 25%. Narayan pre-registered this audit as evidence only,
+so these results do not add a destination cap.
+
+The gains assume the player can shift attempts while retaining the modeled
+make probability and observed within-cell shot-value mix. They omit defensive
+response, shot creation, fatigue, and game context. Treat them as optimistic
+location-only estimates rather than promises of added points.
+
+Before publication, the implementation verified 318 players, 156 cells per
 player, the frozen production hashes, exact reproduction of the saved posterior
 draw means, valid probabilities and intervals, fixed support, proportional
 allocation, nonnegative shares, unit mass, unchanged attempts, zero gain at
 slider zero, explicit missing results for unsupported players, and consistent
-season and per-100 units. Concentration is reported as evidence; it cannot cause
-a cap to be added after gains are seen.
+season and per-100 units. The concentration results did not change the frozen
+no-cap rule.
 
 ## Settled requirements
 
@@ -280,12 +328,11 @@ These labels illustrate the rule and are not player results.
 
 Narayan approved proportional reallocation, the 10-attempt and 90%-certainty
 thresholds, a two-destination minimum, no extra destination cap, observed
-two/three-point mixture for cell value, and 90% posterior intervals. These
-choices are frozen before calculating player results.
+two/three-point mixture for cell value, and 90% posterior intervals. Narayan
+froze these choices before calculating player results.
 
-The remaining stages are deliberately separate:
+The remaining stages are separate:
 
-1. verify relocation and review its concentration diagnostic;
-2. define the 0-100 score in a new pre-registered step;
-3. create website-ready exports only after the score is approved; and
-4. request Narayan's approval before modifying `portfolio-site`.
+1. define the 0-100 score in a new pre-registered step;
+2. create website-ready exports only after the score is approved; and
+3. request Narayan's approval before modifying `portfolio-site`.
