@@ -12,12 +12,12 @@ suppressPackageStartupMessages({
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 2L) {
-  stop("Usage: Rscript R/spatial_website_export.R <season> <audit|run>", call. = FALSE)
+  stop("Usage: Rscript R/spatial_website_export.R <season> <audit|run|verify>", call. = FALSE)
 }
 season <- args[[1]]
 mode <- args[[2]]
 if (!identical(season, "2025-26")) stop("Only 2025-26 is frozen", call. = FALSE)
-if (!mode %in% c("audit", "run")) stop("Mode must be audit or run", call. = FALSE)
+if (!mode %in% c("audit", "run", "verify")) stop("Mode must be audit, run, or verify", call. = FALSE)
 
 SCHEMA_VERSION <- "1.0.0"
 DATA_VERSION <- "2025-26-v1"
@@ -340,7 +340,7 @@ validate_bundle <- function(root, x) {
   files <- sort(list.files(root, recursive = TRUE, all.files = FALSE))
   assert(length(files) == EXPECTED_PLAYERS + 2L, "bundle must contain 320 JSON files")
   assert(all(tools::file_ext(files) == "json"), "bundle contains a non-JSON file")
-  sizes <- file.info(file.path(root, files))$size
+  sizes <- setNames(file.info(file.path(root, files))$size, files)
   assert(all(sizes < MAX_FILE_BYTES), "an export file reached the 90 MiB stop threshold")
   assert(sum(sizes) < MAX_BUNDLE_BYTES, "the bundle reached the 50 MiB stop threshold")
   parsed <- lapply(file.path(root, files), fromJSON, simplifyVector = FALSE)
@@ -348,6 +348,7 @@ validate_bundle <- function(root, x) {
   index <- fromJSON(file.path(root, "players.json"), simplifyVector = TRUE)
   assert(nrow(index$players) == EXPECTED_PLAYERS, "player index count changed")
   assert(length(unique(index$players$player_id)) == EXPECTED_PLAYERS, "index player IDs are duplicated")
+  assert(identical(as.numeric(index$players$player_id), sort(as.numeric(index$players$player_id))), "player index is not sorted by numeric player ID")
   assert(all(file.exists(file.path(root, index$players$player_file))), "an index path does not resolve")
 
   qualified <- 0L
@@ -363,6 +364,9 @@ validate_bundle <- function(root, x) {
     sliders <- x$sliders[x$sliders$PLAYER_ID == player_id, , drop = FALSE]
     sliders <- sliders[order(sliders$slider_fraction), , drop = FALSE]
     score <- x$scores[x$scores$PLAYER_ID == player_id, , drop = FALSE]
+    assert(identical(object$player_id, as.character(player_id)) &&
+             identical(object$player_name, score$PLAYER_NAME[[1]]),
+           "exported player identity changed")
     assert(nrow(object$heatmap_cells) == CELLS_PER_PLAYER && !anyDuplicated(object$heatmap_cells$cell_id), "player heatmap is incomplete")
     assert(nrow(object$sliders) == length(SLIDERS), "player slider set is incomplete")
     assert(numeric_equal(object$heatmap_cells$modeled_make_probability, surface$probability), "exported probability changed")
@@ -386,6 +390,15 @@ validate_bundle <- function(root, x) {
       assert(numeric_equal(object$sliders$posterior_mean_gain_per_100_shots, sliders$additional_points_per_100_shots), "per-100 gains changed")
       assert(numeric_equal(object$sliders$gain_per_100_shots_lower_90, sliders$additional_points_per_100_shots_lower_90), "per-100 lower bounds changed")
       assert(numeric_equal(object$sliders$gain_per_100_shots_upper_90, sliders$additional_points_per_100_shots_upper_90), "per-100 upper bounds changed")
+      assert(all(is.finite(unlist(object$score[c("shot_selection_score", "score_lower_90", "score_upper_90")], use.names = FALSE))) &&
+               object$score$score_lower_90 <= object$score$shot_selection_score &&
+               object$score$shot_selection_score <= object$score$score_upper_90,
+             "qualified score interval is invalid")
+      assert(all(object$sliders$season_point_gain_lower_90 <= object$sliders$posterior_mean_season_point_gain) &&
+               all(object$sliders$posterior_mean_season_point_gain <= object$sliders$season_point_gain_upper_90) &&
+               all(object$sliders$gain_per_100_shots_lower_90 <= object$sliders$posterior_mean_gain_per_100_shots) &&
+               all(object$sliders$posterior_mean_gain_per_100_shots <= object$sliders$gain_per_100_shots_upper_90),
+             "qualified gain interval is invalid")
     } else {
       insufficient <- insufficient + 1L
       score_values <- unlist(object$score[c("shot_selection_score", "score_lower_90", "score_upper_90")], use.names = FALSE)
@@ -410,6 +423,39 @@ cat("Verified source artifacts:", length(ids), "players,", nrow(x$surface), "sur
 
 if (identical(mode, "audit")) quit(save = "no", status = 0L)
 
+if (identical(mode, "verify")) {
+  assert(dir.exists(bundle_dir), "the published bundle is missing")
+  assert(file.exists(completion_path), "the atomic completion marker is missing")
+  bundle_check <- validate_bundle(bundle_dir, x)
+  completion <- readRDS(completion_path)
+  assert(isTRUE(completion$complete), "the completion marker is not complete")
+  assert(identical(bundle_check$hashes, completion$file_hashes), "published file hashes differ from completion")
+  assert(identical(completion$pre_export_commit,
+                   "f35b2bdbe504e6537de5a95816f3131bd3a6254d"),
+         "the completion marker does not reference the pushed pre-export implementation")
+  assert(identical(completion$player_count, EXPECTED_PLAYERS) &&
+           identical(completion$cell_count, EXPECTED_LATTICE_ROWS) &&
+           identical(completion$slider_count, EXPECTED_PLAYERS * length(SLIDERS)),
+         "completion counts changed")
+  manifest <- fromJSON(file.path(bundle_dir, "manifest.json"), simplifyVector = TRUE)
+  payload_hashes <- bundle_check$hashes[names(bundle_check$hashes) != "manifest.json"]
+  payload_sizes <- bundle_check$sizes[names(bundle_check$sizes) != "manifest.json"]
+  manifest_order <- match(names(payload_hashes), manifest$payload_files$path)
+  assert(!anyNA(manifest_order) && nrow(manifest$payload_files) == EXPECTED_PLAYERS + 1L,
+         "manifest payload inventory is incomplete")
+  assert(identical(unname(payload_hashes), manifest$payload_files$sha256[manifest_order]) &&
+           identical(as.numeric(payload_sizes), as.numeric(manifest$payload_files$bytes[manifest_order])),
+         "manifest payload hashes or sizes changed")
+  player_sizes <- bundle_check$sizes[grepl("^players/", names(bundle_check$sizes))]
+  cat(
+    "Verified published bundle:", length(bundle_check$files), "files;",
+    sum(bundle_check$sizes), "bytes total;", median(player_sizes),
+    "median player-file bytes; largest", names(which.max(bundle_check$sizes)),
+    max(bundle_check$sizes), "bytes.\n"
+  )
+  quit(save = "no", status = 0L)
+}
+
 head_commit <- git_value(c("rev-parse", "HEAD"))[[1]]
 upstream_commit <- git_value(c("rev-parse", "@{upstream}"))[[1]]
 assert(identical(head_commit, upstream_commit), "HEAD must match its upstream before export")
@@ -422,7 +468,6 @@ lock_created <- dir.create(lock_path, recursive = TRUE, showWarnings = FALSE)
 assert(lock_created && dir.exists(lock_path), "could not create the export lock")
 on.exit({ if (dir.exists(lock_path)) unlink(lock_path, recursive = TRUE) }, add = TRUE)
 
-dir.create(export_cache, recursive = TRUE, showWarnings = FALSE)
 first <- tempfile("v1.partial-first-", export_cache)
 second <- tempfile("v1.partial-second-", export_cache)
 assert(dir.create(first, recursive = TRUE), "could not create the first staging directory")

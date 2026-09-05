@@ -97,7 +97,9 @@ rules, so no gain or score is published.
 audit. `run` requires a clean tracked tree synchronized with origin, refuses an
 existing bundle or partial completion, generates twice in ignored temporary
 directories, and requires identical relative filenames and SHA-256 hashes. It
-then publishes the first build by one directory rename.
+then publishes the first build by one directory rename. `verify` independently
+rechecks the published JSON against all source values and the atomic completion
+hashes without writing files.
 
 The first attempted run after the schema freeze could not create its ignored
 cache directory because the task sandbox did not grant write access to the
@@ -112,3 +114,29 @@ shot/game identifiers, posterior draws, fits, or logs. It stops before
 publication if any individual file reaches 90 MiB or the bundle exceeds 50 MiB.
 The static website will load `players.json`, then fetch only the selected
 player's file. Portfolio integration is a later, separately approved task.
+
+## Verified bundle
+
+Version 1 was generated from pushed pre-export commit `f35b2bd`. The source
+audit, two independent builds, source-value reproduction at `1e-12`, JSON
+parsing, eligibility/null checks, and file-hash comparison all passed. The
+published bundle contains 320 JSON files: one manifest, one 318-player index,
+and 318 player files. It contains 49,608 heatmap cells and 1,908 slider rows.
+Exactly 122 players have scores and gains; 196 have the required null values.
+
+The index is 76,423 bytes. The complete bundle is 19,846,371 bytes (18.93 MiB),
+the median player file is 61,921 bytes, the largest player file is 62,391
+bytes, and the largest file overall is the 76,423-byte index. These are well
+below the frozen stop thresholds.
+
+The publishing process created an atomic completion marker with hashes for all
+320 files. The task runner returned before its final console line and cleanup,
+leaving an ignored stale lock, but the already-published completion marker and
+bundle passed an independent read-only verification. The marker's file hashes,
+counts, and deterministic-build flag are valid. Two optional size-summary
+fields in that ignored marker were blank because its size vector had lost file
+names; `verify` now computes those labels correctly from the hashed bundle.
+This correction changes no JSON field or analytical value.
+
+The analytics repository is ready for a separately approved static-site
+integration. No portfolio repository was accessed or modified during export.

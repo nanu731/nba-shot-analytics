@@ -971,6 +971,14 @@ documentation only as a separate reviewed change after the spatial model passes.
 
 ## Completed
 
+- Published and independently verified the deterministic 2025-26 spatial
+  website bundle at `export/spatial-shot-selection/v1`. It contains a global
+  manifest, a 318-player index, and 318 player files with all 49,608 production
+  CAR cells and six relocation settings per player. Posterior-mean gains are
+  available for 122 qualified players; score and gain fields are null for the
+  other 196. The 18.93 MiB bundle reproduced its frozen sources within `1e-12`
+  and matched byte-for-byte across two builds. Analytics work is ready for a
+  separately approved portfolio integration; the portfolio was not touched.
 - Created `codex/spatial-shot-selection` from the completed `zone-model-10`
   branch.
 - Added repository-level Codex instructions.
