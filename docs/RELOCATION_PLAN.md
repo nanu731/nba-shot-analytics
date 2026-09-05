@@ -1,9 +1,9 @@
 # CAR Relocation Plan and Results
 
 **Status:** The frozen proportional relocation calculation completed and passed
-verification for the production CAR surface. Results remain descriptive model
-estimates. The project has not defined a 0-100 score or started website
-integration.
+verification for the production CAR surface. Those version-one results remain
+preserved. Narayan approved the targeted weak-location amendment below for an
+isolated LeBron James prototype before any replacement production calculation.
 
 The final one-time prediction test selected Bayesian CAR, and the verified
 all-data production fit now provides a separate 156-cell probability surface
@@ -11,6 +11,58 @@ for each of 318 players. Those results are immutable. The next question is how
 to use each player's own surface to describe a limited, evidence-supported
 change in shot mix without pretending that the model creates real shot
 opportunities.
+
+## Approved targeted weak-location amendment, 2026-09-05
+
+Shot selection must be evaluated before the attempt result is known. The next
+relocation version therefore removes attempt mass from weak locations without
+using whether an individual attempt was made or missed. This replaces equal
+proportional removal for the approved prototype and any later recalculation.
+It does not revise, overwrite, or relabel the verified
+`car-proportional-relocation-v1` results.
+
+For player cell `j`, let `f[j]` be its observed attempt share, `v[j]` its
+observed two-point and three-point mixture, and `p_mean[j]` the verified
+production CAR posterior-mean make probability. Define posterior-mean expected
+points per attempt as `e_mean[j] = v[j] * p_mean[j]`. Define the player's
+current weighted baseline as `baseline_mean = sum(f[j] * e_mean[j])`.
+
+The targeted source rule is frozen as follows:
+
+1. A source cell must contain observed attempts and have
+   `e_mean[j] < baseline_mean`.
+2. Rank source cells from lowest to highest `e_mean[j]`, breaking exact ties by
+   ascending production `cell_id`.
+3. At requested share `s` in `0`, `0.05`, `0.10`, `0.15`, `0.20`, or `0.25`,
+   remove mass from that fixed source order until `s` is reached or all eligible
+   source mass is exhausted. Permit fractional removal from the final boundary
+   cell.
+4. Record `requested_share = s` and
+   `actual_relocated_share = min(s, sum(f[source]))` separately.
+
+The destination rule remains unchanged. A destination needs at least 10
+observed attempts, at least 90% posterior certainty that its expected points per
+attempt beat the player's current mix in the same draw, and at least one other
+supported destination. Allocate the actual relocated mass across the fixed
+supported set in proportion to each destination's existing usage. Freeze the
+source order, supported set, and destination weights from posterior means and
+the approved evidence calculation. Then evaluate baseline and relocated gains
+across the existing 4,000 joint CAR draws. The score formula remains unchanged
+and, after prototype verification, uses the amended 25% relocated result.
+
+The LeBron James prototype may export shot-chart coordinates, made or missed
+result, and the minimum point-value field needed to reproduce the calculation.
+It must export no game, date, event, or other unnecessary identifier. A stable
+source-row order assigned before outcome use determines which displayed dots
+move at each slider step. The 5% moved set must remain inside the 10% set, and
+so on through 25%. The outcome colors the dot only after the moved set has been
+chosen.
+
+All amended results remain modeled, descriptive estimates. They do not show
+that moving an attempt would cause a make or create the physical opportunity
+for that shot. Run the LeBron prototype in a separate namespace. Do not refit
+CAR or GAM, recalculate all players, publish a version-two export, or alter the
+verified version-one artifacts without a later approval.
 
 ## Frozen implementation specification
 
