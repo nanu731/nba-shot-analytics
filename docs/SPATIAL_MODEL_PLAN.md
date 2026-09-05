@@ -1,9 +1,9 @@
 # Spatial Shot Relocation: Living Plan
 
-**Status:** CAR won the frozen final prediction test and the verified all-data
-CAR production model now exists. The frozen proportional relocation calculation
-also completed and passed verification. The 0-100 score and website integration
-remain unbuilt.
+**Status:** CAR won the frozen final prediction test, and the verified all-data
+CAR production model and proportional relocation results now exist. Narayan
+approved the self-relative 0-100 score specification before score calculation.
+Website integration remains unbuilt.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.
@@ -937,7 +937,6 @@ performance.
 ## Open decisions
 
 - Whether 20 games and 250 attempts remains appropriate.
-- Metric name and eventual 0-100 formula.
 - Whether limited context sensitivity tests are useful after version one works.
 
 ## Historical cleanup queue
