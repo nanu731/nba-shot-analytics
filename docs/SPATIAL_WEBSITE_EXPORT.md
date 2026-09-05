@@ -99,6 +99,12 @@ existing bundle or partial completion, generates twice in ignored temporary
 directories, and requires identical relative filenames and SHA-256 hashes. It
 then publishes the first build by one directory rename.
 
+The first attempted run after the schema freeze could not create its ignored
+cache directory because the task sandbox did not grant write access to the
+relocated repository. It stopped before producing a bundle. A pre-export
+infrastructure correction now requires successful lock and staging-directory
+creation explicitly; it does not change the schema or any analytical value.
+
 The exporter must verify all frozen source hashes, reproduce exported values
 within `1e-12`, parse all JSON, resolve every index path, and reject invalid
 probabilities, intervals, duplicate keys, median-gain names, private paths,
