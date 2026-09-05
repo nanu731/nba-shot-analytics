@@ -1,8 +1,8 @@
 # Self-Relative Shot Selection Score Plan
 
 **Status:** Narayan approved this specification before any score calculation.
-The implementation may calculate results only after this document and the score
-script are committed and pushed. The website remains out of scope.
+The frozen implementation was committed and pushed as `67916a9`, then the score
+calculation completed and passed verification. The website remains out of scope.
 
 ## Definition
 
@@ -84,6 +84,33 @@ maximum, interquartile range, and counts at or above 95 and 99. It also reports
 the count at 100. These diagnostics cannot change the approved formula after
 results appear.
 
+## Verified result
+
+The calculation retained all 318 players. Scores and intervals exist for the
+122 qualified players; the other 196 rows are marked `insufficient_evidence`
+and keep every score field missing. Across qualified players, displayed scores
+ranged from 91.05 to 97.69. The first quartile, median, and third quartile were
+93.02, 93.99, and 94.87, and the interquartile range was 1.85 points. Twenty-nine
+players were at or above 95; none were at or above 99 or exactly 100. The scores
+therefore occupy a fairly narrow part of the public scale, but the frozen
+formula was not changed after this audit.
+
+The median raw 90% interval width was 4.62 points; widths ranged from 2.58 to
+12.68. Every qualified interval was finite and ordered. Before display capping,
+1,815 of 488,000 draw-level scores (0.372%) exceeded 100, spread across 58
+players. No player's median raw score exceeded 100, and no displayed point or
+interval bound required a visible cap at 100.
+
+The atomic result reproduced the saved CAR surface means and the published
+baseline and 25%-relocation means with maximum absolute difference zero. It
+reported no posterior warnings. Independent verification matched all output
+hashes, row counts, missing-value rules, bounds, interval order, and the absence
+of ranking fields. A post-result audit found that the first aggregate diagnostic
+file reported one affected player because a summary variable shadowed the input
+column. The order of those two summaries was corrected without regenerating
+draws or changing any player score; the original files remain preserved in the
+ignored cache.
+
 ## Limitations
 
 The score inherits the relocation model's assumptions. It treats the player's
@@ -94,7 +121,6 @@ effects or prove that relocation would cause added points.
 
 ## Roadmap after score verification
 
-1. Verify the score and inspect its compression diagnostics.
-2. Prepare compact website-ready exports.
-3. Review the portfolio integration design.
-4. Obtain Narayan's approval before modifying `portfolio-site`.
+1. Prepare compact website-ready exports.
+2. Review the portfolio integration design.
+3. Obtain Narayan's approval before modifying `portfolio-site`.

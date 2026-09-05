@@ -331,8 +331,9 @@ thresholds, a two-destination minimum, no extra destination cap, observed
 two/three-point mixture for cell value, and 90% posterior intervals. Narayan
 froze these choices before calculating player results.
 
-The remaining stages are separate:
+The self-relative 0-100 score was pre-registered separately and has now passed
+verification. The remaining stages are separate:
 
-1. define the 0-100 score in a new pre-registered step;
-2. create website-ready exports only after the score is approved; and
+1. create compact website-ready exports;
+2. review the portfolio integration design; and
 3. request Narayan's approval before modifying `portfolio-site`.

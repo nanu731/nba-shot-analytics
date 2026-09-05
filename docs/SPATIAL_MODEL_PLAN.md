@@ -1,9 +1,8 @@
 # Spatial Shot Relocation: Living Plan
 
 **Status:** CAR won the frozen final prediction test, and the verified all-data
-CAR production model and proportional relocation results now exist. Narayan
-approved the self-relative 0-100 score specification before score calculation.
-Website integration remains unbuilt.
+CAR production model, proportional relocation results, and self-relative 0-100
+score now exist. Website-ready exports and integration remain unbuilt.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.

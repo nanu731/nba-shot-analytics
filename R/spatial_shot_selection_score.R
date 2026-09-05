@@ -709,10 +709,10 @@ run_score <- function(audit) {
       insufficient_evidence_player_count = nrow(insufficient_scores),
       posterior_draws_per_qualified_player = POSTERIOR_DRAWS,
       qualified_posterior_draw_count = n() * POSTERIOR_DRAWS,
+      players_with_raw_draws_above_100 = sum(raw_draws_above_100 > 0),
       raw_draws_above_100 = sum(raw_draws_above_100),
       raw_draws_above_100_share =
         sum(raw_draws_above_100) / (n() * POSTERIOR_DRAWS),
-      players_with_raw_draws_above_100 = sum(raw_draws_above_100 > 0),
       minimum_display_score = min(display_score),
       first_quartile_display_score = quantile_value(display_score, 0.25),
       median_display_score = median(display_score),
