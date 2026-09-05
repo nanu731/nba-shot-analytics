@@ -239,3 +239,5 @@ outputs/
 
 # Build artifact: regenerate with R/05_export_json.R. See CLAUDE.md Section 13.
 export/data/
+# Interrupted spatial website builds stay recoverable without entering Git.
+export/spatial-shot-selection/*.partial-*/
