@@ -4,7 +4,8 @@
 CAR production model now exists. The relocation method and slider calculation
 are frozen in code, but no production relocation result has been published: the
 latest authorized run stopped at a pre-publication numerical tolerance check.
-The 0-100 score remains unbuilt.
+Narayan approved a scale-aware amendment to that redundant check before another
+run. The 0-100 score remains unbuilt.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.

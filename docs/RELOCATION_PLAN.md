@@ -1,9 +1,10 @@
 # Provisional CAR Relocation Plan
 
-**Status:** Approved implementation frozen before player results. An isolated
-technical smoke test passed, but the one authorized production calculation
-stopped at a pre-publication numerical tolerance check. No player result was
-published. This document still does not report gains, define a 0-100 score, or
+**Status:** Approved implementation frozen before player results. Narayan
+approved a scale-aware amendment to the redundant attempt-total check after an
+isolated technical smoke test passed and the first production calculation
+stopped on floating-point rounding. No player result was published before this
+amendment. This document still does not report gains, define a 0-100 score, or
 change the selected production model.
 
 The final one-time prediction test selected Bayesian CAR, and the verified
@@ -86,12 +87,17 @@ or relocation method failed statistically. The stale lock and exact error
 evidence remain preserved. No automatic retry occurred, and no threshold,
 formula, draw, seed, or allocation rule changed.
 
-Narayan must approve the next pre-result correction. The simplest option is a
-documented, scale-aware tolerance for the redundant implied-attempt check while
-retaining the existing unit-mass check at `1e-12`. The more conservative option
-is to investigate a different algebraic implementation that passes the current
-absolute tolerance. Neither option may be chosen using unpublished player
-results from the stopped run.
+**Approved numerical amendment, 2026-09-04:** compare each relocated attempt
+total with its original total using
+`1e-12 * max(1, abs(original), abs(relocated))`. This replaces the fixed
+absolute `1e-12` tolerance for that redundant equality check only. It accounts
+for floating-point error after multiplying a unit-mass distribution by a
+player's attempt count. The unit-mass tolerance and every other verification
+tolerance remain unchanged. The code tests exact equality, the observed
+`2.04636307898909e-12` rounding difference at the minimum eligible-player
+attempt scale, a meaningful mismatch, and non-finite values before it reads a
+production artifact. Narayan approved this rule before any relocation result
+was published or viewed.
 
 Before publication, the implementation must verify 318 players, 156 cells per
 player, the frozen production hashes, exact reproduction of the saved posterior

@@ -121,6 +121,49 @@ record_check <- function(area, check, condition, detail) {
   invisible(TRUE)
 }
 
+attempt_totals_equal <- function(original_total, relocated_total) {
+  if (length(original_total) != length(relocated_total) ||
+      any(!is.finite(original_total)) || any(!is.finite(relocated_total))) {
+    return(FALSE)
+  }
+  scale <- pmax(1, abs(original_total), abs(relocated_total))
+  all(abs(relocated_total - original_total) <= MASS_TOLERANCE * scale)
+}
+
+verify_attempt_total_tolerance <- function() {
+  observed_rounding_difference <- 2.04636307898909e-12
+  minimum_eligible_attempts <- 250
+  record_check(
+    "amendment", "observed_rounding_difference_passes",
+    attempt_totals_equal(
+      minimum_eligible_attempts,
+      minimum_eligible_attempts + observed_rounding_difference
+    ),
+    paste(
+      "difference", observed_rounding_difference,
+      "at the minimum eligible-player attempt scale"
+    )
+  )
+  record_check(
+    "amendment", "meaningful_attempt_difference_fails",
+    !attempt_totals_equal(minimum_eligible_attempts,
+                          minimum_eligible_attempts + 1e-6),
+    "a one-millionth attempt mismatch is rejected at 250 attempts"
+  )
+  record_check(
+    "amendment", "exact_attempt_equality_passes",
+    attempt_totals_equal(minimum_eligible_attempts, minimum_eligible_attempts),
+    "exact equality is accepted"
+  )
+  record_check(
+    "amendment", "nonfinite_attempt_totals_fail",
+    !attempt_totals_equal(c(250, Inf), c(250, Inf)) &&
+      !attempt_totals_equal(c(250, NA_real_), c(250, 250)) &&
+      !attempt_totals_equal(c(250, NaN), c(250, 250)),
+    "infinite, missing, and NaN totals are rejected"
+  )
+}
+
 sha256_file <- function(path) {
   output <- system2("shasum", c("-a", "256", path), stdout = TRUE)
   if (length(output) != 1L) stop("Could not hash ", path, call. = FALSE)
@@ -697,14 +740,25 @@ run_relocation <- function(audit) {
       "minimum share", min(allocation_audit$minimum_relocated_share)
     )
   )
+  attempt_absolute_difference <- abs(
+    allocation_audit$relocated_attempts - allocation_audit$original_attempts
+  )
+  attempt_scale <- pmax(
+    1,
+    abs(allocation_audit$original_attempts),
+    abs(allocation_audit$relocated_attempts)
+  )
   record_check(
     "allocation", "attempt_totals_unchanged",
-    max(abs(allocation_audit$relocated_attempts -
-              allocation_audit$original_attempts)) <= MASS_TOLERANCE,
+    attempt_totals_equal(
+      allocation_audit$original_attempts,
+      allocation_audit$relocated_attempts
+    ),
     paste(
-      "maximum implied-attempt difference",
-      max(abs(allocation_audit$relocated_attempts -
-                allocation_audit$original_attempts))
+      "maximum absolute implied-attempt difference",
+      max(attempt_absolute_difference),
+      "maximum scale-relative difference",
+      max(attempt_absolute_difference / attempt_scale)
     )
   )
   record_check(
@@ -1011,6 +1065,7 @@ run_relocation <- function(audit) {
   invisible(completion)
 }
 
+verify_attempt_total_tolerance()
 verify_versions()
 audit <- verify_artifacts()
 
