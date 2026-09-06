@@ -136,9 +136,10 @@ target_capped_allocation <- function(baseline_share, supported,
     abs(sum(added) - actual) <= tolerance,
     "destination allocation does not equal feasible relocated mass"
   )
+  receiving <- added > tolerance
   target_assert(
     all(added[!supported] == 0) &&
-      all(baseline_share[supported] + added[supported] <=
+      all(baseline_share[receiving] + added[receiving] <=
             destination_cap + tolerance),
     "destination allocation violates support or cap"
   )

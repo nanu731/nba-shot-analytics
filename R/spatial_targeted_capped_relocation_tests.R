@@ -105,6 +105,18 @@ expect_true(
   "a supported destination with no positive capacity receives no relocation"
 )
 
+historical_over_cap <- target_capped_allocation(
+  baseline_share = c(0.60, 0.20, 0.20),
+  supported = c(TRUE, FALSE, FALSE),
+  requested_share = 0.25,
+  source_capacity = 0.25
+)
+expect_true(
+  identical(historical_over_cap$actual, 0) &&
+    all(historical_over_cap$added == 0),
+  "an over-cap historical share receives no added mass"
+)
+
 exhausted <- target_capped_allocation(
   baseline_share = c(0.49, 0.48, 0.03),
   supported = c(TRUE, TRUE, FALSE),

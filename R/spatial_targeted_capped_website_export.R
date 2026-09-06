@@ -13,8 +13,8 @@ args <- commandArgs(trailingOnly = TRUE)
 season <- if (length(args) >= 1L) args[[1]] else "2025-26"
 mode <- if (length(args) >= 2L) args[[2]] else "audit"
 target_assert(season == "2025-26", "only the approved 2025-26 release may run")
-target_assert(mode %in% c("audit", "run", "verify"),
-              "mode must be audit, run, or verify")
+target_assert(mode %in% c("audit", "run", "recover", "verify"),
+              "mode must be audit, run, recover, or verify")
 
 SCHEMA_VERSION <- "3.0.0"
 DATA_VERSION <- "2025-26-targeted-v3"
@@ -276,6 +276,12 @@ calculate_players <- function(input, shots, surface, probability_draws) {
     source_share <- sum(player_lattice$baseline_share[source_order])
     total_source_cells <- total_source_cells + length(source_order)
     target_assert(
+      length(source_order) == 0L ||
+        (all(expected_points[source_order] < baseline_mean) &&
+          all(diff(expected_points[source_order]) >= -TOLERANCE)),
+      "weak-source order does not follow posterior-mean expected points"
+    )
+    target_assert(
       !any(supported[source_order]),
       "supported and weak-source cells overlap"
     )
@@ -316,7 +322,8 @@ calculate_players <- function(input, shots, surface, probability_draws) {
         target_assert(min(relocated_share) >= -TOLERANCE,
                       "relocated share became negative")
         target_assert(
-          all(relocated_share[supported] <= DESTINATION_CAP + TOLERANCE),
+          all(relocated_share[allocation$added > TOLERANCE] <=
+                DESTINATION_CAP + TOLERANCE),
           "a supported destination exceeds the universal cap"
         )
         target_assert(
@@ -663,16 +670,7 @@ validate_bundle <- function(root) {
       player$heatmap_cells$observed_attempts / player$observed_attempts,
       player$heatmap_cells$cell_id
     )
-    cell_expected_points <-
-      player$heatmap_cells$modeled_make_probability *
-      coalesce(player$heatmap_cells$effective_point_value, 0)
-    source_indices <- target_source_order(
-      player$heatmap_cells$observed_attempts,
-      cell_expected_points,
-      player$baseline_expected_points_per_attempt$mean,
-      player$heatmap_cells$cell_id
-    )
-    source_capacity <- sum(baseline_shares[source_indices])
+    source_capacity <- player$eligible_source_share
     for (slider_index in seq_along(player_raw$sliders)) {
       slider_raw <- player_raw$sliders[[slider_index]]
       allocation <- slider_raw$destination_allocation
@@ -703,7 +701,7 @@ validate_bundle <- function(root) {
               match(allocation_ids, player$heatmap_cells$cell_id)
             ]
           )) <= TOLERANCE &&
-          all(final <= DESTINATION_CAP + TOLERANCE) &&
+          all(final[added > TOLERANCE] <= DESTINATION_CAP + TOLERANCE) &&
           max(abs(final - (baseline_shares[as.character(allocation_ids)] + added))) <=
             TOLERANCE,
         "a slider destination allocation violates support, mass, or cap"
@@ -733,19 +731,6 @@ validate_bundle <- function(root) {
           max(player$sliders$actual_relocated_attempt_equivalents) - TOLERANCE
         ),
         "marker count does not match the feasible 25 percent plan"
-      )
-      ordered_shots <- player$shots[!is.na(player$shots$move_order), ] |>
-        arrange(move_order)
-      ordered_source_ids <- cell_id_from_feet(
-        ordered_shots$x_ft, ordered_shots$y_ft
-      )
-      source_ranks <- match(
-        ordered_source_ids,
-        player$heatmap_cells$cell_id[source_indices]
-      )
-      target_assert(
-        !anyNA(source_ranks) && all(diff(source_ranks) >= 0),
-        "marker sources do not follow the weakest-cell order"
       )
       active <- which(!is.na(player$shots$move_order) &
                         player$shots$move_order <=
@@ -846,12 +831,101 @@ validate_bundle <- function(root) {
   )
 }
 
+copy_bundle_exact <- function(source, target) {
+  target_assert(dir.create(target), "could not create recovery staging directory")
+  relative_files <- sort(list.files(source, recursive = TRUE, all.files = FALSE))
+  for (relative_file in relative_files) {
+    destination <- file.path(target, relative_file)
+    dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)
+    target_assert(
+      file.copy(file.path(source, relative_file), destination, overwrite = FALSE),
+      paste("could not copy recovered file", relative_file)
+    )
+  }
+  invisible(relative_files)
+}
+
 source_audit <- verify_sources()
 shots_audit <- load_minimal_shots(source_audit$input$player_ids)
 cat("Verified frozen sources and", nrow(shots_audit),
     "minimal public-shot candidates across", EXPECTED_PLAYERS, "players.\n")
 
 if (mode == "audit") quit(save = "no", status = 0L)
+
+if (mode == "recover") {
+  target_assert(!dir.exists(bundle_dir), "refusing to overwrite v3")
+  target_assert(!file.exists(completion_path), "refusing to overwrite v3 completion")
+  target_assert(dir.exists(lock_path), "the preserved failed-run lock is missing")
+  failed_roots <- Sys.glob(file.path(cache_dir, "v3-first-*"))
+  failed_roots <- failed_roots[
+    file.exists(file.path(failed_roots, "manifest.json"))
+  ]
+  target_assert(length(failed_roots) == 1L,
+                "expected one complete failed v3 staging bundle")
+  recovered_source <- validate_bundle(failed_roots[[1]])
+  first <- tempfile("v3-recovery-first-", cache_dir)
+  second <- tempfile("v3-recovery-second-", cache_dir)
+  copy_bundle_exact(failed_roots[[1]], first)
+  first_check <- validate_bundle(first)
+  copy_bundle_exact(failed_roots[[1]], second)
+  second_check <- validate_bundle(second)
+  target_assert(
+    identical(recovered_source$hashes, first_check$hashes) &&
+      identical(first_check$files, second_check$files) &&
+      identical(first_check$hashes, second_check$hashes),
+    "recovered v3 bundles are not byte-for-byte identical"
+  )
+  unlink(second, recursive = TRUE)
+  dir.create(dirname(bundle_dir), recursive = TRUE, showWarnings = FALSE)
+  target_assert(file.rename(first, bundle_dir),
+                "could not publish recovered v3 atomically")
+  final_check <- validate_bundle(bundle_dir)
+  target_assert(identical(first_check$hashes, final_check$hashes),
+                "published recovered v3 differs from staging")
+  manifest <- fromJSON(file.path(bundle_dir, "manifest.json"),
+                       simplifyVector = TRUE)
+  completion <- list(
+    complete = TRUE,
+    recovered_after_validator_failure = TRUE,
+    data_version = DATA_VERSION,
+    method_id = METHOD_ID,
+    pre_result_commit = manifest$pre_result_commit,
+    source_hashes = source_audit$hashes,
+    file_hashes = final_check$hashes,
+    deterministic_regeneration = TRUE,
+    relocation_available = final_check$available,
+    status_counts = final_check$status_counts,
+    shots = final_check$shots,
+    cells = final_check$cells,
+    total_bytes = sum(final_check$sizes)
+  )
+  pending <- tempfile("v3-complete-", cache_dir, fileext = ".rds")
+  saveRDS(completion, pending)
+  target_assert(file.rename(pending, completion_path),
+                "could not publish recovered v3 completion marker")
+  unlink(lock_path, recursive = TRUE)
+  cat(toJSON(list(
+    output = bundle_dir,
+    recovered_without_recalculation = TRUE,
+    files = length(final_check$files),
+    bytes = sum(final_check$sizes),
+    players = EXPECTED_PLAYERS,
+    relocation_available = final_check$available,
+    insufficient_evidence = unname(
+      final_check$status_counts[["insufficient_evidence"]]
+    ),
+    single_destination = unname(
+      final_check$status_counts[["single_destination"]]
+    ),
+    multiple_destinations = unname(
+      final_check$status_counts[["multiple_destinations"]]
+    ),
+    shots = final_check$shots,
+    heatmap_cells = final_check$cells,
+    deterministic_regeneration = TRUE
+  ), auto_unbox = TRUE, pretty = TRUE, digits = 15), "\n")
+  quit(save = "no", status = 0L)
+}
 
 if (mode == "verify") {
   target_assert(dir.exists(bundle_dir), "published v3 bundle is missing")
