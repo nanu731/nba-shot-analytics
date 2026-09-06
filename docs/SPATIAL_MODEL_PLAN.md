@@ -1,9 +1,19 @@
 # Spatial Shot Relocation: Living Plan
 
+## Five-season production expansion
+
+The five-season v4 production analysis is pre-registered in
+`docs/FIVE_SEASON_V4_PLAN.md`. It fits the unchanged selected CAR specification
+separately for 2021-22 through 2024-25, preserves the verified 2025-26 v3 player
+payloads byte for byte, and publishes a new versioned export only after every
+season passes its own checks. This expansion reuses the model selected during
+the 2025-26 evaluation; it does not repeat model selection or claim a new
+CAR-versus-GAM result for each earlier season.
+
 **Status:** CAR won the frozen final prediction test. The verified all-data CAR
-production model remains unchanged. Targeted weak-location relocation now has a
-verified 2025-26 all-player version-two website export; portfolio integration is
-the remaining release step.
+production model remains unchanged. The targeted, universally capped 2025-26
+version-three export is verified and deployed. The next registered production
+step is the five-season version-four expansion above.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.
