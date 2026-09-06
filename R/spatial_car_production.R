@@ -41,9 +41,12 @@ SEASON_CONFIG <- list(
   `2024-25` = list(
     raw_sha256 = "7a956039fd85ecb8207a3ea8ce1d9383a838432c902085e314cf7b06759067fd",
     players = 304L, shots = 194526L, occupied_cells = 21598L,
-    lattice_rows = 47424L, fold_counts = NULL, split_sha256 = NA_character_,
-    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
-    config_sha256 = NA_character_
+    lattice_rows = 47424L,
+    fold_counts = c(38956L, 38406L, 39051L, 38566L, 39547L),
+    split_sha256 = "65c0aa9dca9c7dc4fce2a4ac11f83837b6c7248f5766ab358d6e606e61a92328",
+    player_source_sha256 = "70d8da37009c05964ca3a6e08c738efbc07626ea34b7f678ba127fbbc44515f2",
+    input_sha256 = "cbe4e1b92e90fea187ccf4c013d4d30683a8ba22d69daa163f0170966354a7d1",
+    config_sha256 = "38cfba7a96892959240e607376a1f75e7a84d08eca3a51d201720b96cd0b697e"
   ),
   `2023-24` = list(
     raw_sha256 = "d9f26182a8e49c4cb0d919f0d1a9e8b4320e3b48423f31831846a4e4c9ef7f6f",
