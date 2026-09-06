@@ -51,6 +51,14 @@ and code briefly in plain language, and follow Occam's razor.
 - Explain a dependency's specific purpose and get approval before adding it.
 - Never export or commit shot-level rows. Only derived aggregates may leave the
   machine.
+- Narrow public website exception: a public NBA shot-chart export may contain
+  one record per shot with court x-coordinate, court y-coordinate, made/missed
+  status, and indispensable two/three-point value when required. Player and
+  season identity may appear only through the containing player file and export
+  structure. These records must not contain game or event IDs, dates or
+  timestamps, opponents, score or game situation, shot clock, defender,
+  passing, fatigue, other contextual fields, or any unnecessary identifier.
+  Every other shot-level export and commit restriction remains active.
 - Preserve the working zone pipeline until the spatial replacement passes.
   Remove superseded code only as a separate reviewed change.
 
