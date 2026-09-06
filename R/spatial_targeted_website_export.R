@@ -13,7 +13,8 @@ args <- commandArgs(trailingOnly = TRUE)
 season <- if (length(args) >= 1L) args[[1]] else "2025-26"
 mode <- if (length(args) >= 2L) args[[2]] else "audit"
 target_assert(season == "2025-26", "only the approved 2025-26 release may run")
-target_assert(mode %in% c("audit", "run", "verify"), "mode must be audit, run, or verify")
+target_assert(mode %in% c("audit", "run", "recover", "verify"),
+              "mode must be audit, run, recover, or verify")
 
 SCHEMA_VERSION <- "2.0.0"
 DATA_VERSION <- "2025-26-targeted-v2"
@@ -414,7 +415,7 @@ build_bundle <- function(root, result, pre_result_commit, source_hashes) {
     schema_version = SCHEMA_VERSION,
     data_version = DATA_VERSION,
     season = season,
-    players = lapply(ordered, index_entry)
+    players = unname(lapply(ordered, index_entry))
   )
   write_json_file(index, file.path(season_root, "players.json"))
   for (player in ordered) {
@@ -531,16 +532,16 @@ validate_bundle <- function(root) {
                 "v2 contains a non-JSON file")
   manifest <- fromJSON(file.path(root, "manifest.json"), simplifyVector = TRUE)
   index_path <- file.path(root, "seasons", season, "players.json")
-  index <- fromJSON(index_path, simplifyVector = TRUE)
-  target_assert(nrow(index$players) == EXPECTED_PLAYERS,
+  index <- fromJSON(index_path, simplifyVector = FALSE)
+  entries <- index$players
+  target_assert(length(entries) == EXPECTED_PLAYERS,
                 "season index does not contain 318 players")
-  target_assert(identical(as.numeric(index$players$player_id),
-                          sort(as.numeric(index$players$player_id))),
+  index_ids <- as.numeric(vapply(entries, `[[`, character(1), "player_id"))
+  target_assert(identical(index_ids, sort(index_ids)),
                 "season index is not sorted by numeric player ID")
   total_shots <- total_cells <- qualified <- insufficient <- 0L
-  for (i in seq_len(nrow(index$players))) {
-    entry <- index$players[i, , drop = FALSE]
-    player_path <- file.path(dirname(index_path), entry$player_file[[1]])
+  for (entry in entries) {
+    player_path <- file.path(dirname(index_path), entry$player_file)
     target_assert(file.exists(player_path), "season index path does not resolve")
     player <- fromJSON(player_path, simplifyVector = TRUE, flatten = TRUE)
     target_assert(identical(names(player$shots),
@@ -640,12 +641,112 @@ validate_bundle <- function(root) {
   )
 }
 
+build_recovered_bundle <- function(root, failed_root) {
+  source_player_dir <- file.path(failed_root, "seasons", season, "players")
+  source_files <- list.files(source_player_dir, pattern = "^[0-9]+\\.json$",
+                             full.names = TRUE)
+  target_assert(length(source_files) == EXPECTED_PLAYERS,
+                "failed staging does not contain 318 player results")
+  players <- lapply(source_files, fromJSON, simplifyVector = FALSE)
+  ids <- as.numeric(vapply(players, `[[`, character(1), "player_id"))
+  players <- players[order(ids)]
+  ids <- sort(ids)
+  target_player_dir <- file.path(root, "seasons", season, "players")
+  dir.create(target_player_dir, recursive = TRUE, showWarnings = FALSE)
+  copied <- file.copy(
+    file.path(source_player_dir, paste0(ids, ".json")),
+    file.path(target_player_dir, paste0(ids, ".json")),
+    overwrite = FALSE
+  )
+  target_assert(all(copied), "could not preserve recovered player payload bytes")
+  entries <- unname(lapply(players, index_entry))
+  index <- list(
+    schema_version = SCHEMA_VERSION,
+    data_version = DATA_VERSION,
+    season = season,
+    players = entries
+  )
+  write_json_file(index, file.path(root, "seasons", season, "players.json"))
+  payload_paths <- c(
+    file.path("seasons", season, "players.json"),
+    file.path("seasons", season, "players", paste0(ids, ".json"))
+  )
+  manifest <- fromJSON(file.path(failed_root, "manifest.json"),
+                       simplifyVector = FALSE)
+  manifest$payload_files <- inventory_for(root, payload_paths)
+  write_json_file(manifest, file.path(root, "manifest.json"))
+  invisible(c("manifest.json", payload_paths))
+}
+
 source_audit <- verify_sources()
 shots_audit <- load_minimal_shots(source_audit$input$player_ids)
 cat("Verified frozen sources and", nrow(shots_audit),
     "minimal public-shot candidates across", EXPECTED_PLAYERS, "players.\n")
 
 if (mode == "audit") quit(save = "no", status = 0L)
+
+if (mode == "recover") {
+  target_assert(!dir.exists(bundle_dir), "refusing to overwrite v2")
+  target_assert(!file.exists(completion_path), "refusing to overwrite v2 completion")
+  target_assert(dir.exists(lock_path), "the preserved failed-run lock is missing")
+  failed_roots <- Sys.glob(file.path(cache_dir, "v2-first-*"))
+  failed_roots <- failed_roots[
+    file.exists(file.path(failed_roots, "manifest.json"))
+  ]
+  target_assert(length(failed_roots) == 1L,
+                "expected one complete failed staging bundle")
+  first <- tempfile("v2-recovery-first-", cache_dir)
+  second <- tempfile("v2-recovery-second-", cache_dir)
+  target_assert(dir.create(first), "could not create first recovery staging directory")
+  target_assert(dir.create(second), "could not create second recovery staging directory")
+  build_recovered_bundle(first, failed_roots[[1]])
+  first_check <- validate_bundle(first)
+  build_recovered_bundle(second, failed_roots[[1]])
+  second_check <- validate_bundle(second)
+  target_assert(identical(first_check$files, second_check$files) &&
+                  identical(first_check$hashes, second_check$hashes),
+                "two recovered v2 builds are not byte-for-byte identical")
+  unlink(second, recursive = TRUE)
+  dir.create(dirname(bundle_dir), recursive = TRUE, showWarnings = FALSE)
+  target_assert(file.rename(first, bundle_dir), "could not publish recovered v2")
+  final_check <- validate_bundle(bundle_dir)
+  target_assert(identical(first_check$hashes, final_check$hashes),
+                "published recovered v2 differs from staging")
+  calculation_seconds <- as.numeric(difftime(
+    file.info(file.path(failed_roots[[1]], "manifest.json"))$mtime,
+    file.info(lock_path)$ctime,
+    units = "secs"
+  ))
+  completion <- list(
+    complete = TRUE,
+    recovered_after_validator_failure = TRUE,
+    data_version = DATA_VERSION,
+    method_id = METHOD_ID,
+    pre_result_commit = fromJSON(
+      file.path(bundle_dir, "manifest.json"), simplifyVector = TRUE
+    )$pre_result_commit,
+    source_hashes = source_audit$hashes,
+    file_hashes = final_check$hashes,
+    deterministic_regeneration = TRUE,
+    calculation_runtime_seconds_approximate = calculation_seconds,
+    maximum_draw_mean_difference_at_most = TOLERANCE,
+    qualified = final_check$qualified,
+    insufficient = final_check$insufficient,
+    shots = final_check$shots,
+    cells = final_check$cells,
+    total_bytes = sum(final_check$sizes)
+  )
+  pending <- tempfile("v2-complete-", cache_dir, fileext = ".rds")
+  saveRDS(completion, pending)
+  target_assert(file.rename(pending, completion_path),
+                "could not publish recovered completion marker")
+  unlink(lock_path, recursive = TRUE)
+  cat("Recovered and published v2 without recalculating posterior draws:",
+      length(final_check$files), "files,", final_check$shots, "shots,",
+      final_check$qualified, "qualified players,", sum(final_check$sizes),
+      "bytes.\n")
+  quit(save = "no", status = 0L)
+}
 
 if (mode == "verify") {
   target_assert(dir.exists(bundle_dir), "published v2 bundle is missing")
