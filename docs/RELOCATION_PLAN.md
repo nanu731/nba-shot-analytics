@@ -2,8 +2,9 @@
 
 **Status:** The frozen proportional relocation calculation completed and passed
 verification for the production CAR surface. Those version-one results remain
-preserved. Narayan approved the targeted weak-location amendment below for an
-isolated LeBron James prototype before any replacement production calculation.
+preserved. Narayan approved the targeted weak-location amendment below first for
+LeBron James, then approved the same frozen method for a 2025-26 all-player
+production calculation and a separate version-two website export.
 
 The final one-time prediction test selected Bayesian CAR, and the verified
 all-data production fit now provides a separate 156-cell probability surface
@@ -63,6 +64,25 @@ that moving an attempt would cause a make or create the physical opportunity
 for that shot. Run the LeBron prototype in a separate namespace. Do not refit
 CAR or GAM, recalculate all players, publish a version-two export, or alter the
 verified version-one artifacts without a later approval.
+
+### Approved all-player production release, 2026-09-05
+
+Narayan approved the later production step referenced above. The all-player run
+must reuse the verified all-data CAR fit and the same 4,000 joint draws. It must
+apply the targeted source order to all 318 eligible players, recompute the
+unchanged self-relative score from the targeted 25% result, and preserve null
+scores and gains for players with fewer than two supported destinations.
+
+The run may publish one de-identified public shot-chart record per eligible NBA
+shot under the narrow repository-policy exception. Each record may contain only
+court coordinates, made or missed status, movement order, and hypothetical
+destination coordinates. Player and season identity belong to the containing
+payload. The export excludes game and event identifiers, dates, opponents,
+game situation, contextual variables, and private source-row identifiers.
+
+Version two must live beside version one, generate twice with identical hashes,
+and publish only the 2025-26 season. Four other seasons and a season selector
+remain a later phase.
 
 ## Frozen implementation specification
 

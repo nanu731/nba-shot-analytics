@@ -140,3 +140,26 @@ This correction changes no JSON field or analytical value.
 
 The analytics repository is ready for a separately approved static-site
 integration. No portfolio repository was accessed or modified during export.
+
+## Approved targeted version two
+
+Narayan approved a second export that replaces proportional source removal with
+the frozen targeted weak-location rule. Version two does not alter version one,
+refit a model, or change the destination evidence rule. Its root is
+`export/spatial-shot-selection/v2`, with a manifest and a season namespace at
+`seasons/2025-26`. The season directory contains the 318-player index and one
+file per player. This layout can accept four more season directories later;
+the current release contains only 2025-26.
+
+Each player file retains the 156-cell production CAR heatmap and adds the
+de-identified historical shot chart allowed by the repository's narrow public
+website exception. Shot records contain coordinates, made or missed status,
+movement order, and hypothetical destination coordinates. They contain no game,
+event, date, opponent, score, context, or private row identifiers.
+
+The exporter calculates requested and actual relocated shares separately,
+permits a fractional final attempt, and leaves scores and gains null when fewer
+than two destinations pass the existing 10-attempt and 90%-certainty rules. It
+builds the complete bundle twice, compares every SHA-256 hash, and publishes by
+one directory rename only after counts, ordering, source ranking, mass,
+destination, interval, null, and shot-total checks pass.
