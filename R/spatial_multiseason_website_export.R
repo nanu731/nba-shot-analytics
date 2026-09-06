@@ -354,6 +354,7 @@ saveRDS(completion, pending)
 target_assert(file.rename(pending, COMPLETION_PATH),
               "could not publish v4 completion atomically")
 success <- TRUE
+unlink(LOCK_PATH, recursive = TRUE)
 cat(toJSON(completion[c("data_version", "files", "bytes",
                         "deterministic_regeneration")],
            auto_unbox = TRUE, pretty = TRUE), "\n")

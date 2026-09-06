@@ -1084,6 +1084,7 @@ saveRDS(completion, pending)
 target_assert(file.rename(pending, completion_path),
               "could not publish v3 completion marker")
 success <- TRUE
+unlink(lock_path, recursive = TRUE)
 cat(toJSON(list(
   output = bundle_dir,
   runtime_seconds = runtime,
