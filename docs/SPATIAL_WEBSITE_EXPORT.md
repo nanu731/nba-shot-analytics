@@ -1,5 +1,23 @@
 # Spatial website export specification
 
+## Version four: five separate seasons
+
+The verified v4 release adds 2021-22 through 2024-25 as independent descriptive
+production analyses and retains 2025-26. It lives at
+`export/spatial-shot-selection/v4`. The root manifest lists five season indexes,
+and `players.json` maps stable NBA player IDs to season-specific availability.
+That catalog distinguishes no recorded shots, recorded but model-ineligible
+players, eligible players without relocation evidence, and eligible players
+with one or multiple supported destinations.
+
+Each earlier season uses the same selected CAR specification, four-foot grid,
+eligibility thresholds, 4,000 joint draws, targeted relocation rules, and 50%
+final-cell cap. Seasons are fitted and scored separately. The 2025-26 season
+index and all 318 player files are copied from v3 byte for byte. The v4 bundle
+contains 1,514 JSON files and 280,809,899 bytes; its manifest SHA-256 is
+`685aa02b5003cb292fbe0926b242a351200f0cd785a169c31942f8518ac03242`.
+Two independent builds produced identical hashes.
+
 Status: frozen before export. This document and `R/spatial_website_export.R`
 must be committed and pushed before the version 1 bundle is generated.
 

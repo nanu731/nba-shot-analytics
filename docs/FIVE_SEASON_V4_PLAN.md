@@ -112,3 +112,37 @@ point-value-derived fields, and hypothetical relocation coordinates/order.
 Player and season identity belong to the containing payload and folder. No game
 or event ID, date, opponent, game situation, contextual field, or private row
 identifier may be published.
+
+## Verified production result
+
+All four earlier-season fits completed independently with zero R-INLA fit
+warnings, zero posterior-sampling warnings, finite probabilities, ordered 90%
+intervals, distinct player surfaces, and all registered checks passing. The
+2024-25 pilot completed in 216.5 seconds. The 2023-24, 2022-23, and 2021-22 runs
+completed in 220.0, 217.5, and 166.4 seconds. Their fit stages took 124.4, 121.8,
+121.6, and 101.7 seconds, respectively.
+
+| Season | Eligible | Insufficient | One destination | Multiple destinations | Relocation available | Below requested 25% |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2025-26 | 318 | 29 | 167 | 122 | 276 | 55 |
+| 2024-25 | 304 | 26 | 160 | 118 | 267 | 53 |
+| 2023-24 | 281 | 32 | 132 | 117 | 234 | 35 |
+| 2022-23 | 292 | 26 | 145 | 121 | 248 | 61 |
+| 2021-22 | 312 | 31 | 159 | 122 | 267 | 61 |
+
+The five-number score ranges, from minimum through maximum, are 83.94, 88.51,
+89.70, 91.17, 98.70 for 2025-26; 84.15, 88.15, 89.89, 91.30, 98.99 for
+2024-25; 82.11, 88.48, 89.48, 90.86, 98.65 for 2023-24; 82.77, 88.55, 90.01,
+91.21, 99.66 for 2022-23; and 81.47, 88.18, 89.43, 91.16, 99.82 for 2021-22.
+The corresponding gain-per-100 ranges at the requested 25% setting are
+1.72-20.14, 1.04-20.40, 1.79-22.49, 0.38-23.51, and 0.20-22.98 points. These
+are modeled descriptive estimates, not causal or guaranteed improvements.
+
+The deterministic v4 bundle contains 1,514 JSON files and 280,809,899 bytes.
+Its manifest SHA-256 is
+`685aa02b5003cb292fbe0926b242a351200f0cd785a169c31942f8518ac03242`;
+the cross-season availability catalog SHA-256 is
+`e78e4c68ba22e74e45b95bb5b26d6b4a7a01494a271e96016cbd9318e923732e`.
+The catalog covers 1,017 players with recorded shots and 1,507 eligible
+player-season analyses. Two independent builds produced the same file list and
+hashes. The complete 2025-26 season subtree matches v3 byte for byte.

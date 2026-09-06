@@ -1,0 +1,6150 @@
+{
+  "schema_version": "4.0.0",
+  "data_version": "2023-24-targeted-v4",
+  "player_id": "203937",
+  "player_name": "Kyle Anderson",
+  "season": "2023-24",
+  "method_id": "car-targeted-capped-weak-location-relocation-v3",
+  "evidence_status": "single_destination",
+  "relocation_available": true,
+  "availability_reason": "available",
+  "score_available": true,
+  "observed_attempts": 432,
+  "makes": 199,
+  "misses": 233,
+  "source_cell_count": 28,
+  "eligible_source_share": 0.6574074074074073,
+  "supported_destination_count": 1,
+  "maximum_destination_share": 0.5,
+  "total_supported_destination_capacity": 0.3287037037037037,
+  "baseline_expected_points_per_attempt": {
+    "mean": 0.9641460424828648,
+    "lower_90": 0.88509789977577,
+    "upper_90": 1.043909572638525
+  },
+  "score": {
+    "point": 90.503394429405986,
+    "lower_90": 86.613173691438618,
+    "upper_90": 94.751481823111305
+  },
+  "sliders": [
+    {
+      "requested_share": 0,
+      "actual_relocated_share": 0,
+      "actual_relocated_attempt_equivalents": 0,
+      "relocated_expected_points_per_attempt": {
+        "mean": 0.9641460424828648,
+        "lower_90": 0.88509789977577,
+        "upper_90": 1.043909572638525
+      },
+      "season_gain": {
+        "mean": 0,
+        "lower_90": 0,
+        "upper_90": 0
+      },
+      "gain_per_100": {
+        "mean": 0,
+        "lower_90": 0,
+        "upper_90": 0
+      },
+      "destination_allocation": [
+        {
+          "cell_id": 20,
+          "added_share": 0,
+          "final_share": 0.1712962962962963
+        }
+      ]
+    },
+    {
+      "requested_share": 0.05,
+      "actual_relocated_share": 0.05,
+      "actual_relocated_attempt_equivalents": 21.600000000000001,
+      "relocated_expected_points_per_attempt": {
+        "mean": 0.9868344840975521,
+        "lower_90": 0.9060712377351249,
+        "upper_90": 1.066868143010857
+      },
+      "season_gain": {
+        "mean": 9.801406777544944,
+        "lower_90": 4.874409987431709,
+        "upper_90": 14.596243703800331
+      },
+      "gain_per_100": {
+        "mean": 2.268844161468737,
+        "lower_90": 1.128335645238822,
+        "upper_90": 3.378760116620447
+      },
+      "destination_allocation": [
+        {
+          "cell_id": 20,
+          "added_share": 0.05,
+          "final_share": 0.2212962962962963
+        }
+      ]
+    },
+    {
+      "requested_share": 0.1,
+      "actual_relocated_share": 0.1,
+      "actual_relocated_attempt_equivalents": 43.200000000000003,
+      "relocated_expected_points_per_attempt": {
+        "mean": 1.007228714485213,
+        "lower_90": 0.9250504887045775,
+        "upper_90": 1.088566905066262
+      },
+      "season_gain": {
+        "mean": 18.611714305014502,
+        "lower_90": 9.539027482278865,
+        "upper_90": 27.419103986810864
+      },
+      "gain_per_100": {
+        "mean": 4.308267200234838,
+        "lower_90": 2.208108213490478,
+        "upper_90": 6.347014811761773
+      },
+      "destination_allocation": [
+        {
+          "cell_id": 20,
+          "added_share": 0.1,
+          "final_share": 0.2712962962962963
+        }
+      ]
+    },
+    {
+      "requested_share": 0.15,
+      "actual_relocated_share": 0.15,
+      "actual_relocated_attempt_equivalents": 64.799999999999997,
+      "relocated_expected_points_per_attempt": {
+        "mean": 1.026599160081878,
+        "lower_90": 0.9412050740696523,
+        "upper_90": 1.108862615892306
+      },
+      "season_gain": {
+        "mean": 26.979746802773608,
+        "lower_90": 14.579451930220277,
+        "upper_90": 39.2329915148715
+      },
+      "gain_per_100": {
+        "mean": 6.245311759901297,
+        "lower_90": 3.374873131995435,
+        "upper_90": 9.081710998812849
+      },
+      "destination_allocation": [
+        {
+          "cell_id": 20,
+          "added_share": 0.15,
+          "final_share": 0.3212962962962963
+        }
+      ]
+    },
+    {
+      "requested_share": 0.2,
+      "actual_relocated_share": 0.2,
+      "actual_relocated_attempt_equivalents": 86.400000000000006,
+      "relocated_expected_points_per_attempt": {
+        "mean": 1.045969605678543,
+        "lower_90": 0.9556396900370013,
+        "upper_90": 1.131865890979692
+      },
+      "season_gain": {
+        "mean": 35.34777930053275,
+        "lower_90": 18.780682049135439,
+        "upper_90": 51.852502067141941
+      },
+      "gain_per_100": {
+        "mean": 8.182356319567766,
+        "lower_90": 4.347380103966537,
+        "upper_90": 12.002893997023598
+      },
+      "destination_allocation": [
+        {
+          "cell_id": 20,
+          "added_share": 0.2,
+          "final_share": 0.3712962962962963
+        }
+      ]
+    },
+    {
+      "requested_share": 0.25,
+      "actual_relocated_share": 0.25,
+      "actual_relocated_attempt_equivalents": 108,
+      "relocated_expected_points_per_attempt": {
+        "mean": 1.065125906637353,
+        "lower_90": 0.9703876390467863,
+        "upper_90": 1.154900319146305
+      },
+      "season_gain": {
+        "mean": 43.623301314738995,
+        "lower_90": 22.963782959778634,
+        "upper_90": 63.647615597799032
+      },
+      "gain_per_100": {
+        "mean": 10.097986415448842,
+        "lower_90": 5.315690499948758,
+        "upper_90": 14.733244351342371
+      },
+      "destination_allocation": [
+        {
+          "cell_id": 20,
+          "added_share": 0.25,
+          "final_share": 0.4212962962962963
+        }
+      ]
+    }
+  ],
+  "heatmap_cells": [
+    {
+      "cell_id": 1,
+      "center_x_ft": -23,
+      "center_y_ft": -3.25,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4470077522028075,
+      "make_probability_lower_90": 0.2140240834188203,
+      "make_probability_median": 0.4417536456432093,
+      "make_probability_upper_90": 0.6954612578095325,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 2,
+      "center_x_ft": -19,
+      "center_y_ft": -3.25,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4673782681522467,
+      "make_probability_lower_90": 0.254554269785059,
+      "make_probability_median": 0.4675355426346069,
+      "make_probability_upper_90": 0.6881632563749571,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 3,
+      "center_x_ft": -15,
+      "center_y_ft": -3.25,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4775099273644372,
+      "make_probability_lower_90": 0.2699277026771444,
+      "make_probability_median": 0.4763568141953612,
+      "make_probability_upper_90": 0.6953295474242741,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 4,
+      "center_x_ft": -11,
+      "center_y_ft": -3.25,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4975004432767542,
+      "make_probability_lower_90": 0.2882122580171694,
+      "make_probability_median": 0.4995167720687136,
+      "make_probability_upper_90": 0.7059828934637812,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 5,
+      "center_x_ft": -7,
+      "center_y_ft": -3.25,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.5159888357914526,
+      "make_probability_lower_90": 0.3135193619973957,
+      "make_probability_median": 0.5167502432406695,
+      "make_probability_upper_90": 0.714227687127842,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 6,
+      "center_x_ft": -3,
+      "center_y_ft": -3.25,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.5182520710748501,
+      "make_probability_lower_90": 0.3249239570875125,
+      "make_probability_median": 0.5209567146976646,
+      "make_probability_upper_90": 0.7156730959394318,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 7,
+      "center_x_ft": 1,
+      "center_y_ft": -3.25,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.5242094919599534,
+      "make_probability_lower_90": 0.3407370187917367,
+      "make_probability_median": 0.5290581627684059,
+      "make_probability_upper_90": 0.7058114341232093,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 8,
+      "center_x_ft": 5,
+      "center_y_ft": -3.25,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4692633632652703,
+      "make_probability_lower_90": 0.2758626005639998,
+      "make_probability_median": 0.4689924824560237,
+      "make_probability_upper_90": 0.6649369784910198,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 9,
+      "center_x_ft": 9,
+      "center_y_ft": -3.25,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4331993759328458,
+      "make_probability_lower_90": 0.2452517633291544,
+      "make_probability_median": 0.432740178060908,
+      "make_probability_upper_90": 0.6403602245249502,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 10,
+      "center_x_ft": 13,
+      "center_y_ft": -3.25,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4176238750701395,
+      "make_probability_lower_90": 0.2221102377874405,
+      "make_probability_median": 0.4160295989016133,
+      "make_probability_upper_90": 0.6304306045403582,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 11,
+      "center_x_ft": 17,
+      "center_y_ft": -3.25,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.4027430266998077,
+      "make_probability_lower_90": 0.2066029301363695,
+      "make_probability_median": 0.3932749598824939,
+      "make_probability_upper_90": 0.6107422570774192,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 12,
+      "center_x_ft": 21,
+      "center_y_ft": -3.25,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.3963271066191533,
+      "make_probability_lower_90": 0.1956526358193465,
+      "make_probability_median": 0.3877376112144457,
+      "make_probability_upper_90": 0.6196219176466923,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 13,
+      "center_x_ft": 24,
+      "center_y_ft": -3.25,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": -5.25,
+      "y_max_ft": -1.25,
+      "modeled_make_probability": 0.397020531232007,
+      "make_probability_lower_90": 0.1722610658364138,
+      "make_probability_median": 0.3875086396365102,
+      "make_probability_upper_90": 0.6373803021081916,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 14,
+      "center_x_ft": -23,
+      "center_y_ft": 0.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.4297966859479629,
+      "make_probability_lower_90": 0.2687137775325296,
+      "make_probability_median": 0.4298401064609026,
+      "make_probability_upper_90": 0.6057654487744076,
+      "observed_attempts": 9,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 15,
+      "center_x_ft": -19,
+      "center_y_ft": 0.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.4873170519176874,
+      "make_probability_lower_90": 0.3111335586485767,
+      "make_probability_median": 0.4885265771889471,
+      "make_probability_upper_90": 0.6642271473878518,
+      "observed_attempts": 3,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 16,
+      "center_x_ft": -15,
+      "center_y_ft": 0.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.4778074875927009,
+      "make_probability_lower_90": 0.2922723858930341,
+      "make_probability_median": 0.4766187554382005,
+      "make_probability_upper_90": 0.6679705562096397,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 17,
+      "center_x_ft": -11,
+      "center_y_ft": 0.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.5123245514412705,
+      "make_probability_lower_90": 0.3355553443948749,
+      "make_probability_median": 0.5116034170374819,
+      "make_probability_upper_90": 0.6866327126972323,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 18,
+      "center_x_ft": -7,
+      "center_y_ft": 0.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.5486239367769113,
+      "make_probability_lower_90": 0.3864340812870019,
+      "make_probability_median": 0.5484052847770537,
+      "make_probability_upper_90": 0.7027700652197548,
+      "observed_attempts": 4,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 19,
+      "center_x_ft": -3,
+      "center_y_ft": 0.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.5312015230727249,
+      "make_probability_lower_90": 0.4122298271042215,
+      "make_probability_median": 0.5339191287763791,
+      "make_probability_upper_90": 0.6559684143161759,
+      "observed_attempts": 20,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 20,
+      "center_x_ft": 1,
+      "center_y_ft": 0.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.6046343485052925,
+      "make_probability_lower_90": 0.5235462625478946,
+      "make_probability_median": 0.6084016694236856,
+      "make_probability_upper_90": 0.6844368915955981,
+      "observed_attempts": 74,
+      "effective_point_value": 2,
+      "supported_destination": true
+    },
+    {
+      "cell_id": 21,
+      "center_x_ft": 5,
+      "center_y_ft": 0.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.4594578744990913,
+      "make_probability_lower_90": 0.332414675953178,
+      "make_probability_median": 0.4610229290652889,
+      "make_probability_upper_90": 0.5956261392339506,
+      "observed_attempts": 13,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 22,
+      "center_x_ft": 9,
+      "center_y_ft": 0.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.4162451799125847,
+      "make_probability_lower_90": 0.2746793002076212,
+      "make_probability_median": 0.4148859927676128,
+      "make_probability_upper_90": 0.5618757699842759,
+      "observed_attempts": 8,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 23,
+      "center_x_ft": 13,
+      "center_y_ft": 0.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.4186199656881749,
+      "make_probability_lower_90": 0.2517404063477518,
+      "make_probability_median": 0.4136546034188338,
+      "make_probability_upper_90": 0.5962036523339604,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 24,
+      "center_x_ft": 17,
+      "center_y_ft": 0.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.3938641360521508,
+      "make_probability_lower_90": 0.2216396887516086,
+      "make_probability_median": 0.3880922357238629,
+      "make_probability_upper_90": 0.581573040753952,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 25,
+      "center_x_ft": 21,
+      "center_y_ft": 0.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.3883360376968059,
+      "make_probability_lower_90": 0.2264225501474708,
+      "make_probability_median": 0.3810279391361745,
+      "make_probability_upper_90": 0.5758500516159148,
+      "observed_attempts": 4,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 26,
+      "center_x_ft": 24,
+      "center_y_ft": 0.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": -1.25,
+      "y_max_ft": 2.75,
+      "modeled_make_probability": 0.3925030900825913,
+      "make_probability_lower_90": 0.2167674380200139,
+      "make_probability_median": 0.3887842243911784,
+      "make_probability_upper_90": 0.5899063219013556,
+      "observed_attempts": 4,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 27,
+      "center_x_ft": -23,
+      "center_y_ft": 4.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.3469137111637426,
+      "make_probability_lower_90": 0.200384592813063,
+      "make_probability_median": 0.3421271231556676,
+      "make_probability_upper_90": 0.516973417957529,
+      "observed_attempts": 7,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 28,
+      "center_x_ft": -19,
+      "center_y_ft": 4.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.402594824824838,
+      "make_probability_lower_90": 0.241632681622673,
+      "make_probability_median": 0.3980096878187371,
+      "make_probability_upper_90": 0.5841167169258061,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 29,
+      "center_x_ft": -15,
+      "center_y_ft": 4.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.4451345410163842,
+      "make_probability_lower_90": 0.2705439479024169,
+      "make_probability_median": 0.4430248895209813,
+      "make_probability_upper_90": 0.6291672735492777,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 30,
+      "center_x_ft": -11,
+      "center_y_ft": 4.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.4820205748525648,
+      "make_probability_lower_90": 0.3153836317249441,
+      "make_probability_median": 0.4812341900398469,
+      "make_probability_upper_90": 0.6480535572773062,
+      "observed_attempts": 2,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 31,
+      "center_x_ft": -7,
+      "center_y_ft": 4.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.4356282312210141,
+      "make_probability_lower_90": 0.3000979115964584,
+      "make_probability_median": 0.4312189925681537,
+      "make_probability_upper_90": 0.5778996722987964,
+      "observed_attempts": 9,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 32,
+      "center_x_ft": -3,
+      "center_y_ft": 4.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.4248827727924163,
+      "make_probability_lower_90": 0.3139924122418258,
+      "make_probability_median": 0.4245206442976129,
+      "make_probability_upper_90": 0.5420343502127499,
+      "observed_attempts": 21,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 33,
+      "center_x_ft": 1,
+      "center_y_ft": 4.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.4131745771728281,
+      "make_probability_lower_90": 0.3265226365877607,
+      "make_probability_median": 0.4110629984441981,
+      "make_probability_upper_90": 0.5078865856595384,
+      "observed_attempts": 50,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 34,
+      "center_x_ft": 5,
+      "center_y_ft": 4.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.4769635033048386,
+      "make_probability_lower_90": 0.3747831796108438,
+      "make_probability_median": 0.4753159225584396,
+      "make_probability_upper_90": 0.5859021433985568,
+      "observed_attempts": 32,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 35,
+      "center_x_ft": 9,
+      "center_y_ft": 4.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.3965451670283939,
+      "make_probability_lower_90": 0.2670263849184366,
+      "make_probability_median": 0.3921827287278513,
+      "make_probability_upper_90": 0.537931919798902,
+      "observed_attempts": 10,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 36,
+      "center_x_ft": 13,
+      "center_y_ft": 4.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.3824314277737423,
+      "make_probability_lower_90": 0.2288088347222776,
+      "make_probability_median": 0.3802589968546303,
+      "make_probability_upper_90": 0.5516676813431495,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 37,
+      "center_x_ft": 17,
+      "center_y_ft": 4.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.3666795202550938,
+      "make_probability_lower_90": 0.2053156250213624,
+      "make_probability_median": 0.3613901576553391,
+      "make_probability_upper_90": 0.5487262354736976,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 38,
+      "center_x_ft": 21,
+      "center_y_ft": 4.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.3226747212874192,
+      "make_probability_lower_90": 0.1850867132196399,
+      "make_probability_median": 0.3145019406532538,
+      "make_probability_upper_90": 0.4861528048620646,
+      "observed_attempts": 4,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 39,
+      "center_x_ft": 24,
+      "center_y_ft": 4.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 2.75,
+      "y_max_ft": 6.75,
+      "modeled_make_probability": 0.3434201428322566,
+      "make_probability_lower_90": 0.1856620579388062,
+      "make_probability_median": 0.3331796750924557,
+      "make_probability_upper_90": 0.530148360251179,
+      "observed_attempts": 4,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 40,
+      "center_x_ft": -23,
+      "center_y_ft": 8.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.370300737715499,
+      "make_probability_lower_90": 0.1939463187573199,
+      "make_probability_median": 0.3638431203228196,
+      "make_probability_upper_90": 0.5795123614743023,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 41,
+      "center_x_ft": -19,
+      "center_y_ft": 8.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.3830239606964293,
+      "make_probability_lower_90": 0.2161876405728388,
+      "make_probability_median": 0.3784904756375809,
+      "make_probability_upper_90": 0.5738536155283993,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 42,
+      "center_x_ft": -15,
+      "center_y_ft": 8.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.4254858445579166,
+      "make_probability_lower_90": 0.2526680985814467,
+      "make_probability_median": 0.4221481859578651,
+      "make_probability_upper_90": 0.6114479211734645,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 43,
+      "center_x_ft": -11,
+      "center_y_ft": 8.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.4212891128171984,
+      "make_probability_lower_90": 0.2580854957836027,
+      "make_probability_median": 0.4185772007639649,
+      "make_probability_upper_90": 0.603742612575334,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 44,
+      "center_x_ft": -7,
+      "center_y_ft": 8.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.4034269638940412,
+      "make_probability_lower_90": 0.2641543103032147,
+      "make_probability_median": 0.3954437565851355,
+      "make_probability_upper_90": 0.5516870181714468,
+      "observed_attempts": 6,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 45,
+      "center_x_ft": -3,
+      "center_y_ft": 8.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.4337793616433635,
+      "make_probability_lower_90": 0.3250505718052173,
+      "make_probability_median": 0.4311212160935343,
+      "make_probability_upper_90": 0.5456186497728218,
+      "observed_attempts": 25,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 46,
+      "center_x_ft": 1,
+      "center_y_ft": 8.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.4718317222488704,
+      "make_probability_lower_90": 0.3737467607784138,
+      "make_probability_median": 0.4705242978798628,
+      "make_probability_upper_90": 0.5705086405902211,
+      "observed_attempts": 39,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 47,
+      "center_x_ft": 5,
+      "center_y_ft": 8.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.4364182531151919,
+      "make_probability_lower_90": 0.3071909418077534,
+      "make_probability_median": 0.4343614124825688,
+      "make_probability_upper_90": 0.5714707944673917,
+      "observed_attempts": 12,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 48,
+      "center_x_ft": 9,
+      "center_y_ft": 8.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.4266619878636003,
+      "make_probability_lower_90": 0.2763299037122584,
+      "make_probability_median": 0.4235154557270148,
+      "make_probability_upper_90": 0.5875525834905491,
+      "observed_attempts": 3,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 49,
+      "center_x_ft": 13,
+      "center_y_ft": 8.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.3906146690235474,
+      "make_probability_lower_90": 0.2274785945250775,
+      "make_probability_median": 0.3825611479005812,
+      "make_probability_upper_90": 0.5671924549562188,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 50,
+      "center_x_ft": 17,
+      "center_y_ft": 8.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.3654417559844459,
+      "make_probability_lower_90": 0.2075227940368137,
+      "make_probability_median": 0.3598989836648716,
+      "make_probability_upper_90": 0.5521008728104625,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 51,
+      "center_x_ft": 21,
+      "center_y_ft": 8.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.3260002126836635,
+      "make_probability_lower_90": 0.1767873437616521,
+      "make_probability_median": 0.3164341382097627,
+      "make_probability_upper_90": 0.5009638648635441,
+      "observed_attempts": 3,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 52,
+      "center_x_ft": 24,
+      "center_y_ft": 8.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 6.75,
+      "y_max_ft": 10.75,
+      "modeled_make_probability": 0.3487912380972941,
+      "make_probability_lower_90": 0.1739995172802641,
+      "make_probability_median": 0.3407098138083933,
+      "make_probability_upper_90": 0.5578412793484084,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 53,
+      "center_x_ft": -23,
+      "center_y_ft": 12.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.3750283413238659,
+      "make_probability_lower_90": 0.1858019389655913,
+      "make_probability_median": 0.3670357556988298,
+      "make_probability_upper_90": 0.5960894979663969,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 54,
+      "center_x_ft": -19,
+      "center_y_ft": 12.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.3782905145042712,
+      "make_probability_lower_90": 0.2029879656775991,
+      "make_probability_median": 0.3694891812635157,
+      "make_probability_upper_90": 0.5698761012275063,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 55,
+      "center_x_ft": -15,
+      "center_y_ft": 12.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.390087482249488,
+      "make_probability_lower_90": 0.2253405926076587,
+      "make_probability_median": 0.3858813223309078,
+      "make_probability_upper_90": 0.5788704403748652,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 56,
+      "center_x_ft": -11,
+      "center_y_ft": 12.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.3785094684630849,
+      "make_probability_lower_90": 0.2202490681823119,
+      "make_probability_median": 0.3750128727167263,
+      "make_probability_upper_90": 0.5598344301631152,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 57,
+      "center_x_ft": -7,
+      "center_y_ft": 12.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.37347686993074,
+      "make_probability_lower_90": 0.2365145898322037,
+      "make_probability_median": 0.3657231608189156,
+      "make_probability_upper_90": 0.5209201793636873,
+      "observed_attempts": 7,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 58,
+      "center_x_ft": -3,
+      "center_y_ft": 12.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.4204000526672923,
+      "make_probability_lower_90": 0.2898143722662795,
+      "make_probability_median": 0.4152378993095643,
+      "make_probability_upper_90": 0.5577889311615238,
+      "observed_attempts": 10,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 59,
+      "center_x_ft": 1,
+      "center_y_ft": 12.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.4167850713630282,
+      "make_probability_lower_90": 0.2952612734414363,
+      "make_probability_median": 0.4132806657520814,
+      "make_probability_upper_90": 0.5453269611982381,
+      "observed_attempts": 15,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 60,
+      "center_x_ft": 5,
+      "center_y_ft": 12.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.4044615141539301,
+      "make_probability_lower_90": 0.2688903196296838,
+      "make_probability_median": 0.4009705837952059,
+      "make_probability_upper_90": 0.5513053690174765,
+      "observed_attempts": 8,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 61,
+      "center_x_ft": 9,
+      "center_y_ft": 12.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.4018154977844678,
+      "make_probability_lower_90": 0.2363184151713273,
+      "make_probability_median": 0.3972883890764545,
+      "make_probability_upper_90": 0.5835430267623878,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 62,
+      "center_x_ft": 13,
+      "center_y_ft": 12.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.3882738460925354,
+      "make_probability_lower_90": 0.2228474476042394,
+      "make_probability_median": 0.3823887324805603,
+      "make_probability_upper_90": 0.5710526837613251,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 63,
+      "center_x_ft": 17,
+      "center_y_ft": 12.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.376033576038147,
+      "make_probability_lower_90": 0.2060694737054961,
+      "make_probability_median": 0.3716895584110392,
+      "make_probability_upper_90": 0.5658116530653795,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 64,
+      "center_x_ft": 21,
+      "center_y_ft": 12.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.3668379489296758,
+      "make_probability_lower_90": 0.1971174864841137,
+      "make_probability_median": 0.3626487819293964,
+      "make_probability_upper_90": 0.567228153677486,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 65,
+      "center_x_ft": 24,
+      "center_y_ft": 12.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 10.75,
+      "y_max_ft": 14.75,
+      "modeled_make_probability": 0.3682298983494868,
+      "make_probability_lower_90": 0.1808737006240347,
+      "make_probability_median": 0.3567319152652163,
+      "make_probability_upper_90": 0.591174772311024,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 66,
+      "center_x_ft": -23,
+      "center_y_ft": 16.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3720520028078784,
+      "make_probability_lower_90": 0.1820293187096235,
+      "make_probability_median": 0.3630599586038795,
+      "make_probability_upper_90": 0.5945078385837954,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 67,
+      "center_x_ft": -19,
+      "center_y_ft": 16.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3641692524730998,
+      "make_probability_lower_90": 0.1966168234965015,
+      "make_probability_median": 0.355613334369267,
+      "make_probability_upper_90": 0.5534432278314583,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 68,
+      "center_x_ft": -15,
+      "center_y_ft": 16.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3780528030393537,
+      "make_probability_lower_90": 0.2141870834803824,
+      "make_probability_median": 0.3696258251886676,
+      "make_probability_upper_90": 0.5573736329199548,
+      "observed_attempts": 2,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 69,
+      "center_x_ft": -11,
+      "center_y_ft": 16.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3707764531834105,
+      "make_probability_lower_90": 0.2087842026710963,
+      "make_probability_median": 0.3642930946326567,
+      "make_probability_upper_90": 0.5531302365178131,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 70,
+      "center_x_ft": -7,
+      "center_y_ft": 16.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.360575866181255,
+      "make_probability_lower_90": 0.2089040583884144,
+      "make_probability_median": 0.3537153823249894,
+      "make_probability_upper_90": 0.527881240461456,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 71,
+      "center_x_ft": -3,
+      "center_y_ft": 16.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3667602330117753,
+      "make_probability_lower_90": 0.2184172983695974,
+      "make_probability_median": 0.3604244756885119,
+      "make_probability_upper_90": 0.5306818413534288,
+      "observed_attempts": 2,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 72,
+      "center_x_ft": 1,
+      "center_y_ft": 16.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.4038050101939054,
+      "make_probability_lower_90": 0.2442419853741754,
+      "make_probability_median": 0.3952016097076759,
+      "make_probability_upper_90": 0.5728216358059529,
+      "observed_attempts": 1,
+      "effective_point_value": 2,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 73,
+      "center_x_ft": 5,
+      "center_y_ft": 16.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3922017000920121,
+      "make_probability_lower_90": 0.2261757795941812,
+      "make_probability_median": 0.3889168332257828,
+      "make_probability_upper_90": 0.5727378444913701,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 74,
+      "center_x_ft": 9,
+      "center_y_ft": 16.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3887505584380696,
+      "make_probability_lower_90": 0.2233976289643819,
+      "make_probability_median": 0.3817265273395443,
+      "make_probability_upper_90": 0.5751396355647937,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 75,
+      "center_x_ft": 13,
+      "center_y_ft": 16.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3841413113511446,
+      "make_probability_lower_90": 0.2135636077227346,
+      "make_probability_median": 0.3770014824587202,
+      "make_probability_upper_90": 0.5799129781232371,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 76,
+      "center_x_ft": 17,
+      "center_y_ft": 16.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3817407234876193,
+      "make_probability_lower_90": 0.2050676682875169,
+      "make_probability_median": 0.3756640473701394,
+      "make_probability_upper_90": 0.5809754609883119,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 77,
+      "center_x_ft": 21,
+      "center_y_ft": 16.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3956565227147086,
+      "make_probability_lower_90": 0.2146345704211738,
+      "make_probability_median": 0.3901651751465375,
+      "make_probability_upper_90": 0.5929730795087743,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 78,
+      "center_x_ft": 24,
+      "center_y_ft": 16.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 14.75,
+      "y_max_ft": 18.75,
+      "modeled_make_probability": 0.3839068193113727,
+      "make_probability_lower_90": 0.1874171877034718,
+      "make_probability_median": 0.3785998734936952,
+      "make_probability_upper_90": 0.6127399205805459,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 79,
+      "center_x_ft": -23,
+      "center_y_ft": 20.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3721291910670818,
+      "make_probability_lower_90": 0.1839010368255631,
+      "make_probability_median": 0.3631328396778786,
+      "make_probability_upper_90": 0.5950780239565965,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 80,
+      "center_x_ft": -19,
+      "center_y_ft": 20.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3667688735946922,
+      "make_probability_lower_90": 0.1922776613945648,
+      "make_probability_median": 0.3576551235409465,
+      "make_probability_upper_90": 0.5723885486955784,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 81,
+      "center_x_ft": -15,
+      "center_y_ft": 20.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3585770638831848,
+      "make_probability_lower_90": 0.1957941359352722,
+      "make_probability_median": 0.3522495836643659,
+      "make_probability_upper_90": 0.5442401397159901,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 82,
+      "center_x_ft": -11,
+      "center_y_ft": 20.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3627143514553103,
+      "make_probability_lower_90": 0.1991729565337621,
+      "make_probability_median": 0.3574874873791329,
+      "make_probability_upper_90": 0.558398631417831,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 83,
+      "center_x_ft": -7,
+      "center_y_ft": 20.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3668089838140316,
+      "make_probability_lower_90": 0.2098611560908537,
+      "make_probability_median": 0.3608051647092237,
+      "make_probability_upper_90": 0.5428760682162741,
+      "observed_attempts": 2,
+      "effective_point_value": 2.5,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 84,
+      "center_x_ft": -3,
+      "center_y_ft": 20.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3637024110928306,
+      "make_probability_lower_90": 0.2042909184319437,
+      "make_probability_median": 0.3567009553867035,
+      "make_probability_upper_90": 0.5423390550516637,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 85,
+      "center_x_ft": 1,
+      "center_y_ft": 20.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3717005400115913,
+      "make_probability_lower_90": 0.2090621443757677,
+      "make_probability_median": 0.3658431919737515,
+      "make_probability_upper_90": 0.5659737338854045,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 86,
+      "center_x_ft": 5,
+      "center_y_ft": 20.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3714806667856035,
+      "make_probability_lower_90": 0.2083040541569131,
+      "make_probability_median": 0.3641654277426301,
+      "make_probability_upper_90": 0.5587675588654586,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 87,
+      "center_x_ft": 9,
+      "center_y_ft": 20.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3764041910343196,
+      "make_probability_lower_90": 0.2059506363088956,
+      "make_probability_median": 0.3681407689277446,
+      "make_probability_upper_90": 0.5640557216621346,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 88,
+      "center_x_ft": 13,
+      "center_y_ft": 20.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3767461905942605,
+      "make_probability_lower_90": 0.2023675308476304,
+      "make_probability_median": 0.3674836205381757,
+      "make_probability_upper_90": 0.5747630975427773,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 89,
+      "center_x_ft": 17,
+      "center_y_ft": 20.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3698531882582883,
+      "make_probability_lower_90": 0.1964878791682658,
+      "make_probability_median": 0.3636963678052051,
+      "make_probability_upper_90": 0.5642713004108006,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 90,
+      "center_x_ft": 21,
+      "center_y_ft": 20.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.383241264016611,
+      "make_probability_lower_90": 0.2060523070987687,
+      "make_probability_median": 0.3752571453416644,
+      "make_probability_upper_90": 0.5855385258214932,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 91,
+      "center_x_ft": 24,
+      "center_y_ft": 20.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 18.75,
+      "y_max_ft": 22.75,
+      "modeled_make_probability": 0.3850713884072578,
+      "make_probability_lower_90": 0.181508746835543,
+      "make_probability_median": 0.3731104484499308,
+      "make_probability_upper_90": 0.6128977459538593,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 92,
+      "center_x_ft": -23,
+      "center_y_ft": 24.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3744367037814017,
+      "make_probability_lower_90": 0.1800544756259932,
+      "make_probability_median": 0.362807963409777,
+      "make_probability_upper_90": 0.6087515852988188,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 93,
+      "center_x_ft": -19,
+      "center_y_ft": 24.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3698437452103437,
+      "make_probability_lower_90": 0.1961497228775023,
+      "make_probability_median": 0.3606548342065649,
+      "make_probability_upper_90": 0.5815053814737465,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 94,
+      "center_x_ft": -15,
+      "center_y_ft": 24.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3629308224346137,
+      "make_probability_lower_90": 0.1926803548019798,
+      "make_probability_median": 0.3553269329803384,
+      "make_probability_upper_90": 0.5539073323310992,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 95,
+      "center_x_ft": -11,
+      "center_y_ft": 24.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3506634597816011,
+      "make_probability_lower_90": 0.190680888651991,
+      "make_probability_median": 0.3446617972572082,
+      "make_probability_upper_90": 0.5415699598632824,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 96,
+      "center_x_ft": -7,
+      "center_y_ft": 24.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3474833516177007,
+      "make_probability_lower_90": 0.1909078900526377,
+      "make_probability_median": 0.3412733338551364,
+      "make_probability_upper_90": 0.5273887498888953,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 97,
+      "center_x_ft": -3,
+      "center_y_ft": 24.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3454456572418522,
+      "make_probability_lower_90": 0.1920332774137617,
+      "make_probability_median": 0.3359482425010496,
+      "make_probability_upper_90": 0.5197350536049531,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 98,
+      "center_x_ft": 1,
+      "center_y_ft": 24.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3458298634590023,
+      "make_probability_lower_90": 0.1905878642495187,
+      "make_probability_median": 0.3366519956227446,
+      "make_probability_upper_90": 0.5255617880786,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 99,
+      "center_x_ft": 5,
+      "center_y_ft": 24.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3433028397065119,
+      "make_probability_lower_90": 0.18377257570917,
+      "make_probability_median": 0.3361833219880668,
+      "make_probability_upper_90": 0.5245285097768455,
+      "observed_attempts": 2,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 100,
+      "center_x_ft": 9,
+      "center_y_ft": 24.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3666910360533889,
+      "make_probability_lower_90": 0.1941409515727771,
+      "make_probability_median": 0.3598573509986072,
+      "make_probability_upper_90": 0.5636706318031262,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 101,
+      "center_x_ft": 13,
+      "center_y_ft": 24.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3746016926361778,
+      "make_probability_lower_90": 0.2001097910812351,
+      "make_probability_median": 0.3655412797538783,
+      "make_probability_upper_90": 0.5764141441936232,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 102,
+      "center_x_ft": 17,
+      "center_y_ft": 24.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.37699227547089,
+      "make_probability_lower_90": 0.2013738723265005,
+      "make_probability_median": 0.3686622667776464,
+      "make_probability_upper_90": 0.5732112230450007,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 103,
+      "center_x_ft": 21,
+      "center_y_ft": 24.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3821636628129971,
+      "make_probability_lower_90": 0.1998760831407052,
+      "make_probability_median": 0.3720518981045755,
+      "make_probability_upper_90": 0.5943503757435905,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 104,
+      "center_x_ft": 24,
+      "center_y_ft": 24.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 22.75,
+      "y_max_ft": 26.75,
+      "modeled_make_probability": 0.3852420634502109,
+      "make_probability_lower_90": 0.1802276053135153,
+      "make_probability_median": 0.3731416550709199,
+      "make_probability_upper_90": 0.6157784239153336,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 105,
+      "center_x_ft": -23,
+      "center_y_ft": 28.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3771200723829123,
+      "make_probability_lower_90": 0.1788153462235761,
+      "make_probability_median": 0.3616380704022535,
+      "make_probability_upper_90": 0.609364268078549,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 106,
+      "center_x_ft": -19,
+      "center_y_ft": 28.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3735003649273119,
+      "make_probability_lower_90": 0.1911289531283072,
+      "make_probability_median": 0.3594532816098206,
+      "make_probability_upper_90": 0.5915816611891688,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 107,
+      "center_x_ft": -15,
+      "center_y_ft": 28.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3690516630991666,
+      "make_probability_lower_90": 0.1899186771570056,
+      "make_probability_median": 0.3580169912678134,
+      "make_probability_upper_90": 0.5686525332485547,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 108,
+      "center_x_ft": -11,
+      "center_y_ft": 28.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3633546827894474,
+      "make_probability_lower_90": 0.1870190780295268,
+      "make_probability_median": 0.3576993190675664,
+      "make_probability_upper_90": 0.5574632047383001,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 109,
+      "center_x_ft": -7,
+      "center_y_ft": 28.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3597642087352846,
+      "make_probability_lower_90": 0.183458396169119,
+      "make_probability_median": 0.3524788919117676,
+      "make_probability_upper_90": 0.5578212591479446,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 110,
+      "center_x_ft": -3,
+      "center_y_ft": 28.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.356993246141218,
+      "make_probability_lower_90": 0.1885466920411126,
+      "make_probability_median": 0.3517062694889466,
+      "make_probability_upper_90": 0.5513791797683907,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 111,
+      "center_x_ft": 1,
+      "center_y_ft": 28.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3553062331685833,
+      "make_probability_lower_90": 0.1865870854752018,
+      "make_probability_median": 0.3511723785141545,
+      "make_probability_upper_90": 0.5498009241867348,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 112,
+      "center_x_ft": 5,
+      "center_y_ft": 28.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3593760465043751,
+      "make_probability_lower_90": 0.1918709478609472,
+      "make_probability_median": 0.3520664681911179,
+      "make_probability_upper_90": 0.5569230620817782,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 113,
+      "center_x_ft": 9,
+      "center_y_ft": 28.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3693581409642662,
+      "make_probability_lower_90": 0.1972743420524366,
+      "make_probability_median": 0.3619858575999449,
+      "make_probability_upper_90": 0.5638331475528239,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 114,
+      "center_x_ft": 13,
+      "center_y_ft": 28.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3758240630461989,
+      "make_probability_lower_90": 0.2004780833871953,
+      "make_probability_median": 0.370061208639987,
+      "make_probability_upper_90": 0.5765566096173265,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 115,
+      "center_x_ft": 17,
+      "center_y_ft": 28.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3795718178017253,
+      "make_probability_lower_90": 0.1973844934143589,
+      "make_probability_median": 0.3734336824982593,
+      "make_probability_upper_90": 0.5865065601597359,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 116,
+      "center_x_ft": 21,
+      "center_y_ft": 28.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3828862154585222,
+      "make_probability_lower_90": 0.1948036810864963,
+      "make_probability_median": 0.3736759990903155,
+      "make_probability_upper_90": 0.6016760743879008,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 117,
+      "center_x_ft": 24,
+      "center_y_ft": 28.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 26.75,
+      "y_max_ft": 30.75,
+      "modeled_make_probability": 0.3857532942484642,
+      "make_probability_lower_90": 0.1809590034611713,
+      "make_probability_median": 0.3764128591381896,
+      "make_probability_upper_90": 0.6251514782331307,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 118,
+      "center_x_ft": -23,
+      "center_y_ft": 32.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3796916584551521,
+      "make_probability_lower_90": 0.1731586975849636,
+      "make_probability_median": 0.3666517947113709,
+      "make_probability_upper_90": 0.6152484922763187,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 119,
+      "center_x_ft": -19,
+      "center_y_ft": 32.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3767960515774475,
+      "make_probability_lower_90": 0.187313241979834,
+      "make_probability_median": 0.3612684819394837,
+      "make_probability_upper_90": 0.5956391731319692,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 120,
+      "center_x_ft": -15,
+      "center_y_ft": 32.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3738537441919147,
+      "make_probability_lower_90": 0.1891234472019011,
+      "make_probability_median": 0.3599544194178788,
+      "make_probability_upper_90": 0.5846947934157117,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 121,
+      "center_x_ft": -11,
+      "center_y_ft": 32.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3704426842724944,
+      "make_probability_lower_90": 0.1897266752704365,
+      "make_probability_median": 0.3573461733352953,
+      "make_probability_upper_90": 0.5700021516666132,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 122,
+      "center_x_ft": -7,
+      "center_y_ft": 32.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3671838098633747,
+      "make_probability_lower_90": 0.1904830418372543,
+      "make_probability_median": 0.3573953650272066,
+      "make_probability_upper_90": 0.5684315790229184,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 123,
+      "center_x_ft": -3,
+      "center_y_ft": 32.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3630403132367172,
+      "make_probability_lower_90": 0.1911668745472803,
+      "make_probability_median": 0.3554642168673636,
+      "make_probability_upper_90": 0.5642942726154013,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 124,
+      "center_x_ft": 1,
+      "center_y_ft": 32.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3542825371407006,
+      "make_probability_lower_90": 0.1850244736855394,
+      "make_probability_median": 0.3427477599091799,
+      "make_probability_upper_90": 0.5428551548420056,
+      "observed_attempts": 1,
+      "effective_point_value": 3,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 125,
+      "center_x_ft": 5,
+      "center_y_ft": 32.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3654300474129086,
+      "make_probability_lower_90": 0.1873133639326872,
+      "make_probability_median": 0.3582756193997018,
+      "make_probability_upper_90": 0.5688277638971894,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 126,
+      "center_x_ft": 9,
+      "center_y_ft": 32.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3728014196660872,
+      "make_probability_lower_90": 0.1896557567081557,
+      "make_probability_median": 0.3654203632081713,
+      "make_probability_upper_90": 0.582875866526795,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 127,
+      "center_x_ft": 13,
+      "center_y_ft": 32.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3778584830625748,
+      "make_probability_lower_90": 0.1993312986580583,
+      "make_probability_median": 0.3711251605205637,
+      "make_probability_upper_90": 0.5859818096869251,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 128,
+      "center_x_ft": 17,
+      "center_y_ft": 32.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3812869859788066,
+      "make_probability_lower_90": 0.1935639542737518,
+      "make_probability_median": 0.3733706920587148,
+      "make_probability_upper_90": 0.5905739370075815,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 129,
+      "center_x_ft": 21,
+      "center_y_ft": 32.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3839387349407984,
+      "make_probability_lower_90": 0.1904310438689981,
+      "make_probability_median": 0.375827542094447,
+      "make_probability_upper_90": 0.6120072521538924,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 130,
+      "center_x_ft": 24,
+      "center_y_ft": 32.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 30.75,
+      "y_max_ft": 34.75,
+      "modeled_make_probability": 0.3865652151831159,
+      "make_probability_lower_90": 0.1791285954736337,
+      "make_probability_median": 0.3757779046174251,
+      "make_probability_upper_90": 0.6416247638765532,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 131,
+      "center_x_ft": -23,
+      "center_y_ft": 36.75,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3820205673407005,
+      "make_probability_lower_90": 0.1679274689355726,
+      "make_probability_median": 0.3657723801110102,
+      "make_probability_upper_90": 0.6220484765364783,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 132,
+      "center_x_ft": -19,
+      "center_y_ft": 36.75,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3795304625357853,
+      "make_probability_lower_90": 0.1821400347864679,
+      "make_probability_median": 0.3668152025916512,
+      "make_probability_upper_90": 0.6055393183732504,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 133,
+      "center_x_ft": -15,
+      "center_y_ft": 36.75,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3773489753874668,
+      "make_probability_lower_90": 0.1907086554352635,
+      "make_probability_median": 0.3655123366860291,
+      "make_probability_upper_90": 0.602551277984021,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 134,
+      "center_x_ft": -11,
+      "center_y_ft": 36.75,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3750065516226463,
+      "make_probability_lower_90": 0.1902169439276872,
+      "make_probability_median": 0.3627023589836293,
+      "make_probability_upper_90": 0.5885549155980765,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 135,
+      "center_x_ft": -7,
+      "center_y_ft": 36.75,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3726500446242071,
+      "make_probability_lower_90": 0.1874625863039235,
+      "make_probability_median": 0.3631362628929004,
+      "make_probability_upper_90": 0.5858772393521898,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 136,
+      "center_x_ft": -3,
+      "center_y_ft": 36.75,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3702698324385262,
+      "make_probability_lower_90": 0.1916928351366315,
+      "make_probability_median": 0.3599990943691168,
+      "make_probability_upper_90": 0.5820624709199055,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 137,
+      "center_x_ft": 1,
+      "center_y_ft": 36.75,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3683887303086423,
+      "make_probability_lower_90": 0.1866483873789763,
+      "make_probability_median": 0.3565190344095966,
+      "make_probability_upper_90": 0.5795225775676037,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 138,
+      "center_x_ft": 5,
+      "center_y_ft": 36.75,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3721413855820798,
+      "make_probability_lower_90": 0.1884464988607596,
+      "make_probability_median": 0.3635629168380093,
+      "make_probability_upper_90": 0.5838894651452504,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 139,
+      "center_x_ft": 9,
+      "center_y_ft": 36.75,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3764184261259941,
+      "make_probability_lower_90": 0.1849878110931947,
+      "make_probability_median": 0.3664386542220803,
+      "make_probability_upper_90": 0.5865974363837084,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 140,
+      "center_x_ft": 13,
+      "center_y_ft": 36.75,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3800489006083731,
+      "make_probability_lower_90": 0.1904915984871779,
+      "make_probability_median": 0.3723171988619758,
+      "make_probability_upper_90": 0.5982713756515893,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 141,
+      "center_x_ft": 17,
+      "center_y_ft": 36.75,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3828837384174758,
+      "make_probability_lower_90": 0.1857425505524789,
+      "make_probability_median": 0.3750754169556804,
+      "make_probability_upper_90": 0.6008565554271659,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 142,
+      "center_x_ft": 21,
+      "center_y_ft": 36.75,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.385206257885314,
+      "make_probability_lower_90": 0.1841149156224486,
+      "make_probability_median": 0.3772118547377774,
+      "make_probability_upper_90": 0.6183479994490387,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 143,
+      "center_x_ft": 24,
+      "center_y_ft": 36.75,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 34.75,
+      "y_max_ft": 38.75,
+      "modeled_make_probability": 0.3877749167716987,
+      "make_probability_lower_90": 0.1708460985760226,
+      "make_probability_median": 0.3784652429437677,
+      "make_probability_upper_90": 0.6474572540417625,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 144,
+      "center_x_ft": -23,
+      "center_y_ft": 39.25,
+      "x_min_ft": -25,
+      "x_max_ft": -21,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3853420514825633,
+      "make_probability_lower_90": 0.1446898141283389,
+      "make_probability_median": 0.3685884223582429,
+      "make_probability_upper_90": 0.6638261893877799,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 145,
+      "center_x_ft": -19,
+      "center_y_ft": 39.25,
+      "x_min_ft": -21,
+      "x_max_ft": -17,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3824324116074424,
+      "make_probability_lower_90": 0.1606652885072445,
+      "make_probability_median": 0.3643822468485169,
+      "make_probability_upper_90": 0.6416374463880952,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 146,
+      "center_x_ft": -15,
+      "center_y_ft": 39.25,
+      "x_min_ft": -17,
+      "x_max_ft": -13,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.380464988819372,
+      "make_probability_lower_90": 0.1732535359474209,
+      "make_probability_median": 0.3670325686240227,
+      "make_probability_upper_90": 0.6197390907474455,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 147,
+      "center_x_ft": -11,
+      "center_y_ft": 39.25,
+      "x_min_ft": -13,
+      "x_max_ft": -9,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3785923351235596,
+      "make_probability_lower_90": 0.1740592405148221,
+      "make_probability_median": 0.3636061065332882,
+      "make_probability_upper_90": 0.6181409774801271,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 148,
+      "center_x_ft": -7,
+      "center_y_ft": 39.25,
+      "x_min_ft": -9,
+      "x_max_ft": -5,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3768071590383882,
+      "make_probability_lower_90": 0.1722993352569597,
+      "make_probability_median": 0.3660705537273705,
+      "make_probability_upper_90": 0.6152546717875529,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 149,
+      "center_x_ft": -3,
+      "center_y_ft": 39.25,
+      "x_min_ft": -5,
+      "x_max_ft": -1,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3753557798899689,
+      "make_probability_lower_90": 0.1753766910977,
+      "make_probability_median": 0.3657777518681312,
+      "make_probability_upper_90": 0.6060388736731145,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 150,
+      "center_x_ft": 1,
+      "center_y_ft": 39.25,
+      "x_min_ft": -1,
+      "x_max_ft": 3,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3749305637337633,
+      "make_probability_lower_90": 0.1791283982506668,
+      "make_probability_median": 0.3674277927659062,
+      "make_probability_upper_90": 0.613622629772907,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 151,
+      "center_x_ft": 5,
+      "center_y_ft": 39.25,
+      "x_min_ft": 3,
+      "x_max_ft": 7,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3769028563001756,
+      "make_probability_lower_90": 0.1691317047088087,
+      "make_probability_median": 0.3684123098869191,
+      "make_probability_upper_90": 0.6107751060952014,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 152,
+      "center_x_ft": 9,
+      "center_y_ft": 39.25,
+      "x_min_ft": 7,
+      "x_max_ft": 11,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3797873908473911,
+      "make_probability_lower_90": 0.1751909599978152,
+      "make_probability_median": 0.3702044275725134,
+      "make_probability_upper_90": 0.6134309388646976,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 153,
+      "center_x_ft": 13,
+      "center_y_ft": 39.25,
+      "x_min_ft": 11,
+      "x_max_ft": 15,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3826222326811874,
+      "make_probability_lower_90": 0.1767005605500202,
+      "make_probability_median": 0.3748367312041564,
+      "make_probability_upper_90": 0.6293586544873397,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 154,
+      "center_x_ft": 17,
+      "center_y_ft": 39.25,
+      "x_min_ft": 15,
+      "x_max_ft": 19,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3850735641852313,
+      "make_probability_lower_90": 0.1789360538176581,
+      "make_probability_median": 0.3779792258879734,
+      "make_probability_upper_90": 0.6300813829509522,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 155,
+      "center_x_ft": 21,
+      "center_y_ft": 39.25,
+      "x_min_ft": 19,
+      "x_max_ft": 23,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3872987459093626,
+      "make_probability_lower_90": 0.1675983227725461,
+      "make_probability_median": 0.3809540414221532,
+      "make_probability_upper_90": 0.6462096975236516,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    },
+    {
+      "cell_id": 156,
+      "center_x_ft": 24,
+      "center_y_ft": 39.25,
+      "x_min_ft": 23,
+      "x_max_ft": 25,
+      "y_min_ft": 38.75,
+      "y_max_ft": 39.75,
+      "modeled_make_probability": 0.3902575734207546,
+      "make_probability_lower_90": 0.1544765268793315,
+      "make_probability_median": 0.3807851717115159,
+      "make_probability_upper_90": 0.6738518748057912,
+      "observed_attempts": 0,
+      "effective_point_value": null,
+      "supported_destination": false
+    }
+  ],
+  "shots": [
+    {
+      "x_ft": 0.1,
+      "y_ft": 0.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.9,
+      "y_ft": 10.199999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -8.5,
+      "y_ft": 25,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.5,
+      "y_ft": 0.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.1,
+      "y_ft": 10,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2,
+      "y_ft": -0.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.2,
+      "y_ft": 1.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.9,
+      "y_ft": 1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.899999999999999,
+      "y_ft": 1.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 3.3,
+      "made": false,
+      "move_order": 42,
+      "after_x_ft": 0.7,
+      "after_y_ft": 1.9
+    },
+    {
+      "x_ft": -5.6,
+      "y_ft": 6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.1,
+      "y_ft": 6.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.7,
+      "y_ft": 5.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.2,
+      "y_ft": 6.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -5.4,
+      "y_ft": 12.699999999999999,
+      "made": false,
+      "move_order": 4,
+      "after_x_ft": -0.6,
+      "after_y_ft": 0.6
+    },
+    {
+      "x_ft": -2.5,
+      "y_ft": 0.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.7,
+      "y_ft": 0.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.7,
+      "y_ft": 4.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -16.399999999999999,
+      "y_ft": 19,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 9.6,
+      "y_ft": 2.2,
+      "made": false,
+      "move_order": 107,
+      "after_x_ft": 0.4,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.7,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.8,
+      "y_ft": 0.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.4,
+      "y_ft": 4.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 10.699999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.2,
+      "y_ft": 11.1,
+      "made": false,
+      "move_order": 92,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -0.1,
+      "y_ft": 11.5,
+      "made": true,
+      "move_order": 93,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 6.7,
+      "y_ft": -0.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.8,
+      "y_ft": 0.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4,
+      "y_ft": 10.9,
+      "made": false,
+      "move_order": 34,
+      "after_x_ft": 0.4,
+      "after_y_ft": 2
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 10,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.6,
+      "y_ft": 1.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 7.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -10.300000000000001,
+      "y_ft": 23,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.5,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.4,
+      "y_ft": 3.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.1,
+      "y_ft": 1.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 15.199999999999999,
+      "y_ft": 20.399999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.1,
+      "y_ft": 10.9,
+      "made": false,
+      "move_order": 94,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -1,
+      "y_ft": 6.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.899999999999999,
+      "y_ft": 1.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 6.7,
+      "made": true,
+      "move_order": 43,
+      "after_x_ft": 0.9,
+      "after_y_ft": 2.2
+    },
+    {
+      "x_ft": 1,
+      "y_ft": 3.5,
+      "made": true,
+      "move_order": 44,
+      "after_x_ft": 1,
+      "after_y_ft": 1
+    },
+    {
+      "x_ft": -7,
+      "y_ft": 9,
+      "made": false,
+      "move_order": 26,
+      "after_x_ft": 0,
+      "after_y_ft": 1.5
+    },
+    {
+      "x_ft": 1.2,
+      "y_ft": 6.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.5,
+      "y_ft": 7.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.6,
+      "y_ft": 1.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.7,
+      "y_ft": 5.9,
+      "made": true,
+      "move_order": 45,
+      "after_x_ft": 1,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": -15.9,
+      "y_ft": 15,
+      "made": true,
+      "move_order": 11,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -19.199999999999999,
+      "y_ft": 0.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.7,
+      "y_ft": 12.199999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.7,
+      "y_ft": 8.699999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.3,
+      "y_ft": 5.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -7.6,
+      "y_ft": 22.699999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.7,
+      "y_ft": 5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 25.399999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.5,
+      "y_ft": 5.1,
+      "made": true,
+      "move_order": 46,
+      "after_x_ft": 1.1,
+      "after_y_ft": 0.8
+    },
+    {
+      "x_ft": 23.199999999999999,
+      "y_ft": 1.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.5,
+      "y_ft": 4.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.9,
+      "y_ft": 9.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.7,
+      "y_ft": 5.2,
+      "made": true,
+      "move_order": 47,
+      "after_x_ft": 1.1,
+      "after_y_ft": 1.6
+    },
+    {
+      "x_ft": 7.6,
+      "y_ft": 9.800000000000001,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.3,
+      "y_ft": 10.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2,
+      "y_ft": 10.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.8,
+      "y_ft": 7.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.6,
+      "y_ft": 9.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 10.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.7,
+      "y_ft": 7.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.8,
+      "y_ft": 15.800000000000001,
+      "made": false,
+      "move_order": 2,
+      "after_x_ft": -0.9,
+      "after_y_ft": 0.7
+    },
+    {
+      "x_ft": 3.3,
+      "y_ft": 10.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -6.9,
+      "y_ft": 13,
+      "made": false,
+      "move_order": 5,
+      "after_x_ft": -0.6,
+      "after_y_ft": 2.4
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 5.7,
+      "made": true,
+      "move_order": 48,
+      "after_x_ft": 1.2,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": 5.1,
+      "y_ft": 3.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.8,
+      "y_ft": 0.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 7.4,
+      "y_ft": 3.5,
+      "made": false,
+      "move_order": 16,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 2.5,
+      "y_ft": 1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.3,
+      "y_ft": 1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.1,
+      "y_ft": 6.7,
+      "made": true,
+      "move_order": 49,
+      "after_x_ft": 1.2,
+      "after_y_ft": 2.5
+    },
+    {
+      "x_ft": 7.1,
+      "y_ft": 4.6,
+      "made": false,
+      "move_order": 17,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 5.7,
+      "made": true,
+      "move_order": 50,
+      "after_x_ft": 1.3,
+      "after_y_ft": 0.4
+    },
+    {
+      "x_ft": -1.7,
+      "y_ft": 6.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.2,
+      "y_ft": 9.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.8,
+      "y_ft": 9.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.9,
+      "y_ft": 6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 12.1,
+      "made": false,
+      "move_order": 95,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -0.9,
+      "y_ft": 0.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.9,
+      "y_ft": 12,
+      "made": true,
+      "move_order": 35,
+      "after_x_ft": 0.5,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -0.4,
+      "y_ft": 25.699999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.9,
+      "y_ft": 6.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -8.800000000000001,
+      "y_ft": 3.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1,
+      "y_ft": 1.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.7,
+      "y_ft": 24,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.1,
+      "y_ft": 5.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.2,
+      "y_ft": 1.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.1,
+      "y_ft": 0.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.5,
+      "y_ft": 1.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.1,
+      "y_ft": 4,
+      "made": false,
+      "move_order": 51,
+      "after_x_ft": 1.3,
+      "after_y_ft": 1.2
+    },
+    {
+      "x_ft": -0.1,
+      "y_ft": -0.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 7.7,
+      "y_ft": 1.1,
+      "made": false,
+      "move_order": 108,
+      "after_x_ft": 0.4,
+      "after_y_ft": 2
+    },
+    {
+      "x_ft": 2.9,
+      "y_ft": 2.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.4,
+      "y_ft": 1.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2,
+      "y_ft": 0.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 0.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.1,
+      "y_ft": 3.8,
+      "made": true,
+      "move_order": 52,
+      "after_x_ft": 1.3,
+      "after_y_ft": 2
+    },
+    {
+      "x_ft": 2.7,
+      "y_ft": 1.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.5,
+      "y_ft": 6.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.4,
+      "y_ft": 7.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 6.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.6,
+      "y_ft": 5.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.3,
+      "y_ft": 0.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -5.5,
+      "y_ft": 7.9,
+      "made": true,
+      "move_order": 27,
+      "after_x_ft": 0,
+      "after_y_ft": 2.7
+    },
+    {
+      "x_ft": -7.1,
+      "y_ft": 9.6,
+      "made": false,
+      "move_order": 28,
+      "after_x_ft": 0.1,
+      "after_y_ft": 0.8
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 3.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.3,
+      "y_ft": 25.100000000000001,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1,
+      "y_ft": 4.3,
+      "made": false,
+      "move_order": 53,
+      "after_x_ft": 1.5,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": 4.9,
+      "y_ft": 3.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 0.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 5,
+      "y_ft": 9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.5,
+      "y_ft": 10.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.5,
+      "y_ft": 2.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.9,
+      "y_ft": 5.7,
+      "made": false,
+      "move_order": 54,
+      "after_x_ft": 1.6,
+      "after_y_ft": 1.4
+    },
+    {
+      "x_ft": -1.7,
+      "y_ft": 5.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1,
+      "y_ft": 7.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.5,
+      "y_ft": 9.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 5.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.1,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": 55,
+      "after_x_ft": 1.6,
+      "after_y_ft": 2.1
+    },
+    {
+      "x_ft": 7.7,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": 18,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -1.2,
+      "y_ft": 0.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.4,
+      "y_ft": 1.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 23.399999999999999,
+      "y_ft": 5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.1,
+      "y_ft": 1.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.2,
+      "y_ft": 3.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 5,
+      "made": true,
+      "move_order": 56,
+      "after_x_ft": 1.6,
+      "after_y_ft": 2.6
+    },
+    {
+      "x_ft": -22.5,
+      "y_ft": 2.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.5,
+      "y_ft": 10,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.4,
+      "y_ft": 2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.6,
+      "y_ft": 2.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.8,
+      "y_ft": 8.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 10.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2,
+      "y_ft": 7.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.3,
+      "y_ft": 1.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.1,
+      "y_ft": 1.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 7.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 5.8,
+      "y_ft": 0.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -7.7,
+      "y_ft": 2.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 23.5,
+      "y_ft": 3.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 6.3,
+      "made": false,
+      "move_order": 57,
+      "after_x_ft": 1.7,
+      "after_y_ft": 0.5
+    },
+    {
+      "x_ft": 9.4,
+      "y_ft": 5.7,
+      "made": true,
+      "move_order": 19,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 2.9,
+      "y_ft": 10.800000000000001,
+      "made": false,
+      "move_order": 96,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 1.1,
+      "y_ft": 7.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.6,
+      "y_ft": 13.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -20.899999999999999,
+      "y_ft": 1.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 7.7,
+      "y_ft": 4.7,
+      "made": false,
+      "move_order": 20,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -22.5,
+      "y_ft": 0.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.8,
+      "y_ft": 1.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 8,
+      "y_ft": 0.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.899999999999999,
+      "y_ft": 6.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.7,
+      "y_ft": 1.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2,
+      "y_ft": 2.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 13.699999999999999,
+      "made": true,
+      "move_order": 97,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 1.8,
+      "y_ft": 4.2,
+      "made": false,
+      "move_order": 58,
+      "after_x_ft": 1.8,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -3.3,
+      "y_ft": 8.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2,
+      "y_ft": 0.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 0.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -6.1,
+      "y_ft": 4.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.2,
+      "y_ft": 0.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 4.7,
+      "made": true,
+      "move_order": 59,
+      "after_x_ft": 2,
+      "after_y_ft": 0.3
+    },
+    {
+      "x_ft": 2.2,
+      "y_ft": 2.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.5,
+      "y_ft": 7.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 0.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -23.300000000000001,
+      "y_ft": 1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 2.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 8.1,
+      "y_ft": 5.9,
+      "made": true,
+      "move_order": 21,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 4.7,
+      "y_ft": 8.300000000000001,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 5.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1,
+      "y_ft": 10,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.3,
+      "y_ft": 7.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.8,
+      "y_ft": 1.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -5.6,
+      "y_ft": 5.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.6,
+      "y_ft": 10.699999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.4,
+      "y_ft": 2.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 3.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.7,
+      "y_ft": 6.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.5,
+      "y_ft": 1.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.5,
+      "y_ft": 5.1,
+      "made": true,
+      "move_order": 60,
+      "after_x_ft": 2,
+      "after_y_ft": 1.6
+    },
+    {
+      "x_ft": -1.6,
+      "y_ft": 2.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.4,
+      "y_ft": 2.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 5.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.4,
+      "y_ft": 11.5,
+      "made": false,
+      "move_order": 98,
+      "after_x_ft": 0,
+      "after_y_ft": 1
+    },
+    {
+      "x_ft": -9.6,
+      "y_ft": 0.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -23.300000000000001,
+      "y_ft": 0.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.9,
+      "y_ft": 6.2,
+      "made": false,
+      "move_order": 61,
+      "after_x_ft": 2.2,
+      "after_y_ft": 2.2
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 0.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 4.8,
+      "made": false,
+      "move_order": 62,
+      "after_x_ft": 2.3,
+      "after_y_ft": 0.8
+    },
+    {
+      "x_ft": -4,
+      "y_ft": 1.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -7.4,
+      "y_ft": 15.4,
+      "made": false,
+      "move_order": 1,
+      "after_x_ft": -1,
+      "after_y_ft": 1.6
+    },
+    {
+      "x_ft": 10.199999999999999,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": 22,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -3.4,
+      "y_ft": 5.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 1.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 5,
+      "made": false,
+      "move_order": 63,
+      "after_x_ft": 2.5,
+      "after_y_ft": 0.2
+    },
+    {
+      "x_ft": 23.699999999999999,
+      "y_ft": 0.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.1,
+      "y_ft": 33.899999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 24,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.6,
+      "y_ft": 9.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -5.5,
+      "y_ft": 7.8,
+      "made": true,
+      "move_order": 29,
+      "after_x_ft": 0.1,
+      "after_y_ft": 0.9
+    },
+    {
+      "x_ft": -5.6,
+      "y_ft": 6.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.9,
+      "y_ft": 2.9,
+      "made": false,
+      "move_order": 64,
+      "after_x_ft": 2.5,
+      "after_y_ft": 0.3
+    },
+    {
+      "x_ft": 7,
+      "y_ft": 7.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2,
+      "y_ft": 6.1,
+      "made": false,
+      "move_order": 65,
+      "after_x_ft": 2.5,
+      "after_y_ft": 1
+    },
+    {
+      "x_ft": 8.5,
+      "y_ft": 0,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 8.9,
+      "y_ft": 5.1,
+      "made": true,
+      "move_order": 23,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 3.6,
+      "made": false,
+      "move_order": 66,
+      "after_x_ft": 2.5,
+      "after_y_ft": 1.7
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 2.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 7.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.5,
+      "y_ft": 1.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -7.5,
+      "y_ft": 12.699999999999999,
+      "made": false,
+      "move_order": 6,
+      "after_x_ft": -0.5,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": 7.4,
+      "y_ft": 4.6,
+      "made": false,
+      "move_order": 24,
+      "after_x_ft": 0,
+      "after_y_ft": 1
+    },
+    {
+      "x_ft": 4.9,
+      "y_ft": 4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 6.2,
+      "made": false,
+      "move_order": 67,
+      "after_x_ft": 2.5,
+      "after_y_ft": 2.3
+    },
+    {
+      "x_ft": -3.3,
+      "y_ft": 6.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.7,
+      "y_ft": 1.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.2,
+      "y_ft": 2.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.4,
+      "y_ft": 7.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.8,
+      "y_ft": 6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.800000000000001,
+      "y_ft": 0.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.7,
+      "y_ft": 12.1,
+      "made": false,
+      "move_order": 99,
+      "after_x_ft": 0,
+      "after_y_ft": 1.2
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 1.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.8,
+      "y_ft": 5.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.5,
+      "y_ft": 4.7,
+      "made": false,
+      "move_order": 68,
+      "after_x_ft": 2.6,
+      "after_y_ft": 0.1
+    },
+    {
+      "x_ft": 6.2,
+      "y_ft": 6.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.5,
+      "y_ft": 10.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -23,
+      "y_ft": 0.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -5.6,
+      "y_ft": 11.300000000000001,
+      "made": true,
+      "move_order": 7,
+      "after_x_ft": -0.4,
+      "after_y_ft": 1.3
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 3.4,
+      "made": true,
+      "move_order": 69,
+      "after_x_ft": 2.6,
+      "after_y_ft": 0.3
+    },
+    {
+      "x_ft": -0.2,
+      "y_ft": 1.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 0.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 8.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.6,
+      "y_ft": 17.800000000000001,
+      "made": true,
+      "move_order": 32,
+      "after_x_ft": 0.2,
+      "after_y_ft": 1.5
+    },
+    {
+      "x_ft": 4,
+      "y_ft": 12.4,
+      "made": true,
+      "move_order": 36,
+      "after_x_ft": 0.5,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": -8.6,
+      "y_ft": 13,
+      "made": true,
+      "move_order": 8,
+      "after_x_ft": -0.2,
+      "after_y_ft": 1.6
+    },
+    {
+      "x_ft": 0.1,
+      "y_ft": 0.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.6,
+      "y_ft": 11.699999999999999,
+      "made": false,
+      "move_order": 37,
+      "after_x_ft": 0.5,
+      "after_y_ft": 1.7
+    },
+    {
+      "x_ft": 22.800000000000001,
+      "y_ft": 16.699999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.2,
+      "y_ft": 2.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.5,
+      "y_ft": 10,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.8,
+      "y_ft": 15.800000000000001,
+      "made": false,
+      "move_order": 3,
+      "after_x_ft": -0.6,
+      "after_y_ft": 0.3
+    },
+    {
+      "x_ft": -0.4,
+      "y_ft": 7.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.7,
+      "y_ft": 0.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 6.4,
+      "made": false,
+      "move_order": 70,
+      "after_x_ft": 2.7,
+      "after_y_ft": 0.4
+    },
+    {
+      "x_ft": -21,
+      "y_ft": 7.1,
+      "made": false,
+      "move_order": 15,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 5.4,
+      "y_ft": 7.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.2,
+      "y_ft": 2.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 7.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2,
+      "y_ft": 9.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -6,
+      "y_ft": 19.699999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.1,
+      "y_ft": 6.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.3,
+      "y_ft": 5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 23.300000000000001,
+      "y_ft": 0.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 5.3,
+      "y_ft": 3.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.300000000000001,
+      "y_ft": 2.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.5,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.9,
+      "y_ft": 2.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.1,
+      "y_ft": 11.300000000000001,
+      "made": true,
+      "move_order": 100,
+      "after_x_ft": 0,
+      "after_y_ft": 1.5
+    },
+    {
+      "x_ft": -1.1,
+      "y_ft": 0.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.1,
+      "y_ft": 0.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.8,
+      "y_ft": 2.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2,
+      "y_ft": 11,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 12,
+      "made": false,
+      "move_order": 38,
+      "after_x_ft": 0.6,
+      "after_y_ft": 0.1
+    },
+    {
+      "x_ft": 1.2,
+      "y_ft": 10.199999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.7,
+      "y_ft": 3.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.699999999999999,
+      "y_ft": -0.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 2.9,
+      "made": false,
+      "move_order": 71,
+      "after_x_ft": 2.7,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": 6.6,
+      "y_ft": 5.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.7,
+      "y_ft": 6.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.5,
+      "y_ft": 2.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -6.4,
+      "y_ft": 1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.1,
+      "y_ft": 5.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.1,
+      "y_ft": 5.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 5.5,
+      "y_ft": 4.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.5,
+      "y_ft": 1.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.399999999999999,
+      "y_ft": 2.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.4,
+      "y_ft": 6.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.1,
+      "y_ft": 7.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.8,
+      "y_ft": 4.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 4.6,
+      "made": false,
+      "move_order": 72,
+      "after_x_ft": 2.8,
+      "after_y_ft": 0.5
+    },
+    {
+      "x_ft": -0.4,
+      "y_ft": 4.6,
+      "made": false,
+      "move_order": 73,
+      "after_x_ft": 2.8,
+      "after_y_ft": 0.6
+    },
+    {
+      "x_ft": 0.1,
+      "y_ft": 7.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.3,
+      "y_ft": 11.199999999999999,
+      "made": false,
+      "move_order": 101,
+      "after_x_ft": 0,
+      "after_y_ft": 2.7
+    },
+    {
+      "x_ft": -2.9,
+      "y_ft": 13.300000000000001,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 0.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.2,
+      "y_ft": 1.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1,
+      "y_ft": 1.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -8.6,
+      "y_ft": 1.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 9.9,
+      "y_ft": 1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 8.800000000000001,
+      "y_ft": 1.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 11.300000000000001,
+      "y_ft": 0.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.1,
+      "y_ft": 5.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -23,
+      "y_ft": 0.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.9,
+      "y_ft": 1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 5.4,
+      "y_ft": 5.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.7,
+      "y_ft": 3.9,
+      "made": true,
+      "move_order": 74,
+      "after_x_ft": 2.9,
+      "after_y_ft": 2.7
+    },
+    {
+      "x_ft": -13.199999999999999,
+      "y_ft": 7.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.9,
+      "y_ft": 2.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.3,
+      "y_ft": 11.300000000000001,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -7.5,
+      "y_ft": 5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.6,
+      "y_ft": 6.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.7,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": 75,
+      "after_x_ft": -1,
+      "after_y_ft": 1.6
+    },
+    {
+      "x_ft": 7.1,
+      "y_ft": 2.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.6,
+      "y_ft": 10.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -20.800000000000001,
+      "y_ft": 4.8,
+      "made": false,
+      "move_order": 33,
+      "after_x_ft": 0.4,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": -1.7,
+      "y_ft": 10.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.7,
+      "y_ft": 2.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.800000000000001,
+      "y_ft": 1.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 7.8,
+      "y_ft": 8.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.9,
+      "y_ft": 9.199999999999999,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -18.600000000000001,
+      "y_ft": 15,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.9,
+      "y_ft": 12.4,
+      "made": false,
+      "move_order": 102,
+      "after_x_ft": 0.1,
+      "after_y_ft": 0.8
+    },
+    {
+      "x_ft": -2.8,
+      "y_ft": 9.199999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -6.5,
+      "y_ft": 13.6,
+      "made": false,
+      "move_order": 9,
+      "after_x_ft": -0.2,
+      "after_y_ft": 1.7
+    },
+    {
+      "x_ft": -3.1,
+      "y_ft": 0.8,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.2,
+      "y_ft": 7.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -7.5,
+      "y_ft": 6.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.7,
+      "y_ft": 9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.9,
+      "y_ft": 13.4,
+      "made": true,
+      "move_order": 103,
+      "after_x_ft": 0.1,
+      "after_y_ft": 0.9
+    },
+    {
+      "x_ft": -11.9,
+      "y_ft": 2.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.7,
+      "y_ft": 12.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.9,
+      "y_ft": 10.300000000000001,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.1,
+      "y_ft": 8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4.5,
+      "y_ft": 2.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -6.2,
+      "y_ft": 2.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 11.1,
+      "made": true,
+      "move_order": 104,
+      "after_x_ft": 0.1,
+      "after_y_ft": 1.3
+    },
+    {
+      "x_ft": -0.2,
+      "y_ft": 4.1,
+      "made": false,
+      "move_order": 76,
+      "after_x_ft": -0.9,
+      "after_y_ft": 0.7
+    },
+    {
+      "x_ft": 0.5,
+      "y_ft": 1.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 8.300000000000001,
+      "y_ft": 4.8,
+      "made": false,
+      "move_order": 25,
+      "after_x_ft": 0,
+      "after_y_ft": 1.2
+    },
+    {
+      "x_ft": 3.3,
+      "y_ft": 12.5,
+      "made": false,
+      "move_order": 39,
+      "after_x_ft": 0.6,
+      "after_y_ft": 0.5
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 6.3,
+      "made": false,
+      "move_order": 77,
+      "after_x_ft": -0.6,
+      "after_y_ft": 0.3
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.2,
+      "y_ft": 4.5,
+      "made": false,
+      "move_order": 78,
+      "after_x_ft": -0.6,
+      "after_y_ft": 0.6
+    },
+    {
+      "x_ft": 1,
+      "y_ft": 4.6,
+      "made": false,
+      "move_order": 79,
+      "after_x_ft": -0.6,
+      "after_y_ft": 2.4
+    },
+    {
+      "x_ft": 0.5,
+      "y_ft": 10,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.9,
+      "y_ft": 5.6,
+      "made": false,
+      "move_order": 80,
+      "after_x_ft": -0.5,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": -0.7,
+      "y_ft": 3.2,
+      "made": true,
+      "move_order": 81,
+      "after_x_ft": -0.4,
+      "after_y_ft": 1.3
+    },
+    {
+      "x_ft": -6.1,
+      "y_ft": 5.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -17,
+      "y_ft": 16.300000000000001,
+      "made": false,
+      "move_order": 12,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 4.5,
+      "y_ft": 6.9,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.9,
+      "y_ft": 5.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -1.3,
+      "y_ft": 8.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 2.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.7,
+      "y_ft": 6.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 1.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -9.9,
+      "y_ft": 4.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.7,
+      "y_ft": 10.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3,
+      "y_ft": 8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.2,
+      "y_ft": 8.800000000000001,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -4.8,
+      "y_ft": 2.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.6,
+      "y_ft": 1.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 3.6,
+      "made": false,
+      "move_order": 82,
+      "after_x_ft": -0.2,
+      "after_y_ft": 1.6
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 10.4,
+      "y_ft": 2.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.1,
+      "y_ft": 6.3,
+      "made": true,
+      "move_order": 83,
+      "after_x_ft": -0.2,
+      "after_y_ft": 1.7
+    },
+    {
+      "x_ft": 22.899999999999999,
+      "y_ft": 4.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 0.3,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.2,
+      "y_ft": 6.3,
+      "made": true,
+      "move_order": 84,
+      "after_x_ft": -0.1,
+      "after_y_ft": -0.2
+    },
+    {
+      "x_ft": -22.199999999999999,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.2,
+      "y_ft": 12,
+      "made": false,
+      "move_order": 105,
+      "after_x_ft": 0.2,
+      "after_y_ft": 0.1
+    },
+    {
+      "x_ft": 1.6,
+      "y_ft": 2.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -7.4,
+      "y_ft": 7,
+      "made": false,
+      "move_order": 30,
+      "after_x_ft": 0.1,
+      "after_y_ft": 1.3
+    },
+    {
+      "x_ft": 23.300000000000001,
+      "y_ft": 4.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 6.5,
+      "y_ft": 5.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.399999999999999,
+      "y_ft": 5.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.1,
+      "y_ft": 12.6,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.1,
+      "y_ft": 12.1,
+      "made": false,
+      "move_order": 40,
+      "after_x_ft": 0.6,
+      "after_y_ft": 1.1
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 5.3,
+      "made": true,
+      "move_order": 85,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 0.4,
+      "y_ft": 3.3,
+      "made": false,
+      "move_order": 86,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 1.6,
+      "y_ft": 6.2,
+      "made": false,
+      "move_order": 87,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -4.8,
+      "y_ft": 12.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 4,
+      "y_ft": 11.9,
+      "made": true,
+      "move_order": 41,
+      "after_x_ft": 0.6,
+      "after_y_ft": 2.2
+    },
+    {
+      "x_ft": -12.1,
+      "y_ft": 12.9,
+      "made": false,
+      "move_order": 13,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -5.4,
+      "y_ft": 3.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.5,
+      "y_ft": 6.7,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0.2,
+      "y_ft": 1.5,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.800000000000001,
+      "y_ft": 7.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 4.6,
+      "made": false,
+      "move_order": 88,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -23.699999999999999,
+      "y_ft": 3.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.8,
+      "y_ft": 6.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.899999999999999,
+      "y_ft": 3.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.5,
+      "y_ft": 6.2,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.6,
+      "y_ft": 2.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -6.5,
+      "y_ft": 8,
+      "made": false,
+      "move_order": 31,
+      "after_x_ft": 0.2,
+      "after_y_ft": 0.1
+    },
+    {
+      "x_ft": -8,
+      "y_ft": 12.199999999999999,
+      "made": false,
+      "move_order": 10,
+      "after_x_ft": -0.1,
+      "after_y_ft": -0.2
+    },
+    {
+      "x_ft": -1.8,
+      "y_ft": 10.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.8,
+      "y_ft": 1.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -2.5,
+      "y_ft": 14.699999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1.8,
+      "y_ft": 0,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.5,
+      "y_ft": 2.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 11.800000000000001,
+      "y_ft": 3.4,
+      "made": false,
+      "move_order": 14,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": -1,
+      "y_ft": 6.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.2,
+      "y_ft": 11.9,
+      "made": true,
+      "move_order": 106,
+      "after_x_ft": 0.2,
+      "after_y_ft": 1.5
+    },
+    {
+      "x_ft": -2.8,
+      "y_ft": 13.1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -3.8,
+      "y_ft": 10.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.1,
+      "y_ft": 8.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 6.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 3.7,
+      "y_ft": 10.1,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 5.6,
+      "y_ft": 4.7,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2,
+      "y_ft": 1.6,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 1,
+      "y_ft": 1,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.5,
+      "y_ft": 0.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.6,
+      "y_ft": 4.4,
+      "made": false,
+      "move_order": 89,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 2,
+      "y_ft": 5,
+      "made": false,
+      "move_order": 90,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 22.899999999999999,
+      "y_ft": 2.2,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.800000000000001,
+      "y_ft": 4.8,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.800000000000001,
+      "y_ft": 5.9,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 22.800000000000001,
+      "y_ft": 8.5,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 0,
+      "y_ft": 0,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -22.899999999999999,
+      "y_ft": 4.3,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -0.2,
+      "y_ft": 6.1,
+      "made": false,
+      "move_order": 91,
+      "after_x_ft": 0,
+      "after_y_ft": 0
+    },
+    {
+      "x_ft": 23,
+      "y_ft": 2.4,
+      "made": false,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": 2.6,
+      "y_ft": 8.199999999999999,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    },
+    {
+      "x_ft": -20.300000000000001,
+      "y_ft": 1.4,
+      "made": true,
+      "move_order": null,
+      "after_x_ft": null,
+      "after_y_ft": null
+    }
+  ]
+}

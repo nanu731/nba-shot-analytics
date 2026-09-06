@@ -10,10 +10,10 @@ season passes its own checks. This expansion reuses the model selected during
 the 2025-26 evaluation; it does not repeat model selection or claim a new
 CAR-versus-GAM result for each earlier season.
 
-**Status:** CAR won the frozen final prediction test. The verified all-data CAR
-production model remains unchanged. The targeted, universally capped 2025-26
-version-three export is verified and deployed. The next registered production
-step is the five-season version-four expansion above.
+**Status:** CAR won the frozen final prediction test. The targeted, universally
+capped 2025-26 version-three export remains verified and deployed. Four separate
+earlier-season production fits and the deterministic five-season version-four
+export have now passed their registered checks. Portfolio integration remains.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.
