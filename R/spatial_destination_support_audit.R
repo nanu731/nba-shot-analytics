@@ -15,8 +15,8 @@ args <- commandArgs(trailingOnly = TRUE)
 season <- if (length(args) >= 1L) args[[1]] else "2025-26"
 mode <- if (length(args) >= 2L) args[[2]] else "audit"
 target_assert(season == "2025-26", "only the production 2025-26 season may be audited")
-target_assert(mode %in% c("audit", "run", "verify"),
-              "mode must be audit, run, or verify")
+target_assert(mode %in% c("audit", "run", "verify", "recover-summary"),
+              "mode must be audit, run, verify, or recover-summary")
 
 AUDIT_ID <- "destination-support-sensitivity-v1"
 POSTERIOR_DRAWS <- 4000L
@@ -67,6 +67,18 @@ OUTPUT_FILES <- c(
   "calculation_notices.parquet",
   "sanity_checks.parquet",
   "audit_manifest.parquet"
+)
+
+scenario_rules <- tibble(
+  scenario = c("current_10", "alternative_a_5", "alternative_b_7",
+               "alternative_c_neighborhood_10"),
+  rule = c(
+    "focal cell has at least 10 attempts",
+    "focal cell has at least 5 attempts",
+    "focal cell has at least 7 attempts",
+    paste("observed focal cell plus shared-edge neighbors have at least 10",
+          "combined attempts; focal cell has at least one attempt")
+  )
 )
 
 sha256_file <- function(path) {
@@ -215,6 +227,54 @@ pair_overlap <- function(supported_cells, attempts, neighborhood) {
   )
 }
 
+make_scenario_summary <- function(player_results) {
+  player_results |>
+    summarise(
+      qualified_players = sum(qualified),
+      unsupported_players = sum(!qualified),
+      wembanyama_qualifies = qualified[PLAYER_NAME == WEMBANYAMA_NAME],
+      newly_qualified_player_count = sum(newly_qualified_vs_current),
+      newly_qualified_high_volume = sum(newly_qualified_vs_current & high_volume),
+      minimum_supported_destinations = min(supported_destination_count[qualified]),
+      median_supported_destinations = stats::median(supported_destination_count[qualified]),
+      maximum_supported_destinations = max(supported_destination_count[qualified]),
+      requested_share = REQUESTED_SHARE,
+      minimum_actual_relocated_share = min(actual_relocated_share_under_rule[qualified]),
+      median_actual_relocated_share = stats::median(actual_relocated_share_under_rule[qualified]),
+      maximum_actual_relocated_share = max(actual_relocated_share_under_rule[qualified]),
+      players_source_limited_below_25 = sum(qualified &
+        achievable_source_share_at_25 < REQUESTED_SHARE - TOLERANCE),
+      median_largest_destination_share = stats::median(
+        largest_destination_allocation_share[qualified]
+      ),
+      maximum_largest_destination_share = max(
+        largest_destination_allocation_share[qualified]
+      ),
+      players_above_50_percent_destination_concentration = sum(
+        qualified & largest_destination_allocation_share > 0.50
+      ),
+      gain_per_100_minimum = min(gain_per_100_mean[qualified]),
+      gain_per_100_maximum = max(gain_per_100_mean[qualified]),
+      gain_interval_width_median = stats::median(
+        gain_per_100_interval_width[qualified]
+      ),
+      gain_interval_width_maximum = max(gain_per_100_interval_width[qualified]),
+      players_with_nonpositive_gain_lower_bound = sum(
+        qualified & gain_per_100_lower_90 <= 0
+      ),
+      score_minimum = min(score_point[qualified]),
+      score_maximum = max(score_point[qualified]),
+      score_interval_width_median = stats::median(score_interval_width[qualified]),
+      score_interval_width_maximum = max(score_interval_width[qualified]),
+      players_with_exactly_two_destinations = sum(
+        qualified & supported_destination_count == 2L
+      ),
+      .by = scenario
+    ) |>
+    left_join(scenario_rules, by = "scenario") |>
+    arrange(match(scenario, scenario_rules$scenario))
+}
+
 write_outputs <- function(outputs, staging) {
   dir.create(staging, recursive = TRUE, showWarnings = FALSE)
   for (name in names(outputs)) {
@@ -245,6 +305,78 @@ if (mode == "verify") {
                 "audit completion marker is invalid")
   verify_outputs(result_dir, completion$output_hashes)
   cat("Verified destination-support audit outputs.\n")
+  quit(save = "no", status = 0L)
+}
+
+if (mode == "recover-summary") {
+  target_assert(dir.exists(result_dir) && file.exists(completion_path),
+                "completed audit outputs are required for summary recovery")
+  original_completion <- readRDS(completion_path)
+  target_assert(isTRUE(original_completion$complete),
+                "original audit completion is invalid")
+  verify_outputs(result_dir, original_completion$output_hashes)
+  players <- read_parquet(file.path(result_dir, "player_scenario_summary.parquet"))
+  corrected_summary <- make_scenario_summary(players)
+  target_assert(
+    identical(corrected_summary$newly_qualified_player_count,
+              c(0L, 27L, 13L, 34L)) &&
+      identical(corrected_summary$newly_qualified_high_volume,
+                c(0L, 6L, 2L, 6L)),
+    "recovered aggregate counts are unexpected"
+  )
+  original_checks <- read_parquet(file.path(result_dir, "sanity_checks.parquet"))
+  corrected_checks <- bind_rows(
+    original_checks,
+    tibble(
+      check = "scenario_aggregate_counts",
+      passed = TRUE,
+      detail = paste(
+        "newly qualified 0,27,13,34; newly qualified high-volume 0,6,2,6"
+      )
+    )
+  )
+  archive_root <- file.path(cache_dir, "invalid-summary-shadow")
+  archive_results <- file.path(archive_root, "results")
+  archive_completion <- file.path(archive_root, "complete.rds")
+  target_assert(!dir.exists(archive_root),
+                "summary-recovery archive already exists")
+  dir.create(archive_root, recursive = TRUE, showWarnings = FALSE)
+  target_assert(file.rename(result_dir, archive_results),
+                "could not preserve the original result bundle")
+  target_assert(file.rename(completion_path, archive_completion),
+                "could not preserve the original completion checkpoint")
+  if (dir.exists(lock_path)) {
+    target_assert(file.rename(lock_path, file.path(archive_root,
+                                                   "verified-run-stale.lock")),
+                  "could not preserve the stale success lock")
+  }
+  staging <- tempfile("destination-support-summary-recovery-", dirname(result_dir))
+  dir.create(staging, recursive = TRUE, showWarnings = FALSE)
+  unchanged_files <- setdiff(OUTPUT_FILES,
+                             c("scenario_summary.parquet", "sanity_checks.parquet"))
+  copied <- file.copy(file.path(archive_results, unchanged_files), staging,
+                      overwrite = FALSE)
+  target_assert(all(copied), "could not preserve unchanged audit outputs")
+  write_parquet(corrected_summary, file.path(staging, "scenario_summary.parquet"))
+  write_parquet(corrected_checks, file.path(staging, "sanity_checks.parquet"))
+  corrected_hashes <- verify_outputs(staging)
+  dir.create(dirname(result_dir), recursive = TRUE, showWarnings = FALSE)
+  target_assert(file.rename(staging, result_dir),
+                "could not publish corrected audit outputs")
+  target_assert(identical(verify_outputs(result_dir), corrected_hashes),
+                "published recovery differs from staging")
+  corrected_completion <- original_completion
+  corrected_completion$recovered_summary_shadow <- TRUE
+  corrected_completion$original_output_hashes <- original_completion$output_hashes
+  corrected_completion$output_hashes <- corrected_hashes
+  corrected_completion$checks <- corrected_checks
+  pending <- tempfile("destination-support-recovered-complete-", cache_dir,
+                      fileext = ".rds")
+  saveRDS(corrected_completion, pending)
+  target_assert(file.rename(pending, completion_path),
+                "could not publish recovered completion checkpoint")
+  cat("Recovered the scenario aggregate from verified per-player results;",
+      "posterior draws were not regenerated.\n")
   quit(save = "no", status = 0L)
 }
 
@@ -364,18 +496,6 @@ lattice <- lattice |>
     neighborhood_attempts = neighborhood_attempts,
     posterior_mean_expected_points = posterior_mean_expected_points
   )
-
-scenario_rules <- tibble(
-  scenario = c("current_10", "alternative_a_5", "alternative_b_7",
-               "alternative_c_neighborhood_10"),
-  rule = c(
-    "focal cell has at least 10 attempts",
-    "focal cell has at least 5 attempts",
-    "focal cell has at least 7 attempts",
-    paste("observed focal cell plus shared-edge neighbors have at least 10",
-          "combined attempts; focal cell has at least one attempt")
-  )
-)
 
 player_results <- vector("list", nrow(scenario_rules) * EXPECTED_PLAYERS)
 result_index <- 0L
@@ -520,51 +640,7 @@ current_numeric_difference <- max(c(
   abs(current_comparison$score_point - current_comparison$v2_score_point)
 ), na.rm = TRUE)
 
-scenario_summary <- player_results |>
-  summarise(
-    qualified_players = sum(qualified),
-    unsupported_players = sum(!qualified),
-    wembanyama_qualifies = qualified[PLAYER_NAME == WEMBANYAMA_NAME],
-    newly_qualified_vs_current = sum(newly_qualified_vs_current),
-    newly_qualified_high_volume = sum(newly_qualified_vs_current & high_volume),
-    minimum_supported_destinations = min(supported_destination_count[qualified]),
-    median_supported_destinations = stats::median(supported_destination_count[qualified]),
-    maximum_supported_destinations = max(supported_destination_count[qualified]),
-    requested_share = REQUESTED_SHARE,
-    minimum_actual_relocated_share = min(actual_relocated_share_under_rule[qualified]),
-    median_actual_relocated_share = stats::median(actual_relocated_share_under_rule[qualified]),
-    maximum_actual_relocated_share = max(actual_relocated_share_under_rule[qualified]),
-    players_source_limited_below_25 = sum(qualified &
-      achievable_source_share_at_25 < REQUESTED_SHARE - TOLERANCE),
-    median_largest_destination_share = stats::median(
-      largest_destination_allocation_share[qualified]
-    ),
-    maximum_largest_destination_share = max(
-      largest_destination_allocation_share[qualified]
-    ),
-    players_above_50_percent_destination_concentration = sum(
-      qualified & largest_destination_allocation_share > 0.50
-    ),
-    gain_per_100_minimum = min(gain_per_100_mean[qualified]),
-    gain_per_100_maximum = max(gain_per_100_mean[qualified]),
-    gain_interval_width_median = stats::median(
-      gain_per_100_interval_width[qualified]
-    ),
-    gain_interval_width_maximum = max(gain_per_100_interval_width[qualified]),
-    players_with_nonpositive_gain_lower_bound = sum(
-      qualified & gain_per_100_lower_90 <= 0
-    ),
-    score_minimum = min(score_point[qualified]),
-    score_maximum = max(score_point[qualified]),
-    score_interval_width_median = stats::median(score_interval_width[qualified]),
-    score_interval_width_maximum = max(score_interval_width[qualified]),
-    players_with_exactly_two_destinations = sum(
-      qualified & supported_destination_count == 2L
-    ),
-    .by = scenario
-  ) |>
-  left_join(scenario_rules, by = "scenario") |>
-  arrange(match(scenario, scenario_rules$scenario))
+scenario_summary <- make_scenario_summary(player_results)
 
 current_unsupported <- player_results |>
   filter(scenario == "current_10", !qualified) |>
@@ -700,6 +776,8 @@ saveRDS(completion, pending)
 target_assert(file.rename(pending, completion_path),
               "could not publish audit completion marker")
 success <- TRUE
+unlink(lock_path, recursive = TRUE)
+target_assert(!dir.exists(lock_path), "could not release the completed audit lock")
 cat("Completed destination-support sensitivity audit:",
     paste(scenario_summary$qualified_players, collapse = ", "),
     "qualified players across the four scenarios.\n")
