@@ -51,23 +51,32 @@ SEASON_CONFIG <- list(
   `2023-24` = list(
     raw_sha256 = "d9f26182a8e49c4cb0d919f0d1a9e8b4320e3b48423f31831846a4e4c9ef7f6f",
     players = 281L, shots = 192608L, occupied_cells = 20292L,
-    lattice_rows = 43836L, fold_counts = NULL, split_sha256 = NA_character_,
-    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
-    config_sha256 = NA_character_
+    lattice_rows = 43836L,
+    fold_counts = c(38725L, 38214L, 38818L, 38155L, 38696L),
+    split_sha256 = "ab17a1231f8b58cf2be53bcb09ddd692cb2bdd8cfbcde14c93cc6eacf4540f35",
+    player_source_sha256 = "8f7b0eef115af7917760822980856cbbea7ecf0accb4bfdab10c9621fbf89386",
+    input_sha256 = "a4f35c30c8fbe32c979589bd85e170e062d890e4a10b392f53c5c884c84008c6",
+    config_sha256 = "b91d2260877215dec21a2b937bdc9a5f4dd26bc045731812d5c3f94eb0064b6d"
   ),
   `2022-23` = list(
     raw_sha256 = "f5cb83ce1d8142ceb1e75997967aeb78266adbf2ae006a995ae916441ae90276",
     players = 292L, shots = 192897L, occupied_cells = 20850L,
-    lattice_rows = 45552L, fold_counts = NULL, split_sha256 = NA_character_,
-    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
-    config_sha256 = NA_character_
+    lattice_rows = 45552L,
+    fold_counts = c(38735L, 38382L, 38599L, 38775L, 38406L),
+    split_sha256 = "fc50b6827788f751df3b8406f83147e1dd8d5de48c3a5cbfd72e0671f253f5e8",
+    player_source_sha256 = "a381e4a9c07e3bf3980457837a7a3716bef52961ef37715a9696188442d065d5",
+    input_sha256 = "f50be752d0a108f25278c58548ca564a0348348c733565fdb1092fcaad42afcd",
+    config_sha256 = "6c0f2bebbaf55c39f71bc97571007da9e4542391f32a0d479c598d5481af9669"
   ),
   `2021-22` = list(
     raw_sha256 = "14faa8fdc46d95490f474e863a285116caeac1be97815b1727b518e92916b5f2",
     players = 312L, shots = 193577L, occupied_cells = 22280L,
-    lattice_rows = 48672L, fold_counts = NULL, split_sha256 = NA_character_,
-    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
-    config_sha256 = NA_character_
+    lattice_rows = 48672L,
+    fold_counts = c(38445L, 38806L, 38592L, 38979L, 38755L),
+    split_sha256 = "47dfb95ac98cc373cf4b58e55f9e1075a6ac0b350c186444dca129404c88dcc1",
+    player_source_sha256 = "08daa0f062424dd37c2a348c63b4f6a9f50d55fdd506038e4a1fecc9eee93ef3",
+    input_sha256 = "3bed3128915efbfbf22e70e26aeb21bac227e00b4866d6882c3430e30f3dd603",
+    config_sha256 = "5cb9eb2714c7aa9b7576e4b49e90fbe8ebdd26eb8286a22483dceffa45b11157"
   )
 )
 if (!season %in% names(SEASON_CONFIG)) {

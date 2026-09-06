@@ -992,7 +992,8 @@ if (mode == "verify") {
   target_assert(isTRUE(completion$complete), "v3 completion is not valid")
   target_assert(identical(verified$hashes, completion$file_hashes),
                 "v3 files differ from the completion hashes")
-  cat("Verified v3:", length(verified$files), "files,", verified$shots,
+  cat("Verified", season, "season bundle:", length(verified$files),
+      "files,", verified$shots,
       "shots,", verified$cells, "heatmap cells,", verified$available,
       "players with relocation estimates,", sum(verified$sizes), "bytes.\n")
   quit(save = "no", status = 0L)
