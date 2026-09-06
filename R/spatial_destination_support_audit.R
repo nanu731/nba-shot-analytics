@@ -408,9 +408,10 @@ for (scenario_index in seq_len(nrow(scenario_rules))) {
     removal <- target_remove_mass(player$baseline_share, source_order,
                                   REQUESTED_SHARE)
     actual_share <- if (qualified) removal$actual else 0
-    gain_summary <- score <- c(point = NA_real_, lower_90 = NA_real_,
-                               upper_90 = NA_real_)
-    season_summary <- c(mean = NA_real_, lower_90 = NA_real_, upper_90 = NA_real_)
+    gain_summary <- season_summary <- c(
+      mean = NA_real_, lower_90 = NA_real_, upper_90 = NA_real_
+    )
+    score <- c(point = NA_real_, lower_90 = NA_real_, upper_90 = NA_real_)
     largest_post_share <- NA_real_
     if (qualified) {
       relocated_share <- player$baseline_share - removal$removed +
