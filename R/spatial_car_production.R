@@ -23,12 +23,55 @@ if (length(args) != 2L) {
 
 season <- args[[1]]
 mode <- args[[2]]
-if (!identical(season, "2025-26")) {
-  stop("The frozen production fit is registered only for 2025-26", call. = FALSE)
-}
 if (!mode %in% c("audit", "prepare", "run")) {
   stop("Mode must be audit, prepare, or run", call. = FALSE)
 }
+
+SEASON_CONFIG <- list(
+  `2025-26` = list(
+    raw_sha256 = "20034e6cc2d87cde6fa84a0258ef36fa39e66ee7e461f4889329d67de767a498",
+    players = 318L, shots = 194987L, occupied_cells = 22447L,
+    lattice_rows = 49608L,
+    fold_counts = c(38794L, 38827L, 39334L, 38820L, 39212L),
+    split_sha256 = "aaee94c1e8380999190aea5f00f8c02c738db6438ffe7b7a1a761d19c5a6ee33",
+    player_source_sha256 = "9608cd06ef83ab0866ad1c81f8d25802326d3f91cc349a81c570f46103eaae47",
+    input_sha256 = "395fff094a138035e84d3f332da9c0058be10919a192d707f8bd275345422ec6",
+    config_sha256 = "fc072f03e0579f32eba941717c4c8767912b72f82584d7e4842c6dab2699a80e"
+  ),
+  `2024-25` = list(
+    raw_sha256 = "7a956039fd85ecb8207a3ea8ce1d9383a838432c902085e314cf7b06759067fd",
+    players = 304L, shots = 194526L, occupied_cells = 21598L,
+    lattice_rows = 47424L, fold_counts = NULL, split_sha256 = NA_character_,
+    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
+    config_sha256 = NA_character_
+  ),
+  `2023-24` = list(
+    raw_sha256 = "d9f26182a8e49c4cb0d919f0d1a9e8b4320e3b48423f31831846a4e4c9ef7f6f",
+    players = 281L, shots = 192608L, occupied_cells = 20292L,
+    lattice_rows = 43836L, fold_counts = NULL, split_sha256 = NA_character_,
+    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
+    config_sha256 = NA_character_
+  ),
+  `2022-23` = list(
+    raw_sha256 = "f5cb83ce1d8142ceb1e75997967aeb78266adbf2ae006a995ae916441ae90276",
+    players = 292L, shots = 192897L, occupied_cells = 20850L,
+    lattice_rows = 45552L, fold_counts = NULL, split_sha256 = NA_character_,
+    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
+    config_sha256 = NA_character_
+  ),
+  `2021-22` = list(
+    raw_sha256 = "14faa8fdc46d95490f474e863a285116caeac1be97815b1727b518e92916b5f2",
+    players = 312L, shots = 193577L, occupied_cells = 22280L,
+    lattice_rows = 48672L, fold_counts = NULL, split_sha256 = NA_character_,
+    player_source_sha256 = NA_character_, input_sha256 = NA_character_,
+    config_sha256 = NA_character_
+  )
+)
+if (!season %in% names(SEASON_CONFIG)) {
+  stop("Season must be one of: ", paste(names(SEASON_CONFIG), collapse = ", "),
+       call. = FALSE)
+}
+season_config <- SEASON_CONFIG[[season]]
 
 AUTHORIZED_FOLDS <- 1:5
 GRID_WIDTH <- 40L
@@ -39,12 +82,13 @@ COURT_Y_MIN <- -52.5
 COURT_Y_MAX <- 397.5
 MIN_GAMES <- 20L
 MIN_ATTEMPTS <- 250L
-EXPECTED_PLAYERS <- 318L
+SPLIT_SEED <- 20260830L
+EXPECTED_PLAYERS <- season_config$players
 EXPECTED_GAMES <- 1230L
-EXPECTED_LATTICE_ROWS <- 49608L
-EXPECTED_METADATA_SHOTS <- 194987L
-EXPECTED_METADATA_FOLD_COUNTS <- c(38794L, 38827L, 39334L, 38820L, 39212L)
-EXPECTED_OBSERVED_PLAYER_CELLS <- 22447L
+EXPECTED_LATTICE_ROWS <- season_config$lattice_rows
+EXPECTED_METADATA_SHOTS <- season_config$shots
+EXPECTED_METADATA_FOLD_COUNTS <- season_config$fold_counts
+EXPECTED_OBSERVED_PLAYER_CELLS <- season_config$occupied_cells
 POSTERIOR_DRAWS <- 4000L
 CAR_DRAW_SEED <- 20260902L
 PREDICTIVE_SEED <- 20260903L
@@ -54,14 +98,15 @@ SPECIFICATION_ID <- "frozen-car-production-all-folds-grid40-v1"
 FINAL_RESULT_COMMIT <- "f7d7a155f49cd33b8fcb5978a90f62b2a6ae84c3"
 ORIGINAL_FOLD5_PRETEST_COMMIT <- "49d98bbf584ca019a36cddc51329a0478e801846"
 RECOVERY_PRETEST_COMMIT <- "5d47e6b0b4117165dedb8688b8810fc9ea2320be"
-EXPECTED_SPLIT_SHA256 <- "aaee94c1e8380999190aea5f00f8c02c738db6438ffe7b7a1a761d19c5a6ee33"
-EXPECTED_PLAYER_SOURCE_SHA256 <- "9608cd06ef83ab0866ad1c81f8d25802326d3f91cc349a81c570f46103eaae47"
+EXPECTED_RAW_SHA256 <- season_config$raw_sha256
+EXPECTED_SPLIT_SHA256 <- season_config$split_sha256
+EXPECTED_PLAYER_SOURCE_SHA256 <- season_config$player_source_sha256
 EXPECTED_CAR_COMPARISON_CHECKPOINT_SHA256 <- "6ab8ab7aa45592e9a1677cc3eece9a71944dc89ad3db8fb0dbb38942e4fd57f9"
 
 # Filled from prepare mode before the pre-fit commit. Run mode refuses to fit
 # while either value is not a lowercase 64-character SHA-256 hash.
-EXPECTED_PRODUCTION_INPUT_SHA256 <- "395fff094a138035e84d3f332da9c0058be10919a192d707f8bd275345422ec6"
-EXPECTED_PRODUCTION_CONFIG_SHA256 <- "fc072f03e0579f32eba941717c4c8767912b72f82584d7e4842c6dab2699a80e"
+EXPECTED_PRODUCTION_INPUT_SHA256 <- season_config$input_sha256
+EXPECTED_PRODUCTION_CONFIG_SHA256 <- season_config$config_sha256
 
 EXPECTED_R_VERSION <- "4.6.0"
 EXPECTED_VERSIONS <- c(
@@ -77,14 +122,17 @@ EXPECTED_VERSIONS <- c(
 raw_path <- file.path(
   "data", "raw", "shots", paste0("season=", season), "shots.parquet"
 )
-split_path <- file.path(
+multiseason_cache <- file.path(
+  "data", "cache", "spatial_car_multiseason", paste0("season=", season)
+)
+split_path <- if (identical(season, "2025-26")) file.path(
   "data", "cache", "spatial_pilot", paste0("season=", season),
   "game_folds.parquet"
-)
-player_source_path <- file.path(
+) else file.path(multiseason_cache, "game_folds.parquet")
+player_source_path <- if (identical(season, "2025-26")) file.path(
   "data", "cache", "spatial_gam_exact_full_league_benchmark",
   paste0("season=", season), "input_signature.rds"
-)
+) else file.path(multiseason_cache, "player_registry.rds")
 comparison_car_checkpoint_path <- file.path(
   "data", "cache", "spatial_car_full_league_benchmark",
   paste0("season=", season), "car_grid_40_checkpoint.rds"
@@ -93,11 +141,13 @@ final_result_dir <- file.path(
   "data", "processed", "spatial_full_league_fold5_comparison",
   paste0("season=", season)
 )
-cache_dir <- file.path(
+cache_dir <- if (identical(season, "2025-26")) file.path(
   "data", "cache", "spatial_car_production", paste0("season=", season)
-)
-result_dir <- file.path(
+) else multiseason_cache
+result_dir <- if (identical(season, "2025-26")) file.path(
   "data", "processed", "spatial_car_production", paste0("season=", season)
+) else file.path(
+  "data", "processed", "spatial_car_multiseason", paste0("season=", season)
 )
 
 config_path <- file.path(cache_dir, "production_configuration.rds")
@@ -269,6 +319,17 @@ verify_versions <- function() {
 }
 
 verify_selection_result <- function() {
+  if (!identical(season, "2025-26")) {
+    head <- git_value(c("rev-parse", "HEAD"))[[1]]
+    record_check(
+      "selection", "frozen_2025_26_selection_is_ancestor",
+      system2(
+        "git", c("merge-base", "--is-ancestor", FINAL_RESULT_COMMIT, head)
+      ) == 0L,
+      paste("earlier-season production reuses the CAR selected at", FINAL_RESULT_COMMIT)
+    )
+    return(invisible(TRUE))
+  }
   required <- file.path(
     final_result_dir,
     c(
@@ -319,11 +380,74 @@ verify_selection_result <- function() {
   )
 }
 
+prepare_season_registry <- function() {
+  if (identical(season, "2025-26")) return(invisible(NULL))
+  present <- c(file.exists(split_path), file.exists(player_source_path))
+  if (any(present) && !all(present)) {
+    stop("Partial season registry artifacts exist and were preserved", call. = FALSE)
+  }
+  if (all(present)) return(invisible(NULL))
+  if (!identical(sha256_file(raw_path), EXPECTED_RAW_SHA256)) {
+    stop("Raw season input hash differs from the frozen plan", call. = FALSE)
+  }
+  metadata <- read_parquet(raw_path, col_select = all_of(METADATA_COLUMNS)) |>
+    as_tibble()
+  if (!is.character(metadata$GAME_ID) || anyNA(metadata) ||
+      !all(metadata$SHOT_ATTEMPTED_FLAG == 1L) ||
+      any(metadata$LOC_X < COURT_X_MIN | metadata$LOC_X > COURT_X_MAX) ||
+      any(metadata$LOC_Y < COURT_Y_MIN)) {
+    stop("Season metadata failed the frozen input checks", call. = FALSE)
+  }
+  game_ids <- sort(unique(metadata$GAME_ID))
+  if (length(game_ids) != EXPECTED_GAMES) {
+    stop("Season does not contain the expected 1,230 games", call. = FALSE)
+  }
+  set_frozen_rng(SPLIT_SEED)
+  shuffled <- sample(game_ids, length(game_ids), replace = FALSE)
+  folds <- tibble(
+    GAME_ID = shuffled,
+    fold = rep(AUTHORIZED_FOLDS, length.out = length(shuffled))
+  ) |>
+    arrange(GAME_ID)
+  in_play <- metadata |>
+    filter(LOC_Y <= COURT_Y_MAX)
+  registry <- in_play |>
+    summarise(
+      PLAYER_NAME = first(PLAYER_NAME),
+      name_count = n_distinct(PLAYER_NAME),
+      season_attempts = n(),
+      season_games = n_distinct(GAME_ID),
+      .by = PLAYER_ID
+    ) |>
+    filter(season_games >= MIN_GAMES, season_attempts >= MIN_ATTEMPTS) |>
+    arrange(PLAYER_ID)
+  if (nrow(registry) != EXPECTED_PLAYERS || any(registry$name_count != 1L)) {
+    stop("Season eligibility registry differs from the frozen input audit",
+         call. = FALSE)
+  }
+  write_new_atomic_parquet(folds, split_path)
+  write_new_atomic_rds(
+    list(
+      complete = TRUE,
+      season = season,
+      rule = list(min_games = MIN_GAMES, min_attempts = MIN_ATTEMPTS),
+      player_ids = registry$PLAYER_ID,
+      registry = select(registry, PLAYER_ID, PLAYER_NAME, season_games,
+                        season_attempts)
+    ),
+    player_source_path
+  )
+  invisible(NULL)
+}
+
 read_split <- function() {
+  split_hash <- if (file.exists(split_path)) sha256_file(split_path) else NA_character_
   record_check(
     "input", "split_sha256",
-    file.exists(split_path) && sha256_file(split_path) == EXPECTED_SPLIT_SHA256,
-    EXPECTED_SPLIT_SHA256
+    file.exists(split_path) &&
+      ((identical(mode, "prepare") && !is_sha256(EXPECTED_SPLIT_SHA256)) ||
+         identical(split_hash, EXPECTED_SPLIT_SHA256)),
+    if (is_sha256(EXPECTED_SPLIT_SHA256)) EXPECTED_SPLIT_SHA256 else split_hash
   )
   folds <- read_parquet(split_path) |>
     as_tibble() |>
@@ -341,12 +465,32 @@ read_split <- function() {
 }
 
 read_frozen_player_registry <- function() {
+  source_hash <- if (file.exists(player_source_path)) {
+    sha256_file(player_source_path)
+  } else NA_character_
   record_check(
     "input", "player_source_sha256",
     file.exists(player_source_path) &&
-      sha256_file(player_source_path) == EXPECTED_PLAYER_SOURCE_SHA256,
-    EXPECTED_PLAYER_SOURCE_SHA256
+      ((identical(mode, "prepare") &&
+          !is_sha256(EXPECTED_PLAYER_SOURCE_SHA256)) ||
+         identical(source_hash, EXPECTED_PLAYER_SOURCE_SHA256)),
+    if (is_sha256(EXPECTED_PLAYER_SOURCE_SHA256)) {
+      EXPECTED_PLAYER_SOURCE_SHA256
+    } else source_hash
   )
+  signature <- readRDS(player_source_path)
+  if (!identical(season, "2025-26")) {
+    player_ids <- sort(signature$player_ids)
+    record_check(
+      "input", "season_player_registry_complete",
+      isTRUE(signature$complete) && identical(signature$season, season) &&
+        length(player_ids) == EXPECTED_PLAYERS &&
+        length(unique(player_ids)) == EXPECTED_PLAYERS &&
+        identical(player_ids, sort(signature$registry$PLAYER_ID)),
+      paste(EXPECTED_PLAYERS, "eligible player ids from metadata only")
+    )
+    return(player_ids)
+  }
   record_check(
     "input", "comparison_car_checkpoint_sha256",
     file.exists(comparison_car_checkpoint_path) &&
@@ -354,7 +498,6 @@ read_frozen_player_registry <- function() {
         EXPECTED_CAR_COMPARISON_CHECKPOINT_SHA256,
     EXPECTED_CAR_COMPARISON_CHECKPOINT_SHA256
   )
-  signature <- readRDS(player_source_path)
   checkpoint <- readRDS(comparison_car_checkpoint_path)
   player_ids <- sort(signature$player_ids)
   car_player_ids <- sort(unique(checkpoint$result$probabilities$PLAYER_ID))
@@ -370,12 +513,18 @@ read_frozen_player_registry <- function() {
     length(player_ids) == EXPECTED_PLAYERS &&
       length(unique(player_ids)) == EXPECTED_PLAYERS &&
       identical(player_ids, car_player_ids),
-    "same frozen 318-player id set from the exact-GAM and CAR artifacts"
+    paste("same frozen", EXPECTED_PLAYERS,
+          "player ids from the exact-GAM and CAR artifacts")
   )
   player_ids
 }
 
 read_metadata_only <- function(folds, player_ids) {
+  record_check(
+    "input", "raw_sha256",
+    identical(sha256_file(raw_path), EXPECTED_RAW_SHA256),
+    EXPECTED_RAW_SHA256
+  )
   schema_names <- names(read_parquet(raw_path, as_data_frame = FALSE)$schema)
   record_check(
     "input", "raw_schema", all(OUTCOME_COLUMNS %in% schema_names),
@@ -437,8 +586,10 @@ read_metadata_only <- function(folds, player_ids) {
     nrow(eligible_metadata) == EXPECTED_METADATA_SHOTS &&
       n_distinct(eligible_metadata$GAME_ID) == EXPECTED_GAMES &&
       identical(fold_counts$fold, AUTHORIZED_FOLDS) &&
-      identical(as.integer(fold_counts$n), EXPECTED_METADATA_FOLD_COUNTS),
-    paste("194,987 shots; fold counts", paste(fold_counts$n, collapse = ","))
+      ((identical(mode, "prepare") && is.null(EXPECTED_METADATA_FOLD_COUNTS)) ||
+         identical(as.integer(fold_counts$n), EXPECTED_METADATA_FOLD_COUNTS)),
+    paste(nrow(eligible_metadata), "shots; fold counts",
+          paste(fold_counts$n, collapse = ","))
   )
   list(
     eligible = eligible_metadata,
@@ -578,7 +729,7 @@ production_configuration <- function() {
     season = season,
     model = "Bayesian CAR selected at final result commit f7d7a15",
     authorized_folds = AUTHORIZED_FOLDS,
-    eligibility_source_sha256 = EXPECTED_PLAYER_SOURCE_SHA256,
+    eligibility_source_sha256 = sha256_file(player_source_path),
     player_count = EXPECTED_PLAYERS,
     grid_width = GRID_WIDTH,
     cells_per_player = GRID_CELLS,
@@ -681,10 +832,11 @@ read_all_authorized_outcomes <- function(audit) {
     !anyNA(shots$fold) &&
       identical(sort(unique(shots$fold)), AUTHORIZED_FOLDS) &&
       nrow(shots) == EXPECTED_METADATA_SHOTS &&
-      identical(
-        as.integer(count(shots, fold) |> arrange(fold) |> pull(n)),
-        EXPECTED_METADATA_FOLD_COUNTS
-      ),
+      ((identical(mode, "prepare") && is.null(EXPECTED_METADATA_FOLD_COUNTS)) ||
+         identical(
+           as.integer(count(shots, fold) |> arrange(fold) |> pull(n)),
+           EXPECTED_METADATA_FOLD_COUNTS
+         )),
     paste(nrow(shots), "authorized outcomes from folds 1-5 exactly once")
   )
   record_check(
@@ -734,7 +886,8 @@ build_production_input <- function(audit, shots) {
     nrow(lattice) == EXPECTED_LATTICE_ROWS &&
       n_distinct(lattice$PLAYER_ID) == EXPECTED_PLAYERS &&
       all(count(lattice, PLAYER_ID)$n == GRID_CELLS),
-    "318 players x 156 cells = 49,608 rows"
+    paste(EXPECTED_PLAYERS, "players x 156 cells =",
+          EXPECTED_LATTICE_ROWS, "rows")
   )
   record_check(
     "input", "production_attempts_and_makes_preserved",
@@ -753,8 +906,8 @@ build_production_input <- function(audit, shots) {
     specification_id = SPECIFICATION_ID,
     season = season,
     selection_commit = FINAL_RESULT_COMMIT,
-    split_sha256 = EXPECTED_SPLIT_SHA256,
-    player_source_sha256 = EXPECTED_PLAYER_SOURCE_SHA256,
+    split_sha256 = sha256_file(split_path),
+    player_source_sha256 = sha256_file(player_source_path),
     authorized_folds = AUTHORIZED_FOLDS,
     player_count = EXPECTED_PLAYERS,
     shot_count = nrow(assigned),
@@ -781,6 +934,8 @@ prepare_inputs <- function(audit) {
   write_new_atomic_rds(configuration, config_path)
   write_new_atomic_rds(input, input_path)
   hashes <- tibble(
+    split_sha256 = sha256_file(split_path),
+    player_source_sha256 = sha256_file(player_source_path),
     configuration_sha256 = sha256_file(config_path),
     input_sha256 = sha256_file(input_path),
     players = input$player_count,
@@ -788,6 +943,7 @@ prepare_inputs <- function(audit) {
     games = input$game_count,
     observed_player_cells = input$observed_player_cells,
     lattice_rows = input$lattice_rows,
+    fold_counts = paste(input$fold_counts$shots, collapse = ","),
     model_fit_started = FALSE
   )
   print(hashes, width = Inf)
@@ -832,7 +988,8 @@ verify_prepared_inputs <- function() {
       identical(input$observed_player_cells, EXPECTED_OBSERVED_PLAYER_CELLS) &&
       identical(input$lattice_rows, EXPECTED_LATTICE_ROWS) &&
       nrow(input$lattice) == EXPECTED_LATTICE_ROWS,
-    "prepared input is the frozen all-data 318-player lattice"
+    paste("prepared input is the frozen all-data", EXPECTED_PLAYERS,
+          "player lattice")
   )
   list(input = input, configuration = configuration)
 }
@@ -1016,7 +1173,7 @@ production_worker <- function(prepared) {
       n_distinct(surface$PLAYER_ID) == EXPECTED_PLAYERS &&
       !anyDuplicated(surface[c("PLAYER_ID", "cell_id")]) &&
       all(count(surface, PLAYER_ID)$n == GRID_CELLS),
-    "49,608 unique player-cell predictions"
+    paste(EXPECTED_LATTICE_ROWS, "unique player-cell predictions")
   )
   record_check(
     "prediction", "point_probabilities_valid",
@@ -1056,7 +1213,7 @@ production_worker <- function(prepared) {
     "uncertainty", "joint_draw_dimensions",
     nrow(linear_draws) == EXPECTED_LATTICE_ROWS &&
       ncol(linear_draws) == POSTERIOR_DRAWS && all(is.finite(linear_draws)),
-    "49,608 predictors by 4,000 finite joint draws"
+    paste(EXPECTED_LATTICE_ROWS, "predictors by 4,000 finite joint draws")
   )
   probability_summaries <- row_probability_summaries(linear_draws)
   surface <- surface |>
@@ -1078,7 +1235,8 @@ production_worker <- function(prepared) {
       all(surface$probability_lower_90 <= surface$probability_median) &&
       all(surface$probability_median <= surface$probability_upper_90) &&
       all(surface$probability_upper_90 <= 1),
-    "all 49,608 posterior probability summaries are finite and ordered"
+    paste("all", EXPECTED_LATTICE_ROWS,
+          "posterior probability summaries are finite and ordered")
   )
 
   set_frozen_rng(PREDICTIVE_SEED)
@@ -1122,7 +1280,8 @@ production_worker <- function(prepared) {
       all(player_summaries$interval_lower_90 <=
             player_summaries$interval_upper_90) &&
       all(player_summaries$interval_upper_90 <= player_summaries$attempts),
-    "all 318 player-total 90% intervals are finite, ordered, and feasible"
+    paste("all", EXPECTED_PLAYERS,
+          "player-total 90% intervals are finite, ordered, and feasible")
   )
   uncertainty_elapsed <- proc.time()[["elapsed"]] - uncertainty_started
   rm(linear_draws, probability_summaries)
@@ -1291,15 +1450,13 @@ update_lock <- function(owner, model_pid) {
 
 verify_git_prefit <- function() {
   head <- git_value(c("rev-parse", "HEAD"))[[1]]
-  origin <- git_value(
-    c("rev-parse", "origin/codex/spatial-shot-selection")
-  )[[1]]
+  upstream <- git_value(c("rev-parse", "@{upstream}"))[[1]]
   record_check(
     "reproducibility", "prefit_commit_pushed",
-    identical(head, origin) && system2(
+    identical(head, upstream) && system2(
       "git", c("merge-base", "--is-ancestor", FINAL_RESULT_COMMIT, head)
     ) == 0L,
-    paste("HEAD and origin", head)
+    paste("HEAD and upstream", head)
   )
   tracked_clean <- system2("git", c("diff", "--quiet")) == 0L &&
     system2("git", c("diff", "--cached", "--quiet")) == 0L
@@ -1604,6 +1761,7 @@ run_production <- function(audit) {
   }
 }
 
+if (identical(mode, "prepare")) prepare_season_registry()
 audit <- audit_state()
 
 if (mode == "audit") {

@@ -1,5 +1,5 @@
-# Deterministic 2025-26 capped targeted-relocation calculation and website v3 export.
-# Reuses the verified production CAR fit and its frozen 4,000-draw contract.
+# Deterministic capped targeted-relocation calculation and season export.
+# Reuses a verified production CAR fit and its frozen 4,000-draw contract.
 
 suppressPackageStartupMessages({
   library(arrow)
@@ -12,44 +12,69 @@ source(file.path("R", "spatial_targeted_relocation_helpers.R"))
 args <- commandArgs(trailingOnly = TRUE)
 season <- if (length(args) >= 1L) args[[1]] else "2025-26"
 mode <- if (length(args) >= 2L) args[[2]] else "audit"
-target_assert(season == "2025-26", "only the approved 2025-26 release may run")
+APPROVED_SEASONS <- c("2025-26", "2024-25", "2023-24", "2022-23", "2021-22")
+target_assert(season %in% APPROVED_SEASONS, "season is not registered")
 target_assert(mode %in% c("audit", "run", "recover", "verify"),
               "mode must be audit, run, recover, or verify")
 
-SCHEMA_VERSION <- "3.0.0"
-DATA_VERSION <- "2025-26-targeted-v3"
+IS_V3_RELEASE <- identical(season, "2025-26")
+SCHEMA_VERSION <- if (IS_V3_RELEASE) "3.0.0" else "4.0.0"
+DATA_VERSION <- if (IS_V3_RELEASE) "2025-26-targeted-v3" else
+  paste0(season, "-targeted-v4")
 METHOD_ID <- "car-targeted-capped-weak-location-relocation-v3"
-EXPORT_METHOD_ID <- "spatial-targeted-capped-website-export-v3"
+EXPORT_METHOD_ID <- if (IS_V3_RELEASE) {
+  "spatial-targeted-capped-website-export-v3"
+} else "spatial-targeted-capped-website-season-export-v4"
 SLIDERS <- c(0, 0.05, 0.10, 0.15, 0.20, 0.25)
 MIN_ATTEMPTS <- 10L
 MIN_CERTAINTY <- 0.90
 DESTINATION_CAP <- 0.50
 POSTERIOR_DRAWS <- 4000L
 POSTERIOR_SEED <- 20260902L
-EXPECTED_PLAYERS <- 318L
 CELLS_PER_PLAYER <- 156L
-EXPECTED_SHOTS <- 194987L
+SEASON_COUNTS <- list(
+  `2025-26` = c(players = 318L, shots = 194987L),
+  `2024-25` = c(players = 304L, shots = 194526L),
+  `2023-24` = c(players = 281L, shots = 192608L),
+  `2022-23` = c(players = 292L, shots = 192897L),
+  `2021-22` = c(players = 312L, shots = 193577L)
+)
+EXPECTED_PLAYERS <- unname(SEASON_COUNTS[[season]][["players"]])
+EXPECTED_SHOTS <- unname(SEASON_COUNTS[[season]][["shots"]])
 EXPECTED_LATTICE_ROWS <- EXPECTED_PLAYERS * CELLS_PER_PLAYER
 TOLERANCE <- 1e-12
 
-EXPECTED_HASHES <- c(
-  input = "395fff094a138035e84d3f332da9c0058be10919a192d707f8bd275345422ec6",
-  fit = "a8d1cfd71bee21a075b7d1e5848d91544b0bce9230d8c8ef6c246520ce3819c0",
-  surface = "a08c060fd2008c3b062cd0d8bc0bfec12aba0806486d16656e0ac44023fd457f",
-  raw = "20034e6cc2d87cde6fa84a0258ef36fa39e66ee7e461f4889329d67de767a498"
+RAW_HASHES <- c(
+  `2025-26` = "20034e6cc2d87cde6fa84a0258ef36fa39e66ee7e461f4889329d67de767a498",
+  `2024-25` = "7a956039fd85ecb8207a3ea8ce1d9383a838432c902085e314cf7b06759067fd",
+  `2023-24` = "d9f26182a8e49c4cb0d919f0d1a9e8b4320e3b48423f31831846a4e4c9ef7f6f",
+  `2022-23` = "f5cb83ce1d8142ceb1e75997967aeb78266adbf2ae006a995ae916441ae90276",
+  `2021-22` = "14faa8fdc46d95490f474e863a285116caeac1be97815b1727b518e92916b5f2"
 )
 
-production_cache <- file.path("data", "cache", "spatial_car_production",
-                              paste0("season=", season))
+production_cache <- file.path(
+  "data", "cache",
+  if (IS_V3_RELEASE) "spatial_car_production" else "spatial_car_multiseason",
+  paste0("season=", season)
+)
 paths <- c(
   input = file.path(production_cache, "production_input.rds"),
   fit = file.path(production_cache, "car_production_fit.rds"),
   surface = file.path(production_cache, "player_probability_surfaces.parquet"),
   raw = file.path("data", "raw", "shots", paste0("season=", season), "shots.parquet")
 )
-bundle_dir <- file.path("export", "spatial-shot-selection", "v3")
-cache_dir <- file.path("data", "cache", "spatial_targeted_capped_website_export",
-                       paste0("season=", season))
+bundle_dir <- if (IS_V3_RELEASE) {
+  file.path("export", "spatial-shot-selection", "v3")
+} else file.path(
+  "data", "cache", "spatial_multiseason_website_export",
+  paste0("season=", season), "bundle"
+)
+cache_dir <- file.path(
+  "data", "cache",
+  if (IS_V3_RELEASE) "spatial_targeted_capped_website_export" else
+    "spatial_multiseason_website_export",
+  paste0("season=", season)
+)
 completion_path <- file.path(cache_dir, "complete.rds")
 lock_path <- file.path(cache_dir, "run.lock")
 
@@ -61,6 +86,34 @@ sha256_file <- function(path) {
 
 git_value <- function(arguments) {
   system2("git", arguments, stdout = TRUE, stderr = TRUE)
+}
+
+EXPECTED_HASHES <- if (IS_V3_RELEASE) {
+  c(
+    input = "395fff094a138035e84d3f332da9c0058be10919a192d707f8bd275345422ec6",
+    fit = "a8d1cfd71bee21a075b7d1e5848d91544b0bce9230d8c8ef6c246520ce3819c0",
+    surface = "a08c060fd2008c3b062cd0d8bc0bfec12aba0806486d16656e0ac44023fd457f",
+    raw = unname(RAW_HASHES[[season]])
+  )
+} else {
+  production_completion_path <- file.path(
+    production_cache, "production_complete_checkpoint.rds"
+  )
+  target_assert(file.exists(production_completion_path),
+                "verified season production completion is missing")
+  production_completion <- readRDS(production_completion_path)
+  target_assert(isTRUE(production_completion$complete) &&
+                  identical(production_completion$season, season) &&
+                  production_completion$player_count == EXPECTED_PLAYERS &&
+                  production_completion$shot_count == EXPECTED_SHOTS &&
+                  all(production_completion$checks$passed),
+                "season production completion is invalid")
+  c(
+    input = production_completion$input_sha256,
+    fit = production_completion$fit_sha256,
+    surface = production_completion$surface_sha256,
+    raw = unname(RAW_HASHES[[season]])
+  )
 }
 
 verify_sources <- function() {
@@ -575,12 +628,16 @@ build_bundle <- function(root, result, pre_result_commit, source_hashes) {
       "They are not causal, do not guarantee improvement, and do not show",
       "that a hypothetical relocated attempt would be made."
     ),
-    future_expansion = paste(
+    future_expansion = if (IS_V3_RELEASE) paste(
       "The same frozen process may add four season folders and a season selector",
       "in a later phase; only 2025-26 is published now."
+    ) else paste(
+      "This verified season component is aggregated into the five-season",
+      "version-four website bundle."
     ),
     payload_inventory_note = paste(
-      "Hashes cover the season player index and 318 player files;",
+      "Hashes cover the season player index and", EXPECTED_PLAYERS,
+      "player files;",
       "the manifest cannot hash itself."
     ),
     payload_files = payload_inventory
@@ -603,15 +660,15 @@ cell_id_from_feet <- function(x, y) {
 validate_bundle <- function(root) {
   files <- sort(list.files(root, recursive = TRUE, all.files = FALSE))
   target_assert(length(files) == EXPECTED_PLAYERS + 2L,
-                "v3 must contain 320 JSON files")
+                "season bundle file count changed")
   target_assert(all(tools::file_ext(files) == "json"),
-                "v3 contains a non-JSON file")
+                "season bundle contains a non-JSON file")
   manifest <- fromJSON(file.path(root, "manifest.json"), simplifyVector = FALSE)
   index_path <- file.path(root, "seasons", season, "players.json")
   index <- fromJSON(index_path, simplifyVector = FALSE)
   entries <- index$players
   target_assert(length(entries) == EXPECTED_PLAYERS,
-                "season index does not contain 318 players")
+                "season index player count changed")
   index_ids <- as.numeric(vapply(entries, `[[`, character(1), "player_id"))
   target_assert(identical(index_ids, sort(index_ids)),
                 "season index is not sorted by numeric player ID")
@@ -751,7 +808,7 @@ validate_bundle <- function(root) {
                       all(is.na(player$shots$move_order)),
                     "unavailable relocation must stay null")
     }
-    if (identical(player$player_id, "1641705")) {
+    if (IS_V3_RELEASE && identical(player$player_id, "1641705")) {
       target_assert(
         identical(player$observed_attempts, 1080L) &&
           identical(player$evidence_status, "single_destination") &&
@@ -814,12 +871,12 @@ validate_bundle <- function(root) {
     "DEFENDER", "defender", "pass", "fatigue", "stable_source_row"
   )
   target_assert(!any(keys %in% forbidden_keys),
-                "v3 contains a forbidden shot-context field")
+                "season bundle contains a forbidden shot-context field")
   all_text <- paste(vapply(file.path(root, files), function(path) {
     paste(readLines(path, warn = FALSE), collapse = "")
   }, character(1)), collapse = "\n")
   target_assert(!grepl("/Users/|data/cache|NaN|Infinity", all_text),
-                "v3 contains a private path or invalid number")
+                "season bundle contains a private path or invalid number")
   list(
     files = files,
     hashes = bundle_hashes(root),
