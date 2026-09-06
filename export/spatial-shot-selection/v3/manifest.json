@@ -1,0 +1,1689 @@
+{
+  "schema_version": "3.0.0",
+  "data_version": "2025-26-targeted-v3",
+  "export_method": "spatial-targeted-capped-website-export-v3",
+  "pre_result_commit": "9ecb007d15b9fb4e0945481326a76e74c8bad2f0",
+  "source_sha256": {
+    "input": "395fff094a138035e84d3f332da9c0058be10919a192d707f8bd275345422ec6",
+    "fit": "a8d1cfd71bee21a075b7d1e5848d91544b0bce9230d8c8ef6c246520ce3819c0",
+    "surface": "a08c060fd2008c3b062cd0d8bc0bfec12aba0806486d16656e0ac44023fd457f",
+    "raw": "20034e6cc2d87cde6fa84a0258ef36fa39e66ee7e461f4889329d67de767a498"
+  },
+  "seasons": [
+    {
+      "season": "2025-26",
+      "player_index": "seasons/2025-26/players.json"
+    }
+  ],
+  "counts": {
+    "seasons": 1,
+    "players": 318,
+    "relocation_available": 276,
+    "insufficient_evidence": 29,
+    "single_destination": 167,
+    "multiple_destinations": 122,
+    "shots": 194987,
+    "heatmap_cells": 49608,
+    "sliders": 1908
+  },
+  "court": {
+    "coordinate_units": "feet",
+    "basket_center": {
+      "x": 0,
+      "y": 0
+    },
+    "bounds": {
+      "x_min": -25,
+      "x_max": 25,
+      "y_min": -5.25,
+      "y_max": 39.75
+    },
+    "grid": {
+      "nominal_cell_width_ft": 4,
+      "columns": 13,
+      "rows": 12,
+      "cells": 156
+    }
+  },
+  "relocation": {
+    "method_id": "car-targeted-capped-weak-location-relocation-v3",
+    "requested_shares": [
+      0,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ],
+    "source_rule": "Observed cells below the player's weighted posterior-mean expected-points baseline, ordered weakest first with cell_id as the tie-breaker.",
+    "destination_rule": "At least 10 attempts, at least 90% posterior certainty above the player's current mix; one supported destination is sufficient.",
+    "destination_allocation": "proportional to existing usage among supported destinations, with redistribution around a universal 50% final-share cap",
+    "maximum_final_destination_share": 0.5,
+    "posterior_draws": 4000,
+    "uncertainty_interval": "5th and 95th percentiles",
+    "score_formula": "100 * baseline expected points per attempt / targeted 25% expected points per attempt"
+  },
+  "shot_fields": {
+    "included": ["x_ft", "y_ft", "made", "move_order", "after_x_ft", "after_y_ft"],
+    "identity_scope": "player and season identity appear only in the containing player payload",
+    "excluded": ["game identifiers", "event identifiers", "dates and timestamps", "opponents", "score and game situation", "shot clock", "defender and passing context", "fatigue", "unnecessary identifiers"]
+  },
+  "summary": {
+    "score_five_number": [
+      83.942896164405653,
+      88.512172311259519,
+      89.69573529009179,
+      91.172202552069393,
+      98.70157883463861
+    ],
+    "gain_per_100_at_25_five_number": [
+      1.721189091788375,
+      10.483057557543249,
+      12.607320784143717,
+      14.147498737930238,
+      20.13840962237391
+    ],
+    "players_below_requested_25_percent": 55,
+    "total_weak_source_cells": 15486
+  },
+  "disclaimer": "Results are modeled descriptive estimates based on past shots. They are not causal, do not guarantee improvement, and do not show that a hypothetical relocated attempt would be made.",
+  "future_expansion": "The same frozen process may add four season folders and a season selector in a later phase; only 2025-26 is published now.",
+  "payload_inventory_note": "Hashes cover the season player index and 318 player files; the manifest cannot hash itself.",
+  "payload_files": [
+    {
+      "path": "seasons/2025-26/players.json",
+      "bytes": 145490,
+      "sha256": "851db0d10d75691a69d1c9daf9030504e714fc04d2df4e82b22fe58323669dfa"
+    },
+    {
+      "path": "seasons/2025-26/players/2544.json",
+      "bytes": 226161,
+      "sha256": "656291c6ec8343cb60d870111b27f5f62c24e573ed118d94d77a4db106750990"
+    },
+    {
+      "path": "seasons/2025-26/players/201142.json",
+      "bytes": 303856,
+      "sha256": "80cbbaf35fe1cfc41377c2dd76f58b595592428d1640b3d7a198d56570b054e2"
+    },
+    {
+      "path": "seasons/2025-26/players/201143.json",
+      "bytes": 135794,
+      "sha256": "81b9ad9a248aadf9d1028772ed172bc18bac584d4bfed5c36c5831475217faf6"
+    },
+    {
+      "path": "seasons/2025-26/players/201566.json",
+      "bytes": 216040,
+      "sha256": "58cde7d642f76f2db7c75d85335ae3eebff6634a43690c08f9b618e5a7ee4bb3"
+    },
+    {
+      "path": "seasons/2025-26/players/201572.json",
+      "bytes": 170806,
+      "sha256": "3a4a43d6a04cc53922e183f54ac5fc28198205e12b5cbde143b27c9162407982"
+    },
+    {
+      "path": "seasons/2025-26/players/201935.json",
+      "bytes": 265476,
+      "sha256": "382315b265cbab1fbbc0040fe3e321722e5cbf5823d5559e3ab59c446c7188a5"
+    },
+    {
+      "path": "seasons/2025-26/players/201939.json",
+      "bytes": 210940,
+      "sha256": "7486c963e80c7660d8466576dae73dfc78e3dbd4581c1ab7c8abe17736c16d6c"
+    },
+    {
+      "path": "seasons/2025-26/players/201942.json",
+      "bytes": 241121,
+      "sha256": "7173d426e2d0abcbc1e21efc953b510dc6ff712216f7e6c6e803773a7e52b810"
+    },
+    {
+      "path": "seasons/2025-26/players/201950.json",
+      "bytes": 196970,
+      "sha256": "9dc1437ae32f92a9eada7baa67770811aca15279d4e5be887b58718d2d56a3ae"
+    },
+    {
+      "path": "seasons/2025-26/players/202331.json",
+      "bytes": 163883,
+      "sha256": "99b4071de154d58fc45b4e2cf552b9b2647f63752dd38bb2d16f21fe0177f2dd"
+    },
+    {
+      "path": "seasons/2025-26/players/202685.json",
+      "bytes": 141969,
+      "sha256": "c6bda595080da7928ec25bb6d7d9af1c38dbe94d0c78c0b956401a1f9f04bf31"
+    },
+    {
+      "path": "seasons/2025-26/players/202691.json",
+      "bytes": 204518,
+      "sha256": "56f7c8052f2365c7f54d45410e3c8cc05024dcedeb9a50dd11e76a09f2898f15"
+    },
+    {
+      "path": "seasons/2025-26/players/202695.json",
+      "bytes": 283595,
+      "sha256": "460ecd5bca5683888329dd7576c464575f6f649a5ecae96dc4d874ff60279160"
+    },
+    {
+      "path": "seasons/2025-26/players/202696.json",
+      "bytes": 206244,
+      "sha256": "d87326e9013378680d4ffa96e7c15fc72a76cdb580e3197e85ea83b5a6ab8e43"
+    },
+    {
+      "path": "seasons/2025-26/players/202699.json",
+      "bytes": 185370,
+      "sha256": "d40b5b2fa2a730e4a3572c860b75f9fbf5c261565f45746a5af16fbd00be2603"
+    },
+    {
+      "path": "seasons/2025-26/players/202710.json",
+      "bytes": 154250,
+      "sha256": "df9096c2db359ebe8befc34d88f033fc4c1af1e65f5232af2b2c887393f73b12"
+    },
+    {
+      "path": "seasons/2025-26/players/203076.json",
+      "bytes": 134174,
+      "sha256": "4d868ceaa7b116943138a891356db96e849f95123ff03f72feb500c9388cbde9"
+    },
+    {
+      "path": "seasons/2025-26/players/203083.json",
+      "bytes": 133166,
+      "sha256": "69140539ee65e398a15ecc0f64080eb9d725914f133e655eb63f63eafa481d49"
+    },
+    {
+      "path": "seasons/2025-26/players/203084.json",
+      "bytes": 174125,
+      "sha256": "9a2b8a7b8ca87a4368624bdae2c1aa728bfb68d446434e75c9584f5bea368a9b"
+    },
+    {
+      "path": "seasons/2025-26/players/203110.json",
+      "bytes": 162058,
+      "sha256": "5259b98a16e425c5779a0dd33370039edf2e2ab2c5c5767bbbcea148c157d391"
+    },
+    {
+      "path": "seasons/2025-26/players/203114.json",
+      "bytes": 170180,
+      "sha256": "54e467e6149b9c30aedfb24674c9d03e99a1d42c122b95cec123db927b5527e4"
+    },
+    {
+      "path": "seasons/2025-26/players/203468.json",
+      "bytes": 269697,
+      "sha256": "b3ab56b4ea5e96f72bfcb64223d82517eadc2f4f3491bda1b4f3f2e2fec44a89"
+    },
+    {
+      "path": "seasons/2025-26/players/203471.json",
+      "bytes": 183149,
+      "sha256": "e9acd48360c0e22e3e202a021ed5268f58f9fd637aa14b705ffe564ed078c9da"
+    },
+    {
+      "path": "seasons/2025-26/players/203484.json",
+      "bytes": 141517,
+      "sha256": "e703b233026cdb29448df5a9b9a3cd95e94f928a73a2d4384189792899b57397"
+    },
+    {
+      "path": "seasons/2025-26/players/203497.json",
+      "bytes": 154887,
+      "sha256": "a46e2e77436070912d2fec17751fa0a9bdecd1ae64baf492365dfe1eebd2056d"
+    },
+    {
+      "path": "seasons/2025-26/players/203501.json",
+      "bytes": 212291,
+      "sha256": "0c7c90cd8307e2602976c59f5d4b44ed1d51211b16b25e6bd2fbfea7ca803a8d"
+    },
+    {
+      "path": "seasons/2025-26/players/203507.json",
+      "bytes": 172501,
+      "sha256": "97855bfd8bc8bb4016107d369f38a4d23ff8fca98a909a2e750184e0ad1082c6"
+    },
+    {
+      "path": "seasons/2025-26/players/203897.json",
+      "bytes": 170093,
+      "sha256": "c2e4a8594d04620e55ce2d3a7d2652af7306a3cf62c1751358e94fd192569e22"
+    },
+    {
+      "path": "seasons/2025-26/players/203903.json",
+      "bytes": 166728,
+      "sha256": "5beb61f294464893d8061049a62f4f2abccb91aeaf1cfe5fd2250c266856236b"
+    },
+    {
+      "path": "seasons/2025-26/players/203924.json",
+      "bytes": 198708,
+      "sha256": "5f748679263f51de612ad3bca9fc17987d7fc1671eb259020e50c1ba8daf1078"
+    },
+    {
+      "path": "seasons/2025-26/players/203932.json",
+      "bytes": 145202,
+      "sha256": "5833be7862ae5ff7e2934001c5cdbce514779357de0ebdb784cf71138951cb16"
+    },
+    {
+      "path": "seasons/2025-26/players/203935.json",
+      "bytes": 161582,
+      "sha256": "3859a40519dddaf100ca91809103d45a258639a824b6f87d5054316772e2a688"
+    },
+    {
+      "path": "seasons/2025-26/players/203944.json",
+      "bytes": 270883,
+      "sha256": "1791ec5c2b90c593544a56e4ab8675002a862b0f249aba0a699068df3ed34055"
+    },
+    {
+      "path": "seasons/2025-26/players/203952.json",
+      "bytes": 213838,
+      "sha256": "ed88262b429420cbe5952b29487bb9526d9a68d037dca411c7135b51bb806c03"
+    },
+    {
+      "path": "seasons/2025-26/players/203954.json",
+      "bytes": 191420,
+      "sha256": "013e6823540cf28a3dca7a44c3a8859a270985bf71b37fd2d5162a672e2b35b8"
+    },
+    {
+      "path": "seasons/2025-26/players/203994.json",
+      "bytes": 139969,
+      "sha256": "8b4ca810e162624813d8d364fce19423ddb5048932129bb8da622dd49d931dd1"
+    },
+    {
+      "path": "seasons/2025-26/players/203999.json",
+      "bytes": 257218,
+      "sha256": "243208e805182057f6be632cc28e5a986a188c43f7908eb8f314f4cc9f2cd878"
+    },
+    {
+      "path": "seasons/2025-26/players/204001.json",
+      "bytes": 144227,
+      "sha256": "2f25cecaa63707fc4641f3eb968fd81d80cd6cb909bcaf221c660da8a8378a2a"
+    },
+    {
+      "path": "seasons/2025-26/players/204456.json",
+      "bytes": 152472,
+      "sha256": "47b9d2f9cc14e74784d6a91fbf76ab00fc1649bf8199545e1c528e43a95ff056"
+    },
+    {
+      "path": "seasons/2025-26/players/1626157.json",
+      "bytes": 241702,
+      "sha256": "fc2c8cb5cc3c32fea696d040ea1af7c59808cb643033d8894ae7a6f365f9a256"
+    },
+    {
+      "path": "seasons/2025-26/players/1626162.json",
+      "bytes": 170140,
+      "sha256": "fa3e00070edea3fbe1e95d7c06dbabb02ee48baf727af1e205002ba708aab690"
+    },
+    {
+      "path": "seasons/2025-26/players/1626164.json",
+      "bytes": 272393,
+      "sha256": "10dc6dd1aecb146b898ea340ad61d956c753891d4e3da1a7cc302f71ba6a47c4"
+    },
+    {
+      "path": "seasons/2025-26/players/1626167.json",
+      "bytes": 189022,
+      "sha256": "3e5b6dc5e61d84d7c6f39bb1badbb1c4b42dd6529459fd7f0251b36b0c194fe7"
+    },
+    {
+      "path": "seasons/2025-26/players/1626171.json",
+      "bytes": 206064,
+      "sha256": "fcecb5d454930155ff2f752d32ffa453ecd720630afa71639f136ed061f43ff4"
+    },
+    {
+      "path": "seasons/2025-26/players/1626181.json",
+      "bytes": 223914,
+      "sha256": "cccd2f95116e7d9b57aed1e1c6bfce43e541a136da560f632ddf3df7f7b3e6f7"
+    },
+    {
+      "path": "seasons/2025-26/players/1626220.json",
+      "bytes": 188215,
+      "sha256": "479befaa3d4bfb99e47b6cfa7e6257bc5b0959f0ff3bde7c0a1f1fa3092ce1dd"
+    },
+    {
+      "path": "seasons/2025-26/players/1627739.json",
+      "bytes": 159063,
+      "sha256": "5ae729bb61f343e99a92b1c8d16b3719e703e2b6c2238d3c025b9e20343495f1"
+    },
+    {
+      "path": "seasons/2025-26/players/1627741.json",
+      "bytes": 135826,
+      "sha256": "fc87cafab6547ad403330530b6c6da06795bdc74ffce75da67f5ecbe87d43a74"
+    },
+    {
+      "path": "seasons/2025-26/players/1627742.json",
+      "bytes": 288919,
+      "sha256": "64fb5069499d7a01266cdba4118264b6525a7d2ed1eb3c73e8f2078c3cb3f172"
+    },
+    {
+      "path": "seasons/2025-26/players/1627747.json",
+      "bytes": 145901,
+      "sha256": "52cc1b0e8ee6675ea0dfd304fc2d74b535bd5fda484c3770e025c3efe3fe53ea"
+    },
+    {
+      "path": "seasons/2025-26/players/1627750.json",
+      "bytes": 306354,
+      "sha256": "748e6650acf6b23f5dca168568a9a29a028f861285be5bcc9dfcb356e5cf5c2d"
+    },
+    {
+      "path": "seasons/2025-26/players/1627751.json",
+      "bytes": 128228,
+      "sha256": "744b975c0dc7242e5e97aa1808482ba51edc4dd0c92dd8418c403e4a25a800c8"
+    },
+    {
+      "path": "seasons/2025-26/players/1627759.json",
+      "bytes": 325732,
+      "sha256": "ed08e28cb974d5c66a6093efa44003fb848aa79a8bc46343082ffb7b297f96f9"
+    },
+    {
+      "path": "seasons/2025-26/players/1627780.json",
+      "bytes": 147408,
+      "sha256": "e694f07173f8b98932af7847ee2cb00a12392fc21da071e201dc599a55564ecb"
+    },
+    {
+      "path": "seasons/2025-26/players/1627783.json",
+      "bytes": 262714,
+      "sha256": "ce599252d650b665362da15eec825297e9a49c4a820e7d30c31353f1e2f1db82"
+    },
+    {
+      "path": "seasons/2025-26/players/1627824.json",
+      "bytes": 132743,
+      "sha256": "0c59851ffe62e0421a3eccb1e342bfc2c93eb1ddf0f353deaf4b31118e6265ca"
+    },
+    {
+      "path": "seasons/2025-26/players/1627826.json",
+      "bytes": 155198,
+      "sha256": "aa9f8f7bac5d4710d8e2359210b6ec3fb89bb895c6f442f24c033d0d5fcf6e0f"
+    },
+    {
+      "path": "seasons/2025-26/players/1627884.json",
+      "bytes": 141778,
+      "sha256": "137d1530c128a0c86961a506365b80b47a837b9f1de71667241aea52a72b3e21"
+    },
+    {
+      "path": "seasons/2025-26/players/1627936.json",
+      "bytes": 130627,
+      "sha256": "d71575483e221ba8d1d013a8a7a2cea41008f65953f821ae0a88746afc26685f"
+    },
+    {
+      "path": "seasons/2025-26/players/1628368.json",
+      "bytes": 250452,
+      "sha256": "cc9caf8f6c9a9c5a85fe544c3cc24ae938e9677b63b021e1e063714af4eec722"
+    },
+    {
+      "path": "seasons/2025-26/players/1628370.json",
+      "bytes": 187336,
+      "sha256": "dc96310f428e1a0204353830b45a2c57366b7b60f3321e3031e41887db99f3fa"
+    },
+    {
+      "path": "seasons/2025-26/players/1628374.json",
+      "bytes": 210499,
+      "sha256": "71d7b897dae7b8af38f9a55765066b7f4f8cde2d18307933b89a843da18b88ad"
+    },
+    {
+      "path": "seasons/2025-26/players/1628378.json",
+      "bytes": 308339,
+      "sha256": "4e4827cf7cd120fa7fb1aee3b2bad23ac5158629ad293cc4afadcbe7e611553d"
+    },
+    {
+      "path": "seasons/2025-26/players/1628379.json",
+      "bytes": 156863,
+      "sha256": "8373019ed561a8a3c7450dbefc18f205489dfe9264818c4c272899bc923088d2"
+    },
+    {
+      "path": "seasons/2025-26/players/1628381.json",
+      "bytes": 184559,
+      "sha256": "d3ff54c3b018dc5408cc9b7d9f89b56190dcaec5f438a18f44d4bad4b216ecc3"
+    },
+    {
+      "path": "seasons/2025-26/players/1628384.json",
+      "bytes": 211063,
+      "sha256": "5ff21569fb580c9100d61015f08a288038c3957fe9cf66d26886e74c6e6f7212"
+    },
+    {
+      "path": "seasons/2025-26/players/1628386.json",
+      "bytes": 162549,
+      "sha256": "4bc48ab3837cf78ec8e34b790555695b914d0abff311cc16ffb5da35111e674e"
+    },
+    {
+      "path": "seasons/2025-26/players/1628389.json",
+      "bytes": 260514,
+      "sha256": "5ca0939f2f2b932509c2bf1c4f638349525cc2007df3b828437f9e188595ede3"
+    },
+    {
+      "path": "seasons/2025-26/players/1628392.json",
+      "bytes": 127964,
+      "sha256": "f01b421007ff51a6fff8beaca3e93f54beb39ee46d9f6b20c3451417c48a6b3a"
+    },
+    {
+      "path": "seasons/2025-26/players/1628398.json",
+      "bytes": 189343,
+      "sha256": "495876721c91cc8069a47a2793161f6475f56fd13c942a9d87cd69980a1d5241"
+    },
+    {
+      "path": "seasons/2025-26/players/1628401.json",
+      "bytes": 263347,
+      "sha256": "2327319fac030a550a622adc578808c63e7f0fabdf59191b7e94aa274abca69c"
+    },
+    {
+      "path": "seasons/2025-26/players/1628404.json",
+      "bytes": 175738,
+      "sha256": "afcc5fa1e337857cf90bb7b484ce5c8a858ae735b4a855c666f9c3c664217dd4"
+    },
+    {
+      "path": "seasons/2025-26/players/1628415.json",
+      "bytes": 235113,
+      "sha256": "1aacf0b071d7cc095ecbd46524ade917f20c3cd5482a99ad4fb04a6b0694a018"
+    },
+    {
+      "path": "seasons/2025-26/players/1628418.json",
+      "bytes": 125128,
+      "sha256": "0729c6291d40093ecedf1ab084689de6619ed29cd9f613fa37c86e4b3f9ade17"
+    },
+    {
+      "path": "seasons/2025-26/players/1628436.json",
+      "bytes": 122339,
+      "sha256": "e03ea4c3620006edfe36db675075cfa343853b07d487d13735509205a5e6b9ab"
+    },
+    {
+      "path": "seasons/2025-26/players/1628960.json",
+      "bytes": 192266,
+      "sha256": "6162f3fb9d27dd710d71eada2e99cf76d87d3cd4a19767eb2b40a09f3f4880b8"
+    },
+    {
+      "path": "seasons/2025-26/players/1628963.json",
+      "bytes": 145287,
+      "sha256": "77f6c0a2ce7b3c41e3bcfd17319fa6b90944a740667738f817f72f32e930544e"
+    },
+    {
+      "path": "seasons/2025-26/players/1628969.json",
+      "bytes": 235908,
+      "sha256": "2f0ad82b19f84f3eefba544db0d9210730993cd2b4ab0b518827ff62d9b2b88b"
+    },
+    {
+      "path": "seasons/2025-26/players/1628970.json",
+      "bytes": 245954,
+      "sha256": "5b167d975d88d92bea49aa1519c0b585ed499dcd8ea035d718385d8016e7a42a"
+    },
+    {
+      "path": "seasons/2025-26/players/1628971.json",
+      "bytes": 164164,
+      "sha256": "159016f95ebc44585eb1ac880147b52050d4c7d3e4ae899a752605778765f8d2"
+    },
+    {
+      "path": "seasons/2025-26/players/1628973.json",
+      "bytes": 319263,
+      "sha256": "94e2aaf1b5fe21aa8e7b5c3137dfcbea86c6953b8edee02fdb5ddf07dca3260d"
+    },
+    {
+      "path": "seasons/2025-26/players/1628975.json",
+      "bytes": 131900,
+      "sha256": "00a18772b6306481f4df1be461ab6ef5752d4e858c112811ef697b10a402b3ca"
+    },
+    {
+      "path": "seasons/2025-26/players/1628976.json",
+      "bytes": 182304,
+      "sha256": "8ca354acf94d37d57b0bbd2653597fd62e00dd20203a8a86aa3617d1bcdf21a4"
+    },
+    {
+      "path": "seasons/2025-26/players/1628978.json",
+      "bytes": 218030,
+      "sha256": "4d13a4b3b74386800edc2b934a77f361ed04c53627d0752e2fdaba458ec5850e"
+    },
+    {
+      "path": "seasons/2025-26/players/1628983.json",
+      "bytes": 288368,
+      "sha256": "1133b87d9bf0827d4f8037082196891e26b3537a6f67811611cd9478859a54ea"
+    },
+    {
+      "path": "seasons/2025-26/players/1628988.json",
+      "bytes": 125277,
+      "sha256": "877a324628c4220b3dfbe95d7547593f74ea1c78f158034fed97f2df07b896e5"
+    },
+    {
+      "path": "seasons/2025-26/players/1628989.json",
+      "bytes": 177537,
+      "sha256": "07551ae6fda9a874af226c6dd7e503a38d6a00f02679c22ce5e92bc8ed1e72d5"
+    },
+    {
+      "path": "seasons/2025-26/players/1628991.json",
+      "bytes": 194384,
+      "sha256": "9ab3a01651c8bd7cd0a7ef4aae81f56296536dcfd8e43de4d3742a49ee94037c"
+    },
+    {
+      "path": "seasons/2025-26/players/1629001.json",
+      "bytes": 165984,
+      "sha256": "6a054805ee86f5ac0919923ba1a10358cda609081766388fb0d88e328646fde6"
+    },
+    {
+      "path": "seasons/2025-26/players/1629004.json",
+      "bytes": 141746,
+      "sha256": "f151c478246ab4d3d9f5313632d3d08b2af167c313f68bf6e86236f79483d719"
+    },
+    {
+      "path": "seasons/2025-26/players/1629006.json",
+      "bytes": 130932,
+      "sha256": "55bc18e7856e0e78b5d358ffab3954b2f6368fd93d5243e6fdb9f73bec924206"
+    },
+    {
+      "path": "seasons/2025-26/players/1629008.json",
+      "bytes": 236888,
+      "sha256": "1c77c62202e7368790aecf7e543e238d2e6662403c201f07b5fd0f673eb45806"
+    },
+    {
+      "path": "seasons/2025-26/players/1629012.json",
+      "bytes": 199668,
+      "sha256": "bf8be392da0084bf542eff9ce4d5b59b4c0bd44ea00c054ad717aa4a104858af"
+    },
+    {
+      "path": "seasons/2025-26/players/1629013.json",
+      "bytes": 142569,
+      "sha256": "1e32d6b6013666c77ae0fed8bc9f7bba635283ad14ef1f72635980660c9d3e03"
+    },
+    {
+      "path": "seasons/2025-26/players/1629014.json",
+      "bytes": 186236,
+      "sha256": "d0847c6e6df9062036da24b7706b3154408fe7abb8da604b21601e79c9172f8b"
+    },
+    {
+      "path": "seasons/2025-26/players/1629018.json",
+      "bytes": 159314,
+      "sha256": "18e5022aee4f259ab7378d9ea1831976c92cd054d19a2e55140a32df458ee2da"
+    },
+    {
+      "path": "seasons/2025-26/players/1629023.json",
+      "bytes": 184577,
+      "sha256": "652b92419d531900c62a45b24621ef9032368800839ab5c241340e980e290d84"
+    },
+    {
+      "path": "seasons/2025-26/players/1629026.json",
+      "bytes": 129989,
+      "sha256": "41fad1e6b955ff66e464b0045d986205ef6cea5d5073da2a5792451c3a9848c2"
+    },
+    {
+      "path": "seasons/2025-26/players/1629028.json",
+      "bytes": 173170,
+      "sha256": "439e7ff3969af768a98e2f0189801a25fc0df7dab83ecb51fad211fafcb258c8"
+    },
+    {
+      "path": "seasons/2025-26/players/1629029.json",
+      "bytes": 317114,
+      "sha256": "b14520b937998c84d13685f788c3492c37f84321aa1e3151177ec2b4cfbd4259"
+    },
+    {
+      "path": "seasons/2025-26/players/1629057.json",
+      "bytes": 119414,
+      "sha256": "5c8078201961016bf4c5cf810fc89d83f4e1d4fef19b33361dfaab891afb1fc7"
+    },
+    {
+      "path": "seasons/2025-26/players/1629060.json",
+      "bytes": 180938,
+      "sha256": "d40ad68a6030aae590ad334c1d4b69428f49a4bd96a2ddcbfb615afc4a824482"
+    },
+    {
+      "path": "seasons/2025-26/players/1629111.json",
+      "bytes": 167207,
+      "sha256": "0f74c447e8ae8cf5521f99ff9f3f99092cb657d5db2b1b03c77a361bd43e05aa"
+    },
+    {
+      "path": "seasons/2025-26/players/1629130.json",
+      "bytes": 201418,
+      "sha256": "007633a7164554cb0bf9937f65bca0500bf7e9978618e75ff7bcdb9c446a14fa"
+    },
+    {
+      "path": "seasons/2025-26/players/1629611.json",
+      "bytes": 140660,
+      "sha256": "21ef60b2b489ccd8c16062bf7541ac19af8075cc96fa6bce5af92675ec5240de"
+    },
+    {
+      "path": "seasons/2025-26/players/1629614.json",
+      "bytes": 203422,
+      "sha256": "ccb2e35ab07338ad76f58570b3f6f628152a39857cffee23742627d9703a369e"
+    },
+    {
+      "path": "seasons/2025-26/players/1629627.json",
+      "bytes": 203558,
+      "sha256": "d1ab7eac68172974fa1e69443579b7a84f740e424cf2273aefc22d7e97ecbcb3"
+    },
+    {
+      "path": "seasons/2025-26/players/1629628.json",
+      "bytes": 209365,
+      "sha256": "d2858dc6dc1bac6cfb04f32bad8e9675b04b5250bb6679f460fe61c82d9597d7"
+    },
+    {
+      "path": "seasons/2025-26/players/1629630.json",
+      "bytes": 133162,
+      "sha256": "feecfe0b62b51f01a51ebd625d5e425552a272708681479d9fbca5e2b75c1e7e"
+    },
+    {
+      "path": "seasons/2025-26/players/1629631.json",
+      "bytes": 162520,
+      "sha256": "fbe841eba1acb6ac97024486a08a59c55cdf6c1033969b928562890e29da4410"
+    },
+    {
+      "path": "seasons/2025-26/players/1629632.json",
+      "bytes": 183385,
+      "sha256": "7bb3d65083917361db88077bbb879a1a51f261b17170a39f04dc57882c91ae3e"
+    },
+    {
+      "path": "seasons/2025-26/players/1629636.json",
+      "bytes": 188432,
+      "sha256": "cb39de11e36d9fef4640a32d1e758046df36c6a0cdad22cd34e9510986388e2d"
+    },
+    {
+      "path": "seasons/2025-26/players/1629637.json",
+      "bytes": 120931,
+      "sha256": "97c36c682c7a299abc5bc69c4d32970c2a95a3a84558cc99001530932e0cad56"
+    },
+    {
+      "path": "seasons/2025-26/players/1629638.json",
+      "bytes": 275550,
+      "sha256": "d51a68d52afc4900d2e29392370e439bdb5678a3e4f260e2b425001bfa0f1c0f"
+    },
+    {
+      "path": "seasons/2025-26/players/1629639.json",
+      "bytes": 163400,
+      "sha256": "3195865a94a449a59b6034118d013a1bf21d74052a5799e41f990fd2d7623581"
+    },
+    {
+      "path": "seasons/2025-26/players/1629640.json",
+      "bytes": 205262,
+      "sha256": "708c1bc88df8b01a5cadf9e690eba00f1640afcfe8ca1b7e94c31c11a8fa4743"
+    },
+    {
+      "path": "seasons/2025-26/players/1629645.json",
+      "bytes": 163241,
+      "sha256": "51c8f409c39fd060bee49395759e764f952905a2ddc2d07f06fffd738a353436"
+    },
+    {
+      "path": "seasons/2025-26/players/1629651.json",
+      "bytes": 170696,
+      "sha256": "db66868eca97a291e44fc3c2100b22b0d819528ca9401d729a465148e15b94ed"
+    },
+    {
+      "path": "seasons/2025-26/players/1629652.json",
+      "bytes": 168220,
+      "sha256": "f3af20ae5396735b8d94ee810faa9e9939e5590faeee38067bf93eba7b771954"
+    },
+    {
+      "path": "seasons/2025-26/players/1629655.json",
+      "bytes": 128967,
+      "sha256": "b862caddcd344103ed9e1b27cf78ce2321f04bbe7b4235fa8c6b4cfaf1fb640d"
+    },
+    {
+      "path": "seasons/2025-26/players/1629656.json",
+      "bytes": 202919,
+      "sha256": "78848298673f2595e448e58878f658da80c40ef0f206fc6976552d47ee8c4b82"
+    },
+    {
+      "path": "seasons/2025-26/players/1629661.json",
+      "bytes": 159298,
+      "sha256": "96f708164d0cdb1267cd2ad93baff9e6e0b99a0c4fceb8e580475f37644664f0"
+    },
+    {
+      "path": "seasons/2025-26/players/1629673.json",
+      "bytes": 156903,
+      "sha256": "8e58ca8666d40a199eb49818281c029c5664580786c40f946d3ecc7c626787ae"
+    },
+    {
+      "path": "seasons/2025-26/players/1629674.json",
+      "bytes": 157760,
+      "sha256": "45587b2a38eede5687b2fe0987cbc899dfba5da57e50bac2f7137f7cf0369cc6"
+    },
+    {
+      "path": "seasons/2025-26/players/1629675.json",
+      "bytes": 219795,
+      "sha256": "540df7197f436956d9d204bb9d29db44e87b90178f002438dc02b94ec3691321"
+    },
+    {
+      "path": "seasons/2025-26/players/1629731.json",
+      "bytes": 126645,
+      "sha256": "59c7f849dd53aa7e85791cbf72c889b9e38b438a89123fd32dc3646bd8046a9a"
+    },
+    {
+      "path": "seasons/2025-26/players/1629750.json",
+      "bytes": 150934,
+      "sha256": "b9a4dbef95c4a09858746e2de6383667fa744d9157ac99f78c82bf366d4d1088"
+    },
+    {
+      "path": "seasons/2025-26/players/1630162.json",
+      "bytes": 279782,
+      "sha256": "af34c3f72612f1601979c9f59e2f6ba9389612fd6856a3eb02a69c9d0cfb262f"
+    },
+    {
+      "path": "seasons/2025-26/players/1630163.json",
+      "bytes": 283768,
+      "sha256": "ad0f0df9e3d6e54f6a89a45142796e4a9ee8d601393632199e2218226c82bd8c"
+    },
+    {
+      "path": "seasons/2025-26/players/1630166.json",
+      "bytes": 248125,
+      "sha256": "47dee63f59c8ea9a023abe1d9487fba3041bc507aa49b09648df402ffc06fc35"
+    },
+    {
+      "path": "seasons/2025-26/players/1630168.json",
+      "bytes": 216424,
+      "sha256": "be82b206dfbef21f6fe5dc62e681c16844ef54577fd7533ae9b99cee15c8d514"
+    },
+    {
+      "path": "seasons/2025-26/players/1630170.json",
+      "bytes": 208297,
+      "sha256": "d175af70812e136735cb4a28beb6127bf2affc9765a0b06e7df48b259318bdea"
+    },
+    {
+      "path": "seasons/2025-26/players/1630171.json",
+      "bytes": 154834,
+      "sha256": "97d78ca01e9d338a812b2fd2ec7c3c203a8f5c64204353bc38a9d5b8854e2890"
+    },
+    {
+      "path": "seasons/2025-26/players/1630172.json",
+      "bytes": 158089,
+      "sha256": "0584ecbf8292c91608c37b041ae2606cf1903f0912ab0b4c4591359f44a17e35"
+    },
+    {
+      "path": "seasons/2025-26/players/1630173.json",
+      "bytes": 173658,
+      "sha256": "07216ea23a4dff42e3471af76230771783de4bf4de283e2b087529d9bd96961b"
+    },
+    {
+      "path": "seasons/2025-26/players/1630174.json",
+      "bytes": 163331,
+      "sha256": "fe1b6cc3ad6c401b17bd089e0cb2293febc59d506eec219420723b2730774898"
+    },
+    {
+      "path": "seasons/2025-26/players/1630178.json",
+      "bytes": 319746,
+      "sha256": "f5972ed9d2845026d6f3b5bd3d585b9c6ddac8f687f2ed0c5e6c3f86a5af45d1"
+    },
+    {
+      "path": "seasons/2025-26/players/1630180.json",
+      "bytes": 236549,
+      "sha256": "91e07ab5e3a62c5e7520c442c38850610b1812a10654f56a3ba46254f3e07ca1"
+    },
+    {
+      "path": "seasons/2025-26/players/1630183.json",
+      "bytes": 210543,
+      "sha256": "8e35995f6c3c65f65ede4d0c9512c7b46f88bc96af6f76454b7486aad1c9334b"
+    },
+    {
+      "path": "seasons/2025-26/players/1630188.json",
+      "bytes": 146719,
+      "sha256": "19e974905889c273df2bd29b1934608ceb68b8c1f8cfb77e3a3959334321c1ef"
+    },
+    {
+      "path": "seasons/2025-26/players/1630191.json",
+      "bytes": 144694,
+      "sha256": "20efa1808509c4f0f8ff983f0875212877e07313200e458f17979e2291640ab8"
+    },
+    {
+      "path": "seasons/2025-26/players/1630193.json",
+      "bytes": 226673,
+      "sha256": "7b418102684cecf5aaecd928cbc9c38c62fbc46cc742fe8a1819eaf80e44cdd0"
+    },
+    {
+      "path": "seasons/2025-26/players/1630194.json",
+      "bytes": 135267,
+      "sha256": "f56978fe6e7e596791b76eff86846d0b09878fa271c600af745af32b48527282"
+    },
+    {
+      "path": "seasons/2025-26/players/1630198.json",
+      "bytes": 173074,
+      "sha256": "f71370a84ded3185eea43b6846e48a247c2db3de22efd14d39eff64cd8911d63"
+    },
+    {
+      "path": "seasons/2025-26/players/1630200.json",
+      "bytes": 177496,
+      "sha256": "825c506c7c5ec77a7211428417d2e92a4a8a36cc2aae628cfa7b13cec4ab62ee"
+    },
+    {
+      "path": "seasons/2025-26/players/1630202.json",
+      "bytes": 257217,
+      "sha256": "8540189df68ff079459e892e87e1f983e4d0427b7f66c9a7ac6e14451a237923"
+    },
+    {
+      "path": "seasons/2025-26/players/1630217.json",
+      "bytes": 271710,
+      "sha256": "ec266c61b2df379c4eb7e12a67a32f3ef1e616fdc39fde561db90397449a028c"
+    },
+    {
+      "path": "seasons/2025-26/players/1630224.json",
+      "bytes": 164249,
+      "sha256": "3f46f59e83bb23bb8b2ea10aa15813004d17e210fc2a7a3e8c0acc14d401976f"
+    },
+    {
+      "path": "seasons/2025-26/players/1630228.json",
+      "bytes": 135525,
+      "sha256": "3bdbe29e01782c1e19548df636bf96596a5e0eed07c96accec87b4b70a37eb01"
+    },
+    {
+      "path": "seasons/2025-26/players/1630230.json",
+      "bytes": 208854,
+      "sha256": "e7a23e3b8db9909106655bde86b7659b0ef7e995380382cb5989362c5eb1451d"
+    },
+    {
+      "path": "seasons/2025-26/players/1630241.json",
+      "bytes": 163050,
+      "sha256": "8f4da979c9f586d79a764285b10d5635da13e28dc2104058a6a6e9f04fe0d93d"
+    },
+    {
+      "path": "seasons/2025-26/players/1630245.json",
+      "bytes": 201671,
+      "sha256": "4ffd331815e92637fe2cffd8d47cff2be85c4d0396ff305f9f80d52d8841ee2e"
+    },
+    {
+      "path": "seasons/2025-26/players/1630249.json",
+      "bytes": 151796,
+      "sha256": "df1d19d24d8ba4f8aafccbdae7239b8b42ca969edcbf86c2bbc763435cdaf8a1"
+    },
+    {
+      "path": "seasons/2025-26/players/1630311.json",
+      "bytes": 150613,
+      "sha256": "bee8950d323190585c0778b97f9475b88ad9b9e224fbcef1c562a2d8f4a0e39c"
+    },
+    {
+      "path": "seasons/2025-26/players/1630314.json",
+      "bytes": 178065,
+      "sha256": "ce11511386662e60a4c50dd19646d49661ea729bf211d76babd058ea34072e79"
+    },
+    {
+      "path": "seasons/2025-26/players/1630529.json",
+      "bytes": 158772,
+      "sha256": "54761f42aa4cba7af80fa05c283b0ec2081990665b276b409182846843d19035"
+    },
+    {
+      "path": "seasons/2025-26/players/1630530.json",
+      "bytes": 250754,
+      "sha256": "605780aa9e1a1e9b0f56f3d5dbb4b521ab44b053df30c445a43d5158b4932d2f"
+    },
+    {
+      "path": "seasons/2025-26/players/1630532.json",
+      "bytes": 161465,
+      "sha256": "3117ad6e2b0b28c3b11dc1273ae76da8c9d588fc7a1e259a818a0b7529ee4d4d"
+    },
+    {
+      "path": "seasons/2025-26/players/1630533.json",
+      "bytes": 151994,
+      "sha256": "89162da5cb0860256d02ca55a741d957323b5c0ba20fcb2f39c5b479d8b0f5f7"
+    },
+    {
+      "path": "seasons/2025-26/players/1630534.json",
+      "bytes": 127026,
+      "sha256": "79076776da70cc14262ae29b7dbe18b805a67d2b2b156f6aa648e01c531c8022"
+    },
+    {
+      "path": "seasons/2025-26/players/1630538.json",
+      "bytes": 158562,
+      "sha256": "1618d5a60184d15f920314d1432a1606d3fe16db784a95b42df39836c7bac673"
+    },
+    {
+      "path": "seasons/2025-26/players/1630540.json",
+      "bytes": 147763,
+      "sha256": "1711b52d46623cd15a1a0361393a5d486198014d5dc5980a0424e6554a27e5b2"
+    },
+    {
+      "path": "seasons/2025-26/players/1630541.json",
+      "bytes": 174640,
+      "sha256": "bb1e1e61f1ca985540f5922b020afb8c0b1530c4b1a1aea0215ce92cc15a14ce"
+    },
+    {
+      "path": "seasons/2025-26/players/1630544.json",
+      "bytes": 130198,
+      "sha256": "539afa34d3c3991c0c57fcff2bca2a289b449f2cf6219a6ecfe64c8d17083462"
+    },
+    {
+      "path": "seasons/2025-26/players/1630549.json",
+      "bytes": 135408,
+      "sha256": "2fa1bab2c8ec46d9b9d90759b799dc6b5dd3635191a3a88cd77fc2cc6e3f6163"
+    },
+    {
+      "path": "seasons/2025-26/players/1630551.json",
+      "bytes": 154487,
+      "sha256": "7fa2e41d130bbcec3551c6263b3c9c72dc8622a36a11e0ce634d868365fac11a"
+    },
+    {
+      "path": "seasons/2025-26/players/1630552.json",
+      "bytes": 273596,
+      "sha256": "7f3a7ecdde5f230c8772246cd988ccd10c52d6f12ac597f63ecd47974f776fe9"
+    },
+    {
+      "path": "seasons/2025-26/players/1630557.json",
+      "bytes": 146167,
+      "sha256": "ded12c6f4d1aec5bb8cc6b1311a7e99d9754077d90ae77c3fb0be955da196150"
+    },
+    {
+      "path": "seasons/2025-26/players/1630558.json",
+      "bytes": 169815,
+      "sha256": "e7713c64cfab46330b98db5cde2adb3c84e91bc2fc6ce46b709800e161e342eb"
+    },
+    {
+      "path": "seasons/2025-26/players/1630559.json",
+      "bytes": 203523,
+      "sha256": "0e2c0b7af64c581620c8aca59d4141cd55b91427c7397577dcbddb0d33aa8d57"
+    },
+    {
+      "path": "seasons/2025-26/players/1630560.json",
+      "bytes": 155268,
+      "sha256": "d656c3f556bec2b860662e78afeaaf8823cf749cd06bc178daa7a3e679844709"
+    },
+    {
+      "path": "seasons/2025-26/players/1630567.json",
+      "bytes": 255063,
+      "sha256": "da7c5f52346f6ea36330fe541b88287dbaabf598a2483233a35f7bb6b367c134"
+    },
+    {
+      "path": "seasons/2025-26/players/1630568.json",
+      "bytes": 137029,
+      "sha256": "a8e332a28e7617fd38fa58ed983b99f4d62bb13130d448e7ae4b6961168546bf"
+    },
+    {
+      "path": "seasons/2025-26/players/1630570.json",
+      "bytes": 124062,
+      "sha256": "670e581e734a44782f387d422e52769fcbf9f321b8397664d45f1184524ef351"
+    },
+    {
+      "path": "seasons/2025-26/players/1630572.json",
+      "bytes": 181946,
+      "sha256": "e2bed4f61dfec60f924bd6c9066f6a05e4056937d61aff3abcb22c6cc3d71a24"
+    },
+    {
+      "path": "seasons/2025-26/players/1630573.json",
+      "bytes": 185616,
+      "sha256": "ec83919a83a91698555dcf02d759e0e4f4e7467cc3fa8afc8daf2282bcc1b09a"
+    },
+    {
+      "path": "seasons/2025-26/players/1630577.json",
+      "bytes": 193574,
+      "sha256": "04a40f729efe5e64fe0bc3852599a8aa7632d6c512854d6bf107850ae645237e"
+    },
+    {
+      "path": "seasons/2025-26/players/1630578.json",
+      "bytes": 254293,
+      "sha256": "20c76cfc6462e65406a181389927d758ffd24c6425161b0e9f8c9e6ce92530c8"
+    },
+    {
+      "path": "seasons/2025-26/players/1630581.json",
+      "bytes": 194744,
+      "sha256": "0f3a79927c2d700440258715c458e326b6d56dae980bbc71d3d972bf856655b0"
+    },
+    {
+      "path": "seasons/2025-26/players/1630583.json",
+      "bytes": 157284,
+      "sha256": "1bb4e3568a97150b0bdd645cfeaf284901995a3941da4ea5a3c2a204e6cdda36"
+    },
+    {
+      "path": "seasons/2025-26/players/1630591.json",
+      "bytes": 186433,
+      "sha256": "9d7d0e84ee3be25fd55ea6e40a6a1333d8ce273e46acc35f37d05a72260d283c"
+    },
+    {
+      "path": "seasons/2025-26/players/1630592.json",
+      "bytes": 128359,
+      "sha256": "1c2314d652ebb2163a728dcd81a33ae48aea6b74a9ef919b5a0b14297b8c4d74"
+    },
+    {
+      "path": "seasons/2025-26/players/1630595.json",
+      "bytes": 269195,
+      "sha256": "5aa38888640bcf1502ac207c1bdef18060e701591f921fbed18b09ad67f23b49"
+    },
+    {
+      "path": "seasons/2025-26/players/1630596.json",
+      "bytes": 214902,
+      "sha256": "ada1e95c8d9af9219e8f4f6e42995ec1d24accbf3050e1c1055f82f35923d904"
+    },
+    {
+      "path": "seasons/2025-26/players/1630598.json",
+      "bytes": 167491,
+      "sha256": "4c334f2754f8089e7cdabdc4af5d5da0ef49168b3480a631af8c5cdd955a2c5e"
+    },
+    {
+      "path": "seasons/2025-26/players/1630611.json",
+      "bytes": 156251,
+      "sha256": "ec13ff328974a5c589d9a00c2d6284cf9c0667c285c236f675f7f56f6cd05a1a"
+    },
+    {
+      "path": "seasons/2025-26/players/1630631.json",
+      "bytes": 155743,
+      "sha256": "7256a72e2bbf33bc123b690af851ce7f07f36d05b5858168dcc4012d22aa714d"
+    },
+    {
+      "path": "seasons/2025-26/players/1630643.json",
+      "bytes": 179525,
+      "sha256": "a4ea52b84e58d329133612c57b93ff666878dc50d62bdcaa3f04c171ddede011"
+    },
+    {
+      "path": "seasons/2025-26/players/1630692.json",
+      "bytes": 173237,
+      "sha256": "e7df2378109ceef755ffb4dcc46b7100f33d4c2bb4cfce64b720040a5b3f58c1"
+    },
+    {
+      "path": "seasons/2025-26/players/1630695.json",
+      "bytes": 131238,
+      "sha256": "a557dcaf59ce6923b71b05569e410a58addf1a15d6a5884a84ab57f3a04d053a"
+    },
+    {
+      "path": "seasons/2025-26/players/1630696.json",
+      "bytes": 133853,
+      "sha256": "ccf806aa79374dc8e728c41c1821dffac0f1cd16cd8d365c158a184f1d320582"
+    },
+    {
+      "path": "seasons/2025-26/players/1630700.json",
+      "bytes": 200644,
+      "sha256": "bd41d355dd2177ff9ffe5b7196fe3f7c4cb8da992456969558cdf2c48b7bd516"
+    },
+    {
+      "path": "seasons/2025-26/players/1630702.json",
+      "bytes": 155016,
+      "sha256": "32da439e54f6cb13bb1946f0d092ff0200de430b65eb34f66bb9f8477bdd7c50"
+    },
+    {
+      "path": "seasons/2025-26/players/1630703.json",
+      "bytes": 136052,
+      "sha256": "e41ac72f1c67a3c4db3c51b986ff3b2c46d59afbd07616f17cfe0be0f4534012"
+    },
+    {
+      "path": "seasons/2025-26/players/1631093.json",
+      "bytes": 122781,
+      "sha256": "67233e9c95a73958e0a6327ed5b31e1f952b6adc15172b5acb2b72b979c1bc76"
+    },
+    {
+      "path": "seasons/2025-26/players/1631094.json",
+      "bytes": 261593,
+      "sha256": "e0eca7b63add721d8d5002358f93384307bed7fab4dbdffaa88d2637e6f6c085"
+    },
+    {
+      "path": "seasons/2025-26/players/1631095.json",
+      "bytes": 237223,
+      "sha256": "aa9cc54c0d7b10eba5c0a0c7d0fff849dbef2e0469d41484b74cdf938bd58f94"
+    },
+    {
+      "path": "seasons/2025-26/players/1631096.json",
+      "bytes": 203442,
+      "sha256": "00aeea06a322bb47256b330e9ae05b66fd3a5a04f25bdf8fb66fda9060b84639"
+    },
+    {
+      "path": "seasons/2025-26/players/1631097.json",
+      "bytes": 190212,
+      "sha256": "10af77eb59ff5fc3a4eb82068e875427eff8275452b8ec1d15f007c6d6df74b6"
+    },
+    {
+      "path": "seasons/2025-26/players/1631099.json",
+      "bytes": 132208,
+      "sha256": "684c0dc1c60bde54410367a2190f2cda4aadb1b88e2619bf99930f5d24967c32"
+    },
+    {
+      "path": "seasons/2025-26/players/1631101.json",
+      "bytes": 220721,
+      "sha256": "9d4bdf0062a995ea38cf41de327cc42d13dfce6da430fb7df09f58ec26339946"
+    },
+    {
+      "path": "seasons/2025-26/players/1631105.json",
+      "bytes": 202900,
+      "sha256": "3065d173c38d4f9d4d8e13186089f124a3a76f81f31c2ec441ca80e5723179af"
+    },
+    {
+      "path": "seasons/2025-26/players/1631106.json",
+      "bytes": 174528,
+      "sha256": "9026558fc8d2f18df18f61ca452739c3bd796366fead84d7b405280e37ae3a99"
+    },
+    {
+      "path": "seasons/2025-26/players/1631107.json",
+      "bytes": 132789,
+      "sha256": "5c29777009f71f4baea0234d36cb90316b159283cbbcf3e3fdf16b1edbfa9190"
+    },
+    {
+      "path": "seasons/2025-26/players/1631108.json",
+      "bytes": 202606,
+      "sha256": "d034e8f71ea2bcfc11491fdc9672da91dd8521f8ff865621292e164fd7dc43e3"
+    },
+    {
+      "path": "seasons/2025-26/players/1631109.json",
+      "bytes": 147082,
+      "sha256": "f83d81bc596ff22c33784a2109802795ffb1dca21a5b1cc7508e0f3c6849a2f4"
+    },
+    {
+      "path": "seasons/2025-26/players/1631114.json",
+      "bytes": 151624,
+      "sha256": "efa42f2b9259a01f2715058a4b47bc54e381c86cf76802087233b992740d8534"
+    },
+    {
+      "path": "seasons/2025-26/players/1631119.json",
+      "bytes": 140558,
+      "sha256": "8b5b3613cc2e752b848e77110e7f7096d9e73ebc98026cbe94073075e6e52d05"
+    },
+    {
+      "path": "seasons/2025-26/players/1631124.json",
+      "bytes": 132382,
+      "sha256": "30f1f2c6fd90e9e47b3d4d41bdc0eaea3674e156f6d6aedb3d89afd6ef62dd97"
+    },
+    {
+      "path": "seasons/2025-26/players/1631126.json",
+      "bytes": 161647,
+      "sha256": "4e4329bcbe68a251ec5e8e1a17c8e5c9c69f563c1a7795537f7989ed6189a879"
+    },
+    {
+      "path": "seasons/2025-26/players/1631128.json",
+      "bytes": 144285,
+      "sha256": "e82080168e6084d5c2b0bc85a3a799ebf70dd40ed2c8afd804bff762fb634034"
+    },
+    {
+      "path": "seasons/2025-26/players/1631157.json",
+      "bytes": 248638,
+      "sha256": "77241b94d415cbb72edf0164a8277e79176e589ffaf9ffb97e3a97d716d3d430"
+    },
+    {
+      "path": "seasons/2025-26/players/1631159.json",
+      "bytes": 123772,
+      "sha256": "ad34b2540ef3dcac248a1f3ff91d1ab5f2a684079b3a8b2442f6501511910e49"
+    },
+    {
+      "path": "seasons/2025-26/players/1631165.json",
+      "bytes": 145197,
+      "sha256": "335f2854c6af0d519c9c31f9fda868c85e809547ca96297281b0526d71dcf78d"
+    },
+    {
+      "path": "seasons/2025-26/players/1631169.json",
+      "bytes": 123296,
+      "sha256": "cff323fc7898a7446bd31004303b459f9677c4b09023b54a457e5cf09242b98d"
+    },
+    {
+      "path": "seasons/2025-26/players/1631170.json",
+      "bytes": 222510,
+      "sha256": "0c827fee16611cfc4c04b43afe0bbc6e6781c2183641750a2c489d3c3c4373c2"
+    },
+    {
+      "path": "seasons/2025-26/players/1631172.json",
+      "bytes": 146407,
+      "sha256": "910a2eabcc31be71418c5402e456261c51d4d506768e52a5200c5990c636958c"
+    },
+    {
+      "path": "seasons/2025-26/players/1631200.json",
+      "bytes": 126276,
+      "sha256": "bdde82dff10b5e88c41be711b3503e54d128d2c53dbb07ea844a2ad09609e325"
+    },
+    {
+      "path": "seasons/2025-26/players/1631212.json",
+      "bytes": 174669,
+      "sha256": "46ab60ade39c3b0f0e503dd43d0e9179a7e992e36811b0d5cc29a367b4025eeb"
+    },
+    {
+      "path": "seasons/2025-26/players/1631213.json",
+      "bytes": 127447,
+      "sha256": "80cf168aedabebd601afb126c512cc4a488b2671bb7800983926c7db0d4d5f1c"
+    },
+    {
+      "path": "seasons/2025-26/players/1631217.json",
+      "bytes": 135943,
+      "sha256": "0444ef984d298a42999ed7c9ff6cac7a3e94d51c8e87cd61bb7e174329cd3799"
+    },
+    {
+      "path": "seasons/2025-26/players/1631221.json",
+      "bytes": 224596,
+      "sha256": "50a2a4a32d91cacd1044ea5f39e3b2b94c601a380d95932f7cb177ec4d520459"
+    },
+    {
+      "path": "seasons/2025-26/players/1631222.json",
+      "bytes": 164399,
+      "sha256": "8f7e7eac2ea1074b0a5ba4d6971f2238cae81002328427abb571b1e192c2f017"
+    },
+    {
+      "path": "seasons/2025-26/players/1631230.json",
+      "bytes": 144151,
+      "sha256": "5ebd0e93c30f67146a95187c40cd714a16c30b177ae1e9bb27827e78b09fde11"
+    },
+    {
+      "path": "seasons/2025-26/players/1631243.json",
+      "bytes": 128401,
+      "sha256": "7671fa57d76929298165ffb44b3d176e96a15b4eab35b1f9e1c11bc67741bb17"
+    },
+    {
+      "path": "seasons/2025-26/players/1631245.json",
+      "bytes": 134196,
+      "sha256": "8abd4123f175be1289b9058f29162c7cffd7a87e045b47b385a52f41d32c8305"
+    },
+    {
+      "path": "seasons/2025-26/players/1631246.json",
+      "bytes": 130965,
+      "sha256": "2e0711065516497871825b33b0924e77198f3bc02eab83242bc12e07cea3f8cf"
+    },
+    {
+      "path": "seasons/2025-26/players/1631248.json",
+      "bytes": 139739,
+      "sha256": "8a8de7940957cbf38ecc29db26424b0fbb9f7c1e115b15ae3b7ae4936db725f4"
+    },
+    {
+      "path": "seasons/2025-26/players/1631260.json",
+      "bytes": 187090,
+      "sha256": "4f1c098a5946668076cbd697a091ed52ca36b0d1eda8e339f7f38541a1649b17"
+    },
+    {
+      "path": "seasons/2025-26/players/1631321.json",
+      "bytes": 136198,
+      "sha256": "0919abbfeae667fbef070e43c3cbf8ab484db22126e0657913b8c000f1bbd77e"
+    },
+    {
+      "path": "seasons/2025-26/players/1631323.json",
+      "bytes": 160713,
+      "sha256": "2a742d55d1b4d085ae06206f85c0c034f2436a1621a80b6e443cb42a2e6d0d09"
+    },
+    {
+      "path": "seasons/2025-26/players/1631342.json",
+      "bytes": 128015,
+      "sha256": "03ecdd62df508b591e77741f75c2004f03cb7988c4dd0772e46d414375d1724b"
+    },
+    {
+      "path": "seasons/2025-26/players/1641705.json",
+      "bytes": 250784,
+      "sha256": "490ab20091315a772d6e4ceedb46a804f80698351bbb2957deccd1ca902cec7b"
+    },
+    {
+      "path": "seasons/2025-26/players/1641706.json",
+      "bytes": 248235,
+      "sha256": "0ae3c3faecee4d76e7e89d91bfb0a778d42537309eb77bd21f8ad99d97bf500d"
+    },
+    {
+      "path": "seasons/2025-26/players/1641707.json",
+      "bytes": 138810,
+      "sha256": "b28c4d7f825616c1b0868f3674e0fe5e5aaa3678619de28f93022806ed04d8d9"
+    },
+    {
+      "path": "seasons/2025-26/players/1641708.json",
+      "bytes": 241373,
+      "sha256": "136c64abf6e688e1675720a5c793673679e993dab0b66c71fbeb0d2589809ba1"
+    },
+    {
+      "path": "seasons/2025-26/players/1641709.json",
+      "bytes": 170154,
+      "sha256": "85023674db052a1935c0580fef205d864bc6cf4858aee4c5734b1be6f42feef5"
+    },
+    {
+      "path": "seasons/2025-26/players/1641710.json",
+      "bytes": 204576,
+      "sha256": "ea83aaef2bf0afdfe3ddd88afb23b32ece9a1cf68e9e54763dfdfbca35c2025f"
+    },
+    {
+      "path": "seasons/2025-26/players/1641711.json",
+      "bytes": 143596,
+      "sha256": "90dec0e3b097e6ee0460ef3cfe65e0b2824de029bc6308149073c590bbdb9452"
+    },
+    {
+      "path": "seasons/2025-26/players/1641712.json",
+      "bytes": 132093,
+      "sha256": "75f0db8b0a79bc8e82b6308c058114539081a4ab5c6bdf8761ea75bd3148f4f1"
+    },
+    {
+      "path": "seasons/2025-26/players/1641713.json",
+      "bytes": 162377,
+      "sha256": "c30f2dd1d1d3e7076eb214516912f5033c83bc87b2f792d5c4f884f3ecc58d62"
+    },
+    {
+      "path": "seasons/2025-26/players/1641716.json",
+      "bytes": 202264,
+      "sha256": "78534000380233f641621a28c3ac8c4396add00c0d3d809aaf96cf76ac35fbcf"
+    },
+    {
+      "path": "seasons/2025-26/players/1641717.json",
+      "bytes": 175005,
+      "sha256": "7b7f0d558a9e70d0a2b33fea4e9955e921d9287b1fc9f4c356dadd141baa8b62"
+    },
+    {
+      "path": "seasons/2025-26/players/1641718.json",
+      "bytes": 223344,
+      "sha256": "48a21db4748b4208936cfa1b9e3599df2ff61ad965fa52b6ac725b66cd6080d2"
+    },
+    {
+      "path": "seasons/2025-26/players/1641722.json",
+      "bytes": 123421,
+      "sha256": "64a0b58062cd250114c316eef1b2b77090c88a75074a128df4e68120ddb811f3"
+    },
+    {
+      "path": "seasons/2025-26/players/1641724.json",
+      "bytes": 122140,
+      "sha256": "6b5ca746de376d9da91bd019c01146adafa0ee8e5590675f7fbb257eeae923d5"
+    },
+    {
+      "path": "seasons/2025-26/players/1641729.json",
+      "bytes": 222192,
+      "sha256": "9cd5ecbd28a50eb65b5dc1896969e9a1e524540052615b9a279cdd7f1c43e6a2"
+    },
+    {
+      "path": "seasons/2025-26/players/1641730.json",
+      "bytes": 185548,
+      "sha256": "bf1e9c0f4c717c0ad5ea0c636bc203b2dea7190d723d62b17dea373ec7ca8d6a"
+    },
+    {
+      "path": "seasons/2025-26/players/1641731.json",
+      "bytes": 168244,
+      "sha256": "e3456e400b9a30ce7291c5acd8f64fbd34a8474f149be30377a7f0fad6ffbe71"
+    },
+    {
+      "path": "seasons/2025-26/players/1641738.json",
+      "bytes": 125901,
+      "sha256": "28e56e14401df6ff282a61c8480d0f6ca37c69ec3d413cf0354a59a4966c7a53"
+    },
+    {
+      "path": "seasons/2025-26/players/1641739.json",
+      "bytes": 226797,
+      "sha256": "d800e5d31ed48dfbe1f488cd8ff36c288f060b297261f26f95ef862b46cd3b9e"
+    },
+    {
+      "path": "seasons/2025-26/players/1641750.json",
+      "bytes": 125296,
+      "sha256": "57ab50cd8d1890ac54672e09ab74126c63337aa3ebfb7f4d7c6bf6473f5d987a"
+    },
+    {
+      "path": "seasons/2025-26/players/1641757.json",
+      "bytes": 144372,
+      "sha256": "ca31b1ba05b4434b3a8c2404b34c58bd49688e64d9afa5564b58d950dfe3fa01"
+    },
+    {
+      "path": "seasons/2025-26/players/1641764.json",
+      "bytes": 223452,
+      "sha256": "8cae987ba64b60dc48ae5f7b6b1cae6163557df358a9ce33ad177e1fb2c2d683"
+    },
+    {
+      "path": "seasons/2025-26/players/1641765.json",
+      "bytes": 137508,
+      "sha256": "89604e525145e4ff91d50933184454e9fca2256248add75ad68bac11d69c8fa0"
+    },
+    {
+      "path": "seasons/2025-26/players/1641767.json",
+      "bytes": 143937,
+      "sha256": "4ee0d3463022fb513411999bf99670e7d283da94104328cf311f1aae19e8dbe3"
+    },
+    {
+      "path": "seasons/2025-26/players/1641772.json",
+      "bytes": 131880,
+      "sha256": "6e663628f6fd0d36e46eb473078184ed15b669cebeed807392f265a846187179"
+    },
+    {
+      "path": "seasons/2025-26/players/1641774.json",
+      "bytes": 133482,
+      "sha256": "e3440b8b51523511108d81177b68d97d30e73b4efd8026fb3bd4391927839732"
+    },
+    {
+      "path": "seasons/2025-26/players/1641775.json",
+      "bytes": 125066,
+      "sha256": "82b32850a0266c16261fa883e6e631c06f89b1b3a7ee2371eb86703f3f82cba0"
+    },
+    {
+      "path": "seasons/2025-26/players/1641783.json",
+      "bytes": 183279,
+      "sha256": "1063743f829629e55c36b3eec072e26957fc7282f0d4b1859c6876ef7d24be19"
+    },
+    {
+      "path": "seasons/2025-26/players/1641796.json",
+      "bytes": 169544,
+      "sha256": "4bdd3fb9c980518eefa185cb0f22d13d9f2316542db7165cebfd3986961a7376"
+    },
+    {
+      "path": "seasons/2025-26/players/1641824.json",
+      "bytes": 234423,
+      "sha256": "357c1719c5c6187f045f54954d636feaf8ea2136f58e296542500f336eeac411"
+    },
+    {
+      "path": "seasons/2025-26/players/1641842.json",
+      "bytes": 167938,
+      "sha256": "842d21fdd171314ddaceb76f92357e72be82146550b234c8a87d270eb7776f1f"
+    },
+    {
+      "path": "seasons/2025-26/players/1641854.json",
+      "bytes": 123278,
+      "sha256": "1b9f49f9e35e7be28a6d06ef4bd11ad4ce280d070ba0dfd9ec530fa8d4daef5e"
+    },
+    {
+      "path": "seasons/2025-26/players/1642258.json",
+      "bytes": 167928,
+      "sha256": "c846c7f968c1332a78ab84868cb0382bf8a024945eba3a528f465f483628695a"
+    },
+    {
+      "path": "seasons/2025-26/players/1642259.json",
+      "bytes": 183831,
+      "sha256": "ad2277e9f55bcad88ca4d055f03756b2399ae58dffdf735acaacee965ebc736e"
+    },
+    {
+      "path": "seasons/2025-26/players/1642262.json",
+      "bytes": 162304,
+      "sha256": "42c292db452541a26acfbe177296898ab8087704b3d99ebe9921518ea882fc80"
+    },
+    {
+      "path": "seasons/2025-26/players/1642263.json",
+      "bytes": 239030,
+      "sha256": "5267553bd5c9f4df33c664606dd165fedf828b116535f01c98a190c82e6f6f0f"
+    },
+    {
+      "path": "seasons/2025-26/players/1642264.json",
+      "bytes": 209174,
+      "sha256": "997590e7adbb6423c538910a9d8fcdd4af9a3f4b1995664af1c4002955cb83fc"
+    },
+    {
+      "path": "seasons/2025-26/players/1642265.json",
+      "bytes": 147554,
+      "sha256": "e8c35947bad97a007ceaea0ef7ace57aba4d8510f98b3d415594898152b71471"
+    },
+    {
+      "path": "seasons/2025-26/players/1642266.json",
+      "bytes": 149882,
+      "sha256": "861c33bf28f012fe1172192d67541e4c3bebf620f7ba6b390cda8d0f9ec52d96"
+    },
+    {
+      "path": "seasons/2025-26/players/1642267.json",
+      "bytes": 209960,
+      "sha256": "aeab1042ef3d0124aec1fea6de8891a6e4093b020559db557a520ad37146ac2d"
+    },
+    {
+      "path": "seasons/2025-26/players/1642268.json",
+      "bytes": 162859,
+      "sha256": "999e8ebbbd04bc735d5ece1f2bd667ef030e2aec32ebc1f016628f49110e3437"
+    },
+    {
+      "path": "seasons/2025-26/players/1642269.json",
+      "bytes": 129805,
+      "sha256": "3e7d94b9be33df4c7c3584e7643fcfe583d8f357b71373fcb3f6f8a80ebc96f0"
+    },
+    {
+      "path": "seasons/2025-26/players/1642270.json",
+      "bytes": 188515,
+      "sha256": "bdcc853ffd0d2680efa169a499396315c76d3a8173812410942ceccf4b6c2332"
+    },
+    {
+      "path": "seasons/2025-26/players/1642271.json",
+      "bytes": 184040,
+      "sha256": "7aa24490ba30f747f890f7b4af9d0619816833ee2e5ffd397b430097f6269ad3"
+    },
+    {
+      "path": "seasons/2025-26/players/1642272.json",
+      "bytes": 161325,
+      "sha256": "6c21b808abc06dc956685fbc76a9819598cffda86339b30c4e1648b20b5fe1a3"
+    },
+    {
+      "path": "seasons/2025-26/players/1642273.json",
+      "bytes": 176654,
+      "sha256": "76155aee8e5abc21d4cd5d7636511bf136133becc6a7f733b8f5fdda86029c32"
+    },
+    {
+      "path": "seasons/2025-26/players/1642274.json",
+      "bytes": 125683,
+      "sha256": "d8b6815f62242211d6745d37609a7e15989a84c1e0238bdb873c3cfe06a56c28"
+    },
+    {
+      "path": "seasons/2025-26/players/1642276.json",
+      "bytes": 183174,
+      "sha256": "1faa4bd4f38aba069ee7c8a452599caeeaa7f543e3802726939e0248e3beafe3"
+    },
+    {
+      "path": "seasons/2025-26/players/1642281.json",
+      "bytes": 186693,
+      "sha256": "92e7f422ef0998f33d5e08b6a24883691fb2fad9b60b3c7738ccd503bc5eb89b"
+    },
+    {
+      "path": "seasons/2025-26/players/1642285.json",
+      "bytes": 171626,
+      "sha256": "a97ec67a85cb578fb07fb62e54156562a9e8968b90059639a1eb50f59f5de510"
+    },
+    {
+      "path": "seasons/2025-26/players/1642345.json",
+      "bytes": 138179,
+      "sha256": "72729da94a3df952924a8501aa942bbb2d416e086e6e3c18d92d99a8bfd9b984"
+    },
+    {
+      "path": "seasons/2025-26/players/1642346.json",
+      "bytes": 140422,
+      "sha256": "f051abe2a292c2e71ce528fbedfeebd3c8853fae9f5ae8270bf903b0036ff9ea"
+    },
+    {
+      "path": "seasons/2025-26/players/1642347.json",
+      "bytes": 164322,
+      "sha256": "9e39bfaeeb096dc4d7f5c3611fa318f19763e4f3df6b54e1f600db8add3952ce"
+    },
+    {
+      "path": "seasons/2025-26/players/1642348.json",
+      "bytes": 134540,
+      "sha256": "90fdc71ff6e33042ad14266967484669dd636587b78122a5108371350e48117d"
+    },
+    {
+      "path": "seasons/2025-26/players/1642349.json",
+      "bytes": 174492,
+      "sha256": "5c3385761e1b93f3ed0ec32f35220bf14951060a893ace284c516bf5a4ddcc4c"
+    },
+    {
+      "path": "seasons/2025-26/players/1642363.json",
+      "bytes": 176466,
+      "sha256": "d95e3c746eaad51358a6b80bda967dea82ec4f5f1261e00ee16c2bb0267d125f"
+    },
+    {
+      "path": "seasons/2025-26/players/1642364.json",
+      "bytes": 129654,
+      "sha256": "89ed89d2ed90f62f0315c6f1c5b41d9798daa5f0a8adc2cc42a26f0eeabf61a0"
+    },
+    {
+      "path": "seasons/2025-26/players/1642366.json",
+      "bytes": 155092,
+      "sha256": "a25eda4ab35566f5d6ef0a925f2564b09e15b5448040ef8065c1e32921555e95"
+    },
+    {
+      "path": "seasons/2025-26/players/1642377.json",
+      "bytes": 193880,
+      "sha256": "673652056de9ac8dbfdfdc34a5c0bbee78e454df1ffe33e301bc2e1b8279c881"
+    },
+    {
+      "path": "seasons/2025-26/players/1642383.json",
+      "bytes": 159060,
+      "sha256": "76ee9525ec2f07829186eb4ad430bc17c1dbc9a38a6f4a8c90fe60a01a0a9f68"
+    },
+    {
+      "path": "seasons/2025-26/players/1642450.json",
+      "bytes": 172937,
+      "sha256": "1bf95f3f8d459c10415f1afdbb08db9a232d7c43ea9cee749cddf3a678aed3d5"
+    },
+    {
+      "path": "seasons/2025-26/players/1642461.json",
+      "bytes": 123020,
+      "sha256": "a6d99089ffe0a4dd36844f8860856b830e0e221040d9602222dae930fcfb5249"
+    },
+    {
+      "path": "seasons/2025-26/players/1642843.json",
+      "bytes": 268107,
+      "sha256": "1f8580b07791a5cff50aaae941ad04592c202fe99dac5871fc55a9ac32a07227"
+    },
+    {
+      "path": "seasons/2025-26/players/1642844.json",
+      "bytes": 184223,
+      "sha256": "f09eb87578ad05347ece17998737942fa418ce1685e302acd49dd2a0f5241e38"
+    },
+    {
+      "path": "seasons/2025-26/players/1642845.json",
+      "bytes": 244722,
+      "sha256": "cc7c4d1f0355e9603cc44e991fe6bde55047fd4e17234cffa4db8a996099d006"
+    },
+    {
+      "path": "seasons/2025-26/players/1642846.json",
+      "bytes": 225148,
+      "sha256": "8a9c579612316fc352e37a64aa720c7f99fea167fbb48ab9da02076d96a9055f"
+    },
+    {
+      "path": "seasons/2025-26/players/1642847.json",
+      "bytes": 239214,
+      "sha256": "8c022e491561fb8bd3708993373faf2c346dc3fbeb071696846325837fe5b0da"
+    },
+    {
+      "path": "seasons/2025-26/players/1642848.json",
+      "bytes": 185701,
+      "sha256": "43192e106022963c8d161504a15205037a4222b1e8ae816348de4232b91be9f5"
+    },
+    {
+      "path": "seasons/2025-26/players/1642849.json",
+      "bytes": 156853,
+      "sha256": "fbc72cc087b6e6d45fca0ddbb5aa3129f3883d9fb2adbd7c59b2680b32a88969"
+    },
+    {
+      "path": "seasons/2025-26/players/1642851.json",
+      "bytes": 258909,
+      "sha256": "f10cb95cbb7155ea90ca32f2385f432c6ab8b783e1a2d1adc5d68d877218ad2a"
+    },
+    {
+      "path": "seasons/2025-26/players/1642852.json",
+      "bytes": 196450,
+      "sha256": "62ba355b70a6d9205e272b75d9efd4184a07701b36494a45ef90ccc10ca3ac8c"
+    },
+    {
+      "path": "seasons/2025-26/players/1642856.json",
+      "bytes": 158761,
+      "sha256": "28c0f74ce558eabdcc038dcb6b824e898399d11986b088255b6c92b09d92a612"
+    },
+    {
+      "path": "seasons/2025-26/players/1642860.json",
+      "bytes": 181385,
+      "sha256": "11a79fbaaefbd92ab31046a513ebf2d4545c6108a333af4172c7eb45cb477cfd"
+    },
+    {
+      "path": "seasons/2025-26/players/1642867.json",
+      "bytes": 133807,
+      "sha256": "01f6d09d4d10447b52e043bc8e34357e93a513e15b21fbcaebb26513e1e5bf00"
+    },
+    {
+      "path": "seasons/2025-26/players/1642868.json",
+      "bytes": 125182,
+      "sha256": "cd2b3633a1df99383c7a1efae3b87d4711fb774bcf3d75ddfeee7f8b52f3c8f3"
+    },
+    {
+      "path": "seasons/2025-26/players/1642874.json",
+      "bytes": 152221,
+      "sha256": "6425a69d33fca7cb0dc5f8fe57dd98634279d9d3e5afa8eacde38f7240907fd4"
+    },
+    {
+      "path": "seasons/2025-26/players/1642875.json",
+      "bytes": 186051,
+      "sha256": "0840a533c38303c2d8b5c3474d9822940ee8b2f4242818c33109cf27da7adc86"
+    },
+    {
+      "path": "seasons/2025-26/players/1642877.json",
+      "bytes": 126016,
+      "sha256": "6ecef781fbc055c58c98c9fefe1de760bac98a4b55c9a7642f93b47ca9e43719"
+    },
+    {
+      "path": "seasons/2025-26/players/1642879.json",
+      "bytes": 130073,
+      "sha256": "233d0606a4cfdcfbe01dcad7cd089bd09e3cd77e423244e3f4951619617bfc18"
+    },
+    {
+      "path": "seasons/2025-26/players/1642883.json",
+      "bytes": 141203,
+      "sha256": "cf7480b367e427f47e4333dcb8ac6e93047d2fbc0ad240f0cfcf794582f87964"
+    },
+    {
+      "path": "seasons/2025-26/players/1642907.json",
+      "bytes": 186796,
+      "sha256": "478566cdaceca406dc25cced38f94fcd2e05edf11826a3ab95be50b15a86b09b"
+    },
+    {
+      "path": "seasons/2025-26/players/1642914.json",
+      "bytes": 128865,
+      "sha256": "2854ff38aa2ad25c1bcf12d0444486bca0ae5c39c5d4fc4ca55e8bd6fe532e3f"
+    },
+    {
+      "path": "seasons/2025-26/players/1642920.json",
+      "bytes": 144091,
+      "sha256": "a0419328353d4709b69ec83c1d36c56cb3a466f4c97eadbcf2b65d0041d57633"
+    },
+    {
+      "path": "seasons/2025-26/players/1642948.json",
+      "bytes": 143750,
+      "sha256": "c3d9ab51050032a66f2e499ae2cc067862811008158277b80e28ad653193849b"
+    },
+    {
+      "path": "seasons/2025-26/players/1642954.json",
+      "bytes": 138101,
+      "sha256": "8bb32fd1fa56620e0bc7f86f1cc3dc02d7de416c8e8cd99a612a6fb701d5e387"
+    },
+    {
+      "path": "seasons/2025-26/players/1642962.json",
+      "bytes": 140970,
+      "sha256": "f3b44ed1d1d438b5ac6cfcd715e9f634302a2c9623ebfc802fc93e33c666496f"
+    }
+  ]
+}

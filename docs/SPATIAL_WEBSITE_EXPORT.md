@@ -184,3 +184,20 @@ index and manifest twice, matched every file hash, and published the first
 verified recovery build. The independent verify mode matched the completion
 hashes, payload inventory, counts, ordering, null handling, approved shot-field
 allowlist, and destination restrictions.
+
+## Verified capped version three
+
+Version three publishes the approved single-destination evidence states and
+universal 50% destination cap beside versions one and two. Its season-ready
+layout contains one manifest, one 318-player index for 2025-26, and 318 player
+files. `docs/SINGLE_DESTINATION_CAP_V3_PLAN.md` records the full method,
+verification results, hashes, distributions, and recovery history.
+
+The bundle contains 320 JSON files and 57,418,128 bytes. Its manifest SHA-256 is
+`521a4fe25638464bfe7625552ad95535f25dc395c7337df7fb56848e6428ce58`;
+the season-index SHA-256 is
+`851db0d10d75691a69d1c9daf9030504e714fc04d2df4e82b22fe58323669dfa`.
+Independent verification found 29 zero-support, 167 single-support, and 122
+multiple-support players. It publishes relocation estimates for 276 players;
+13 single-support players have no positive capacity under the cap and retain
+null gains and scores.

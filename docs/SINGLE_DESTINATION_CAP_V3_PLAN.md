@@ -135,3 +135,50 @@ all relative filenames and SHA-256 hashes. Independent verification must check
 318 players, 194,987 shots, 156 cells and six sliders per player, privacy,
 source order, supported destinations, requested and actual shares, mass, caps,
 intervals, scores, evidence-specific nulls, and the Wembanyama regression.
+
+## Verified production result
+
+The version-three calculation reused the verified CAR fit and regenerated the
+frozen 4,000 joint draws without fitting a model. It retained all 318 players,
+194,987 shots, 49,608 heatmap cells, and 1,908 slider rows. Twenty-nine players
+have zero supported destinations, 167 have one, and 122 have two or more.
+
+Relocation estimates are available for 276 players. That group contains all 122
+multiple-destination players and 154 single-destination players. Thirteen other
+single-destination players already used their supported cell for at least half
+of their historical attempts, so the universal cap left no positive capacity.
+Their gains and scores remain null with
+`no_positive_supported_capacity`. Fifty-five available players reached less
+than the requested 25% at the largest slider setting because source or
+destination capacity ended first. Actual 25% shares ranged from 2.73224% to
+25%, with a median of 25%.
+
+Victor Wembanyama retained 1,080 attempts and his one verified supported cell.
+The cap permits 243 attempt-equivalents, or 22.5%, which raises that cell's final
+share from 27.5% to 50%. His status is `single_destination`. His score is 87.00
+with a 90% interval of 85.24 to 88.87. At the 25% request, the model estimates
+184.19 season points, with interval 156.45 to 210.93, and 17.05 points per 100
+attempts, with interval 14.49 to 19.53. These estimates remain descriptive and
+non-causal.
+
+Across the 276 available players, scores ranged from 83.94 to 98.70, with
+quartiles 88.51, 89.70, and 91.17. Estimated gain per 100 attempts at the 25%
+request ranged from 1.72 to 20.14, with quartiles 10.48, 12.61, and 14.15.
+Season gains ranged from 6.30 to 224.47 points. No cell that received relocated
+mass finished above 50%; the verified maximum was exactly 50%.
+
+The first production process completed the calculation and wrote one full
+staging bundle, then stopped during a source-order audit that tried to recreate
+the draw-mean order from a different exported point estimate. The implementation
+now checks the draw-mean source order before export. Recovery validated and
+copied the complete staging bundle into two byte-identical builds without
+regenerating draws or player results, then published one build atomically.
+
+Independent verification matched every frozen source hash, file inventory,
+payload hash, player and row count, evidence status, null rule, supported
+destination, capped allocation, requested and actual share, slider order,
+score, interval, shot count, and privacy restriction. The bundle contains 320
+JSON files and 57,418,128 bytes. The manifest SHA-256 is
+`521a4fe25638464bfe7625552ad95535f25dc395c7337df7fb56848e6428ce58`.
+The player-index SHA-256 is
+`851db0d10d75691a69d1c9daf9030504e714fc04d2df4e82b22fe58323669dfa`.
