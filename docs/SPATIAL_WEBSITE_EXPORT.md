@@ -3,6 +3,10 @@
 Status: frozen before export. This document and `R/spatial_website_export.R`
 must be committed and pushed before the version 1 bundle is generated.
 
+Narayan approved a separate version-three targeted export on 2026-09-06. The
+frozen contract in `docs/SINGLE_DESTINATION_CAP_V3_PLAN.md` governs that work.
+It publishes beside the immutable version-one and version-two bundles.
+
 ## Purpose and sources
 
 The export is a static, deterministic view of already verified 2025-26

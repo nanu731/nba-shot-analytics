@@ -6,6 +6,13 @@ preserved. Narayan approved the targeted weak-location amendment below first for
 LeBron James, then approved the same frozen method for a 2025-26 all-player
 production calculation and a separate version-two website export.
 
+Narayan approved a version-three amendment on 2026-09-06. It permits estimates
+with one supported destination and applies a universal 50% final-share cap to
+every destination. `docs/SINGLE_DESTINATION_CAP_V3_PLAN.md` freezes the new
+evidence statuses, capped allocation, score eligibility, export contract, and
+verification rules. Version three preserves the methods and files below as
+historical production records.
+
 The final one-time prediction test selected Bayesian CAR, and the verified
 all-data production fit now provides a separate 156-cell probability surface
 for each of 318 players. Those results are immutable. The next question is how
