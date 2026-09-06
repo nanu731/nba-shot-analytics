@@ -84,6 +84,26 @@ Version two must live beside version one, generate twice with identical hashes,
 and publish only the 2025-26 season. Four other seasons and a season selector
 remain a later phase.
 
+### Verified targeted production result
+
+The all-player calculation reused the verified CAR fit and regenerated the
+frozen 4,000 joint draws without fitting any model. It retained 318 players and
+194,987 shots. The unchanged destination rule qualified 122 players; 196 kept
+their shots and heatmaps with null scores and gains. All qualified players had
+enough weak-source mass to reach the requested 25% setting.
+
+Qualified targeted scores ranged from 84.89 to 93.36. Their first quartile,
+median, and third quartile were 87.92, 89.14, and 89.95. At 25%, estimated gain
+per 100 shots ranged from 8.81 to 18.89, with quartiles 12.14, 13.58, and 14.93.
+These are summaries of modeled player estimates, not league rankings or causal
+effects.
+
+The calculation reached a complete staging bundle in about 140.8 seconds, then
+stopped because the validator expected a rectangular player-index table while
+JSON nulls preserved a list. A pushed recovery corrected only that index
+validation and rebuilt the export twice from the preserved player payloads. It
+did not repeat posterior sampling or change any player result.
+
 ## Frozen implementation specification
 
 Narayan approved the first relocation method on 2026-09-04. The implementation

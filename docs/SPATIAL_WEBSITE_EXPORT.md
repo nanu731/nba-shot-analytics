@@ -163,3 +163,20 @@ than two destinations pass the existing 10-attempt and 90%-certainty rules. It
 builds the complete bundle twice, compares every SHA-256 hash, and publishes by
 one directory rename only after counts, ordering, source ranking, mass,
 destination, interval, null, and shot-total checks pass.
+
+The verified targeted bundle contains 320 JSON files and occupies 56,847,516
+bytes. It contains one 318-player season index, 318 player files, 194,987 shot
+records, 49,608 heatmap cells, and 1,908 slider rows. Exactly 122 players have
+targeted scores and gains; 196 retain shot charts and heatmaps with null result
+fields. The manifest SHA-256 is
+`7dc2a65df883d458b198b763d3072f067cff9ea5997c95e55f6748607925595c`.
+The season-index SHA-256 is
+`1a267881b46bf2de41ca46152c6374ed96832c807ce8ba65d7a51e560abda4b6`.
+
+The initial complete staging build stopped during player-index validation
+because mixed score values and JSON nulls remained a list rather than a table.
+The recovery preserved all 318 player payload bytes, generated the corrected
+index and manifest twice, matched every file hash, and published the first
+verified recovery build. The independent verify mode matched the completion
+hashes, payload inventory, counts, ordering, null handling, approved shot-field
+allowlist, and destination restrictions.

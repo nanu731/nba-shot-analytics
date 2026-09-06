@@ -1,8 +1,9 @@
 # Spatial Shot Relocation: Living Plan
 
-**Status:** CAR won the frozen final prediction test, and the verified all-data
-CAR production model, proportional relocation results, and self-relative 0-100
-score now exist. Website-ready exports and integration remain unbuilt.
+**Status:** CAR won the frozen final prediction test. The verified all-data CAR
+production model remains unchanged. Targeted weak-location relocation now has a
+verified 2025-26 all-player version-two website export; portfolio integration is
+the remaining release step.
 
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.

@@ -530,7 +530,7 @@ validate_bundle <- function(root) {
                 "v2 must contain 320 JSON files")
   target_assert(all(tools::file_ext(files) == "json"),
                 "v2 contains a non-JSON file")
-  manifest <- fromJSON(file.path(root, "manifest.json"), simplifyVector = TRUE)
+  manifest <- fromJSON(file.path(root, "manifest.json"), simplifyVector = FALSE)
   index_path <- file.path(root, "seasons", season, "players.json")
   index <- fromJSON(index_path, simplifyVector = FALSE)
   entries <- index$players
@@ -610,6 +610,19 @@ validate_bundle <- function(root) {
   target_assert(identical(manifest$counts$shots, EXPECTED_SHOTS) &&
                   identical(manifest$counts$heatmap_cells, EXPECTED_LATTICE_ROWS),
                 "manifest counts changed")
+  payload_files <- files[files != "manifest.json"]
+  inventory_paths <- vapply(manifest$payload_files, `[[`, character(1), "path")
+  inventory_hashes <- vapply(manifest$payload_files, `[[`, character(1), "sha256")
+  inventory_bytes <- vapply(manifest$payload_files, `[[`, numeric(1), "bytes")
+  observed_hashes <- bundle_hashes(root)[inventory_paths]
+  observed_bytes <- file.info(file.path(root, inventory_paths))$size
+  target_assert(
+    !anyDuplicated(inventory_paths) &&
+      setequal(inventory_paths, payload_files) &&
+      identical(unname(inventory_hashes), unname(observed_hashes)) &&
+      identical(as.numeric(inventory_bytes), as.numeric(observed_bytes)),
+    "manifest payload inventory differs from the published files"
+  )
   collect_keys <- function(value) {
     own <- names(value)
     nested <- if (is.list(value)) unlist(lapply(value, collect_keys),
