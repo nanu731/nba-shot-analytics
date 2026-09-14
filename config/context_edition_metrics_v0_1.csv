@@ -1,0 +1,13 @@
+protocol_version,metric_id,scope,definition,direction,selection_role,minimum_reporting_support,notes
+context_m0_m1_protocol_v0.1.0,bernoulli_log_loss,pooled_shot,"mean(-y*log(p)-(1-y)*log(1-p)); clip p to [1e-15,1-1e-15] only inside logs",lower,primary,all_rows,"strictly proper for make probability"
+context_m0_m1_protocol_v0.1.0,brier_score,pooled_shot,"mean((y-p)^2)",lower,diagnostic,all_rows,"probability-quality diagnostic; cannot override log loss"
+context_m0_m1_protocol_v0.1.0,roc_auc,pooled_shot,"rank-based area under the receiver-operating-characteristic curve",higher,diagnostic,all_rows,"discrimination only; not a proper score and cannot select the model"
+context_m0_m1_protocol_v0.1.0,expected_points_rmse,pooled_shot,"sqrt(mean((point_value*y-point_value*p)^2))",lower,secondary,all_rows,"proper squared-error summary on field-goal points"
+context_m0_m1_protocol_v0.1.0,game_points_mae,whole_game,"mean(abs(sum(point_value*y)-sum(point_value*p))) by game",lower,secondary,all_games,"basketball-scale total error; cannot select the model"
+context_m0_m1_protocol_v0.1.0,game_points_rmse,whole_game,"sqrt(mean((sum(point_value*y)-sum(point_value*p))^2)) by game",lower,secondary,all_games,"emphasizes large game-total misses"
+context_m0_m1_protocol_v0.1.0,points_bias_per_100,pooled_shot,"100*mean(point_value*y-point_value*p)",closer_to_zero,diagnostic,all_rows,"signed under- or overprediction"
+context_m0_m1_protocol_v0.1.0,calibration_in_large,pooled_shot,"mean(y)-mean(p)",closer_to_zero,calibration_gate,all_rows,"report signed value and absolute error"
+context_m0_m1_protocol_v0.1.0,calibration_intercept,pooled_shot,"intercept from logit model y ~ offset(qlogis(p))",closer_to_zero,diagnostic,all_rows,"report NA plus reason if not estimable"
+context_m0_m1_protocol_v0.1.0,calibration_slope,pooled_shot,"slope from logit model y ~ qlogis(p)",closer_to_one,diagnostic,all_rows,"report NA plus reason if not estimable"
+context_m0_m1_protocol_v0.1.0,equal_count_decile_ece,pooled_shot,"sum(bin_n/total_n*abs(bin_observed-bin_predicted)) using ten deterministic equal-count bins per model",lower,calibration_gate,all_rows,"bins fixed from complete out-of-fold predictions for bootstrap"
+context_m0_m1_protocol_v0.1.0,subgroup_calibration,"point_value;finish_family;creation_family;player_training_volume","predicted mean; observed mean; signed gap; absolute gap",closer_to_zero,diagnostic,200,"all groups retain counts; groups below 200 shots receive NA precision summaries"
