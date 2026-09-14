@@ -41,6 +41,10 @@ config_path <- file.path(repo_root, "config", "context_edition_training_prefligh
 model_spec_path <- file.path(repo_root, "config", "context_edition_m0_m1_model_spec_v0_1.csv")
 feature_path <- file.path(repo_root, "config", "context_edition_feature_allowlist_v0_1.csv")
 taxonomy_path <- file.path(repo_root, "config", "context_edition_taxonomy_v0_1.csv")
+source_drift_path <- file.path(
+  repo_root, "data", "processed", "context_edition_canonical_v0_1_2_five_season",
+  "source_drift.csv"
+)
 
 sha256_file <- function(path) {
   result <- system2("shasum", c("-a", "256", path), stdout = TRUE)
@@ -155,6 +159,11 @@ if (any(config_values[c(
 model_spec <- read_csv(model_spec_path, show_col_types = FALSE)
 feature_spec <- read_csv(feature_path, show_col_types = FALSE)
 taxonomy <- read_csv(taxonomy_path, show_col_types = FALSE)
+source_drift <- read_csv(source_drift_path, show_col_types = FALSE)
+if (nrow(source_drift) != 5L || any(source_drift$status != "pass") ||
+    any(!source_drift$all_raw_labels_registered)) {
+  stop("canonical source-drift checks are not fully passing", call. = FALSE)
+}
 context_validate_feature_matrix(feature_spec)
 formulas <- context_model_formulas()
 factor_levels <- context_factor_levels()

@@ -116,6 +116,18 @@ record("new_raw_label_rejected", {
   expect_true(!setequal(observed, taxonomy$ACTION_TYPE), "unregistered label was accepted")
 })
 
+record("registered_seasonal_subset_accepted", {
+  seasonal_subset <- taxonomy$ACTION_TYPE[seq_len(46L)]
+  expect_true(
+    length(setdiff(seasonal_subset, taxonomy$ACTION_TYPE)) == 0L,
+    "a registered seasonal subset was rejected"
+  )
+  expect_true(
+    length(setdiff(c(seasonal_subset, "UNREGISTERED_TEST_LABEL"), taxonomy$ACTION_TYPE)) == 1L,
+    "an unregistered seasonal label was not detected"
+  )
+})
+
 record("grouped_binomial_reproduces_counts", {
   levels <- context_factor_levels()
   synthetic <- expand.grid(

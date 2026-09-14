@@ -536,7 +536,7 @@ source_drift <- canonical |>
     schema_version_matches = all(schema_version == .env$schema_version),
     taxonomy_version_matches = all(taxonomy_version == .env$taxonomy_version),
     join_version_matches = all(join_method == .env$join_version),
-    frozen_raw_label_set_matches = setequal(unique(raw_action_type), taxonomy$ACTION_TYPE),
+    all_raw_labels_registered = length(setdiff(unique(raw_action_type), taxonomy$ACTION_TYPE)) == 0L,
     finish_levels_match = setequal(unique(finish_family), c(
       "dunk", "layup", "floater", "hook", "regular_jumper",
       "fadeaway_or_turnaround", "step_back"
@@ -548,7 +548,7 @@ source_drift <- canonical |>
   ) |>
   mutate(status = if_else(
     schema_version_matches & taxonomy_version_matches & join_version_matches &
-      frozen_raw_label_set_matches & finish_levels_match & creation_levels_match,
+      all_raw_labels_registered & finish_levels_match & creation_levels_match,
     "pass", "fail"
   ))
 
@@ -932,6 +932,13 @@ tables <- list(
   taxonomy_mapping.csv = taxonomy |>
     mutate(taxonomy_version = .env$taxonomy_version, .before = 1L)
 )
+
+if (build_scope == "five_season_extension") {
+  # Legacy manual-review and and-one summaries are outside the authorized
+  # aggregate reporting surface for sealed validation seasons.
+  tables$manual_review_design.csv <- NULL
+  tables$pre_shot_context_verification.csv <- NULL
+}
 
 write_aggregate_bundle <- function(directory) {
   dir.create(directory, recursive = TRUE, showWarnings = FALSE)

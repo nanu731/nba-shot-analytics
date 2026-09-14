@@ -12,6 +12,8 @@ Canonicalization mechanically carries the frozen make/miss field and may use it 
 
 The same transformation function handles every season. Before publication, the rebuilt 2021-22 and 2022-23 rows must be identical in columns, types, values, and deterministic order to the accepted private v0.1.2 file. The registered accepted private and aggregate hashes must also match. A new raw label, changed source shape, or failed hash stops the build; it does not change the taxonomy.
 
+The first execution exposed a reporting-only false positive before fitting: the accepted 2021-22 source contains 46 of the 48 registered raw labels, so requiring every registered label in every season was stricter than the frozen contract. The corrected gate requires every observed label to be registered and still rejects any new label. The stopped artifact must remain preserved as recovery evidence; the corrected code must regenerate and re-verify the bundle before fitting. This correction does not change canonical rows, taxonomy, or outcomes.
+
 ## Training-only engine preflight
 
 The runner loads only the 2021-22 and 2022-23 season partitions. It fits exactly two grouped-binomial models:
