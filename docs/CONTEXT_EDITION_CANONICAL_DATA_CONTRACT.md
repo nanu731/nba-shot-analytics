@@ -137,7 +137,7 @@ Run the frozen build from the repository root with:
 Rscript R/context_edition_build_canonical.R --seasons=2021-22,2022-23
 ```
 
-The script refuses to overwrite a completed namespace or proceed through an existing build lock. A failed run keeps its partial namespace for recovery review.
+The script refuses to overwrite a completed namespace or proceed through a lock for the same schema version. A failed run keeps its lock and partial namespace for recovery review. A successful run clears its versioned lock after atomic publication.
 
 ## Known limits
 

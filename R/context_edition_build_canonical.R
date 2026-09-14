@@ -47,7 +47,7 @@ tracked_parent <- file.path(repo_root, "data", "processed")
 tracked_dir <- file.path(tracked_parent, "context_edition_canonical_v0_1_1")
 cache_parent <- file.path(repo_root, "data", "cache", "context_edition_canonical")
 canonical_dir <- file.path(cache_parent, schema_version)
-lock_dir <- file.path(cache_parent, ".build.lock")
+lock_dir <- file.path(cache_parent, paste0(".build-lock-", schema_version))
 
 required_paths <- c(shot_paths, pbp_paths, taxonomy_path, script_path)
 if (!all(file.exists(required_paths))) {
@@ -59,10 +59,6 @@ if (dir.exists(canonical_dir)) stop("A canonical output already exists; verify i
 if (dir.exists(tracked_dir)) stop("Tracked canonical outputs already exist; verify them instead of overwriting")
 if (!dir.create(lock_dir, showWarnings = FALSE)) stop("Could not acquire canonical build lock")
 
-build_succeeded <- FALSE
-on.exit({
-  if (build_succeeded && dir.exists(lock_dir)) unlink(lock_dir, recursive = TRUE)
-}, add = TRUE)
 writeLines(
   c(
     paste0("pid=", Sys.getpid()),
@@ -860,7 +856,8 @@ write_csv_stable(completion_manifest, file.path(canonical_stage, "completion_man
 if (!file.rename(canonical_stage, canonical_dir)) stop("Atomic canonical publication failed")
 if (!file.rename(aggregate_a, tracked_dir)) stop("Atomic aggregate publication failed")
 
-build_succeeded <- TRUE
+unlink(lock_dir, recursive = TRUE)
+if (dir.exists(lock_dir)) stop("Completed build could not clear its versioned lock")
 message("Canonical dataset published to ignored path: ", canonical_dir)
 message("Aggregate audit bundle published to tracked path: ", tracked_dir)
 message("Second aggregate bundle retained for byte comparison at: ", aggregate_b)
