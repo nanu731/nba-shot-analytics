@@ -22,17 +22,31 @@ if (length(season_arg) != 1L) {
 }
 seasons <- str_split(sub("^--seasons=", "", season_arg), ",", simplify = TRUE) |>
   as.character()
-approved_seasons <- c("2021-22", "2022-23")
-if (!identical(seasons, approved_seasons)) {
-  stop("This frozen build accepts only 2021-22,2022-23 in that order")
+training_seasons <- c("2021-22", "2022-23")
+extended_seasons <- c(training_seasons, "2023-24", "2024-25", "2025-26")
+build_scope <- if (identical(seasons, training_seasons)) {
+  "accepted_training_seasons"
+} else if (identical(seasons, extended_seasons)) {
+  "five_season_extension"
+} else {
+  stop(
+    "This frozen build accepts exactly 2021-22,2022-23 or ",
+    "2021-22,2022-23,2023-24,2024-25,2025-26 in that order"
+  )
 }
 
 schema_version <- "context_field_goal_v0.1.2"
 taxonomy_version <- "context_taxonomy_v0.1.0"
 join_version <- "shotchart_espn_exact_clock_player_v0.1.1"
-expected_shots <- c(`2021-22` = 216722L, `2022-23` = 217220L)
+expected_shots <- c(
+  `2021-22` = 216722L, `2022-23` = 217220L, `2023-24` = 218700L,
+  `2024-25` = 219527L, `2025-26` = 219160L
+)
 expected_unique_matches <- c(`2021-22` = 191079L, `2022-23` = 194530L)
-pbp_years <- c(`2021-22` = 2022L, `2022-23` = 2023L)
+pbp_years <- c(
+  `2021-22` = 2022L, `2022-23` = 2023L, `2023-24` = 2024L,
+  `2024-25` = 2025L, `2025-26` = 2026L
+)
 
 shot_paths <- file.path(
   repo_root, "data", "raw", "shots", paste0("season=", seasons), "shots.parquet"
@@ -42,14 +56,29 @@ pbp_paths <- file.path(
   paste0("play_by_play_", unname(pbp_years[seasons]), ".rds")
 )
 taxonomy_path <- file.path(repo_root, "config", "context_edition_taxonomy_v0_1.csv")
+accepted_hash_path <- file.path(
+  repo_root, "config", "context_edition_accepted_v0_1_2_hashes.csv"
+)
 script_path <- file.path(repo_root, "R", "context_edition_build_canonical.R")
 tracked_parent <- file.path(repo_root, "data", "processed")
-tracked_dir <- file.path(tracked_parent, "context_edition_canonical_v0_1_2")
+tracked_dir <- file.path(
+  tracked_parent,
+  if (build_scope == "five_season_extension") {
+    "context_edition_canonical_v0_1_2_five_season"
+  } else {
+    "context_edition_canonical_v0_1_2"
+  }
+)
 cache_parent <- file.path(repo_root, "data", "cache", "context_edition_canonical")
-canonical_dir <- file.path(cache_parent, schema_version)
-lock_dir <- file.path(cache_parent, paste0(".build-lock-", schema_version))
+canonical_namespace <- if (build_scope == "five_season_extension") {
+  paste0(schema_version, "__2021-22_to_2025-26")
+} else {
+  schema_version
+}
+canonical_dir <- file.path(cache_parent, canonical_namespace)
+lock_dir <- file.path(cache_parent, paste0(".build-lock-", canonical_namespace))
 
-required_paths <- c(shot_paths, pbp_paths, taxonomy_path, script_path)
+required_paths <- c(shot_paths, pbp_paths, taxonomy_path, accepted_hash_path, script_path)
 if (!all(file.exists(required_paths))) {
   stop("Missing required input: ", paste(required_paths[!file.exists(required_paths)], collapse = "; "))
 }
@@ -63,7 +92,9 @@ writeLines(
   c(
     paste0("pid=", Sys.getpid()),
     paste0("started_at_utc=", format(Sys.time(), tz = "UTC", usetz = TRUE)),
-    paste0("schema_version=", schema_version)
+    paste0("schema_version=", schema_version),
+    paste0("build_scope=", build_scope),
+    paste0("seasons=", paste(seasons, collapse = ";"))
   ),
   file.path(lock_dir, "metadata.txt")
 )
@@ -95,13 +126,16 @@ write_csv_stable <- function(data, path) {
 input_manifest <- tibble(
   source = c(rep("NBA ShotChartDetail local extract", length(seasons)),
              rep("hoopR SportsDataverse ESPN play-by-play release", length(seasons)),
-             "frozen taxonomy mapping", "canonical build script"),
-  season = c(seasons, seasons, NA_character_, NA_character_),
-  release_year = c(rep(NA_integer_, length(seasons)), unname(pbp_years[seasons]), NA_integer_, NA_integer_),
+             "frozen taxonomy mapping", "accepted artifact hash register",
+             "canonical build script"),
+  season = c(seasons, seasons, NA_character_, NA_character_, NA_character_),
+  release_year = c(rep(NA_integer_, length(seasons)), unname(pbp_years[seasons]),
+                   NA_integer_, NA_integer_, NA_integer_),
   file = c(
     file.path("data", "raw", "shots", paste0("season=", seasons), "shots.parquet"),
     file.path("data", "cache", "context_edition_audit", paste0("play_by_play_", unname(pbp_years[seasons]), ".rds")),
     file.path("config", basename(taxonomy_path)),
+    file.path("config", basename(accepted_hash_path)),
     file.path("R", basename(script_path))
   ),
   bytes = file.info(required_paths)$size,
@@ -404,16 +438,57 @@ if (!identical(canonical, build_two$canonical)) {
 rm(build_two)
 gc(verbose = FALSE)
 
+accepted_hashes <- read_csv(accepted_hash_path, show_col_types = FALSE)
+accepted_paths <- file.path(repo_root, accepted_hashes$path)
+if (!all(file.exists(accepted_paths))) {
+  stop("An accepted v0.1.2 artifact is missing")
+}
+accepted_hashes$observed_sha256 <- map_chr(accepted_paths, sha256_file)
+if (any(accepted_hashes$sha256 != accepted_hashes$observed_sha256)) {
+  stop("An accepted v0.1.2 artifact hash changed")
+}
+
+accepted_canonical_path <- file.path(
+  repo_root, "data", "cache", "context_edition_canonical",
+  schema_version, "canonical_shots.parquet"
+)
+accepted_training <- read_parquet(accepted_canonical_path, as_data_frame = TRUE)
+rebuilt_training <- canonical |>
+  filter(season %in% training_seasons) |>
+  arrange(season, source_game_id, source_event_id)
+accepted_training <- accepted_training |>
+  arrange(season, source_game_id, source_event_id)
+training_rows_identical <- identical(rebuilt_training, accepted_training)
+if (!training_rows_identical) {
+  stop("Generalized pipeline did not exactly reproduce accepted training rows")
+}
+
+training_reproduction <- tibble(
+  check = c(
+    "accepted_artifact_hashes", "accepted_training_rows",
+    "accepted_training_row_count", "accepted_canonical_hash"
+  ),
+  status = "pass",
+  measured_value = c(
+    paste0(nrow(accepted_hashes), " frozen artifact hashes matched"),
+    "all columns, types, values, and deterministic row order identical",
+    as.character(nrow(rebuilt_training)),
+    sha256_file(accepted_canonical_path)
+  ),
+  required_value = c(
+    "all registered hashes match", "identical", "433942",
+    "292eba28ce0a37788945312169c0986c60bc9db5c6308d322bf5f8e073b2ded7"
+  )
+)
+
 source_coverage <- canonical |>
   group_by(season) |>
   summarise(
     games = n_distinct(source_game_id),
     shots = n(),
     players = n_distinct(player_id),
-    made_shots = sum(field_goal_made),
     two_point_attempts = sum(point_value == 2L),
     three_point_attempts = sum(point_value == 3L),
-    realized_field_goal_points = sum(realized_field_goal_points),
     raw_action_labels = n_distinct(raw_action_type),
     .groups = "drop"
   ) |>
@@ -434,6 +509,62 @@ taxonomy_coverage <- bind_rows(
   mutate(share = shots / sum(shots)) |>
   ungroup() |>
   arrange(season, dimension, family)
+
+predictor_fields <- c(
+  "point_value", "finish_family", "creation_family", "period",
+  "minutes_remaining", "seconds_remaining", "shot_distance_feet",
+  "location_x_tenths_feet", "location_y_tenths_feet",
+  "shooter_home_away", "score_margin_before"
+)
+predictor_missingness <- map_dfr(seasons, function(season_value) {
+  season_data <- canonical |> filter(season == season_value)
+  map_dfr(predictor_fields, function(field) {
+    tibble(
+      season = season_value,
+      field = field,
+      rows = nrow(season_data),
+      missing_rows = sum(is.na(season_data[[field]])),
+      missing_share = mean(is.na(season_data[[field]]))
+    )
+  })
+}) |>
+  arrange(season, field)
+
+source_drift <- canonical |>
+  group_by(season) |>
+  summarise(
+    schema_version_matches = all(schema_version == .env$schema_version),
+    taxonomy_version_matches = all(taxonomy_version == .env$taxonomy_version),
+    join_version_matches = all(join_method == .env$join_version),
+    frozen_raw_label_set_matches = setequal(unique(raw_action_type), taxonomy$ACTION_TYPE),
+    finish_levels_match = setequal(unique(finish_family), c(
+      "dunk", "layup", "floater", "hook", "regular_jumper",
+      "fadeaway_or_turnaround", "step_back"
+    )),
+    creation_levels_match = setequal(unique(creation_family), c(
+      "drive_cut_or_roll", "pull_up_or_self_created", "putback", "other_or_unknown"
+    )),
+    .groups = "drop"
+  ) |>
+  mutate(status = if_else(
+    schema_version_matches & taxonomy_version_matches & join_version_matches &
+      frozen_raw_label_set_matches & finish_levels_match & creation_levels_match,
+    "pass", "fail"
+  ))
+
+validation_seal <- tibble(
+  season = seasons,
+  mechanical_canonicalization_access = TRUE,
+  analytical_outcome_access = FALSE,
+  model_fit_outcome_access = FALSE,
+  prediction_outcome_access = FALSE,
+  performance_metric_access = FALSE,
+  access_note = if_else(
+    season %in% training_seasons,
+    "outcomes may be used only by the separately committed training preflight",
+    "outcomes preserved mechanically; no analytical use authorized"
+  )
+)
 
 join_quality <- canonical |>
   count(season, linkage_status, name = "shots") |>
@@ -570,10 +701,6 @@ rare_labels <- canonical |>
   pull(raw_action_type)
 
 review_strata <- list(
-  season_2021_22 = canonical |> filter(season == "2021-22"),
-  season_2022_23 = canonical |> filter(season == "2022-23"),
-  made = canonical |> filter(field_goal_made == 1L),
-  missed = canonical |> filter(field_goal_made == 0L),
   two_point = canonical |> filter(point_value == 2L),
   three_point = canonical |> filter(point_value == 3L),
   finish_dunk = canonical |> filter(finish_family == "dunk"),
@@ -596,6 +723,11 @@ review_strata <- list(
   coordinate_disagreement = canonical |> filter(coordinate_disagreement),
   point_value_disagreement = canonical |> filter(point_value_disagreement)
 )
+
+for (season_value in seasons) {
+  review_strata[[paste0("season_", str_replace_all(season_value, "-", "_"))]] <-
+    canonical |> filter(season == season_value)
+}
 
 review_population <- imap_dfr(review_strata, function(data, stratum) {
   tibble(review_stratum = stratum, population_rows = nrow(data))
@@ -639,17 +771,17 @@ prohibited_predictors <- c(
 
 checks <- tibble(
   check = c(
-    "exactly_two_approved_seasons", "expected_games", "expected_shots",
+    "exact_approved_season_scope", "expected_games", "expected_shots",
     "unique_canonical_keys", "no_duplicate_source_shots", "valid_make_values",
     "valid_point_values", "valid_realized_points", "valid_distance",
     "valid_coordinates", "valid_clock", "valid_period", "raw_labels_complete",
     "finish_mapping_complete", "creation_mapping_complete",
     "honest_creation_unknown", "taxonomy_stable", "deterministic_canonical_build",
-    "no_predictor_leakage", "no_later_seasons", "no_2026_27_access",
+    "no_predictor_leakage", "only_approved_seasons", "no_2026_27_access",
     "audited_exact_join_counts", "all_rows_m0_eligible", "all_rows_m1_eligible"
   ),
   status = c(
-    if_else(identical(sort(unique(canonical$season)), approved_seasons), "pass", "fail"),
+    if_else(identical(sort(unique(canonical$season)), sort(seasons)), "pass", "fail"),
     if_else(all(source_coverage$games == 1230L), "pass", "fail"),
     if_else(all(source_coverage$shots == source_coverage$expected_shots), "pass", "fail"),
     if_else(anyDuplicated(canonical$canonical_shot_key) == 0L, "pass", "fail"),
@@ -668,9 +800,18 @@ checks <- tibble(
     "pass",
     "pass",
     if_else(length(intersect(feature_allow_list, prohibited_predictors)) == 0L, "pass", "fail"),
-    if_else(all(canonical$season %in% approved_seasons), "pass", "fail"),
+    if_else(all(canonical$season %in% extended_seasons), "pass", "fail"),
     if_else(!any(input_manifest$contains_2026_27), "pass", "fail"),
-    if_else(all(reconciliation$unique_matches == unname(.env$expected_unique_matches[reconciliation$season])), "pass", "fail"),
+    if_else(
+      all(
+        reconciliation$unique_matches[reconciliation$season %in% training_seasons] ==
+          unname(.env$expected_unique_matches[reconciliation$season[reconciliation$season %in% training_seasons]])
+      ) && all(
+        reconciliation$unique_matches + reconciliation$ambiguous_matches +
+          reconciliation$unmatched_events + reconciliation$unmatched_games == source_coverage$shots
+      ),
+      "pass", "fail"
+    ),
     if_else(all(is.na(canonical$m0_exclusion_reason)), "pass", "fail"),
     if_else(all(is.na(canonical$m1_exclusion_reason)), "pass", "fail")
   ),
@@ -701,13 +842,14 @@ checks <- tibble(
     as.character(sum(is.na(canonical$m1_exclusion_reason)))
   ),
   required_value = c(
-    "2021-22;2022-23", "1230 each", "216722;217220", "433942", "0",
+    paste(seasons, collapse = ";"), "1230 each", paste(unname(expected_shots[seasons]), collapse = ";"),
+    as.character(sum(expected_shots[seasons])), "0",
     "0;1", "2;3", "0;2;3", "0 to 100 feet", "court bounds",
     "minutes 0-12 and seconds 0-59", "1-10", "0 missing", "0 missing",
     "0 missing", "indicator matches category", "frozen mapping hash",
     "identical", "empty intersection", "only approved seasons", "no 2026-27 source",
-    "191079;194530",
-    "433942", "433942"
+    "accepted training counts exact and every source row has one join status",
+    as.character(sum(expected_shots[seasons])), as.character(sum(expected_shots[seasons]))
   )
 )
 
@@ -778,11 +920,15 @@ tables <- list(
   manual_review_design.csv = review_design,
   package_versions.csv = package_versions,
   pre_shot_context_verification.csv = pre_shot_context,
+  predictor_missingness.csv = predictor_missingness,
   raw_label_coverage_by_season.csv = raw_label_coverage,
   readiness.csv = readiness,
   reconciliation_disagreements.csv = reconciliation,
+  source_drift.csv = source_drift,
   source_coverage.csv = source_coverage,
   taxonomy_coverage_by_season.csv = taxonomy_coverage,
+  training_reproduction.csv = training_reproduction,
+  validation_seal_audit.csv = validation_seal,
   taxonomy_mapping.csv = taxonomy |>
     mutate(taxonomy_version = .env$taxonomy_version, .before = 1L)
 )
@@ -839,16 +985,46 @@ dir.create(canonical_stage, recursive = TRUE, showWarnings = FALSE)
 canonical_path <- file.path(canonical_stage, "canonical_shots.parquet")
 review_path <- file.path(canonical_stage, "manual_review_sample_private.csv")
 write_parquet(canonical, canonical_path, compression = "zstd")
+partition_paths <- character()
+if (build_scope == "five_season_extension") {
+  partition_paths <- map_chr(seasons, function(season_value) {
+    partition_dir <- file.path(canonical_stage, paste0("season=", season_value))
+    dir.create(partition_dir, recursive = TRUE, showWarnings = FALSE)
+    partition_path <- file.path(partition_dir, "canonical_shots.parquet")
+    write_parquet(
+      canonical |> filter(season == season_value),
+      partition_path,
+      compression = "zstd"
+    )
+    partition_path
+  })
+}
 write_csv_stable(private_review_sample, review_path)
 
 completion_manifest <- tibble(
-  artifact = c("canonical_shots.parquet", "manual_review_sample_private.csv"),
-  rows = c(nrow(canonical), nrow(private_review_sample)),
-  bytes = file.info(c(canonical_path, review_path))$size,
-  sha256 = map_chr(c(canonical_path, review_path), sha256_file),
+  artifact = c(
+    "canonical_shots.parquet",
+    if (build_scope == "five_season_extension") {
+      file.path(paste0("season=", seasons), "canonical_shots.parquet")
+    } else {
+      character()
+    },
+    "manual_review_sample_private.csv"
+  ),
+  rows = c(
+    nrow(canonical),
+    if (build_scope == "five_season_extension") unname(expected_shots[seasons]) else integer(),
+    nrow(private_review_sample)
+  ),
+  bytes = file.info(c(canonical_path, partition_paths, review_path))$size,
+  sha256 = map_chr(c(canonical_path, partition_paths, review_path), sha256_file),
   schema_version = schema_version,
   taxonomy_version = taxonomy_version,
+  join_version = join_version,
+  build_scope = build_scope,
   input_hashes = paste(input_manifest$sha256, collapse = ";"),
+  training_rows_identical_to_accepted = training_rows_identical,
+  validation_outcomes_analytically_accessed = FALSE,
   checks_passed = TRUE,
   atomic_complete = TRUE
 )

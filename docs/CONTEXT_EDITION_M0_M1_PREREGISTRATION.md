@@ -289,11 +289,15 @@ Write fit and prediction stages atomically. A completion manifest must hash inpu
 
 The feasibility audit labeled M0 as point value plus broad finish and reserved player effects for M4. The canonical leakage register repeats those provisional ladder labels, and the canonical contract's next-stage sentence frames creation as the only M1 addition. The current project request instead defines M0 as a pooled player baseline and M1 as the first finish-plus-creation model. This preregistration follows the current request without editing the historical audit, contract, taxonomy, or canonical rows. Narayan should confirm that ladder change before fitting.
 
-## Decisions for Narayan
+## Approved decisions
 
-1. Approve or reject the revised ladder boundary: M0 uses point value plus a pooled player intercept; M1 adds both taxonomy axes. Recommendation: approve because it gives M0 a credible player baseline and gives M1 one clear increment.
-2. Approve or amend the calibration and season-breadth gates: a `0.005` paired calibration margin and M1 wins in at least two of three seasons. Recommendation: approve because the rules block a narrow or visibly miscalibrated M1 gain without letting secondary metrics choose the winner.
+Before canonical extension or fitting, Narayan approved both previously open choices:
 
-## Next stage after approval
+1. M0 uses point value plus a pooled player intercept. M1 adds the two additive taxonomy axes and nothing else.
+2. The mechanical decision retains the `0.005` material-calibration margin and requires M1 to improve log loss in at least two of three retrospective validation seasons.
+
+These choices are frozen. They cannot change after any validation outcome is used analytically.
+
+## Authorized next stage
 
 Canonicalize 2023-24 through 2025-26 under a separate, versioned task using outcome-blind taxonomy and split checks. Then run a training-only engine preflight. Freeze any necessary computational amendment before the first validation outcome is opened. Do not touch 2026-27.
