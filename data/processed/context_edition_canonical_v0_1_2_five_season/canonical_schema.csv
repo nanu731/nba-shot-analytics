@@ -1,0 +1,52 @@
+field,type,role,required,public,definition
+schema_version,character,provenance,TRUE,FALSE,field-goal canonical schema version
+taxonomy_version,character,provenance,TRUE,FALSE,taxonomy mapping version
+canonical_shot_key,character,stable internal key,TRUE,FALSE,season plus provider game and event key; local only
+season,character,pre-shot context,TRUE,FALSE,NBA season label
+source_game_id,character,audit identifier,TRUE,FALSE,raw ShotChartDetail game ID
+source_event_id,integer,audit identifier,TRUE,FALSE,raw ShotChartDetail event ID
+player_id,integer,identity,TRUE,FALSE,raw player identifier
+player_name,character,identity,TRUE,FALSE,raw player name
+team_id,integer,identity,TRUE,FALSE,raw shooting-team identifier
+home_team_abbrev,character,audit context,TRUE,FALSE,raw home-team abbreviation
+away_team_abbrev,character,audit context,TRUE,FALSE,raw away-team abbreviation
+period,integer,pre-shot context,TRUE,FALSE,period containing the attempt
+minutes_remaining,integer,pre-shot context,TRUE,FALSE,whole clock minutes before the attempt
+seconds_remaining,integer,pre-shot context,TRUE,FALSE,clock seconds before the attempt
+field_goal_made,integer,outcome,TRUE,FALSE,one for made field goal and zero for miss
+point_value,integer,shot definition,TRUE,FALSE,two or three points
+realized_field_goal_points,integer,outcome,TRUE,FALSE,zero for a miss; two or three for a make
+shot_distance_feet,integer,pre-shot geometry,TRUE,FALSE,ShotChartDetail distance
+location_x_tenths_feet,integer,pre-shot geometry,TRUE,FALSE,ShotChartDetail x coordinate
+location_y_tenths_feet,integer,pre-shot geometry,TRUE,FALSE,ShotChartDetail y coordinate
+raw_action_type,character,raw taxonomy,TRUE,FALSE,unmodified ShotChartDetail action label
+finish_family,character,derived taxonomy,TRUE,FALSE,seven-family provisional finish mapping
+creation_family,character,derived taxonomy,TRUE,FALSE,explicit-cue creation mapping with other/unknown
+creation_other_unknown,logical,taxonomy quality,TRUE,FALSE,true when no explicit supported creation cue exists
+shooter_home_away,character,pre-shot context,FALSE,FALSE,matched event team side
+score_home_before,integer,pre-shot context,FALSE,FALSE,score before the event after sequence verification
+score_away_before,integer,pre-shot context,FALSE,FALSE,score before the event after sequence verification
+score_margin_before,integer,pre-shot context,FALSE,FALSE,shooter-relative margin before the event
+pre_shot_score_verified,logical,context quality,TRUE,FALSE,score delta independently agrees with the matched attempt
+join_method,character,linkage provenance,TRUE,FALSE,versioned game and event join rule
+linkage_status,character,linkage quality,TRUE,FALSE,"unique exact, ambiguous, or unmatched"
+pbp_candidate_count,integer,linkage quality,TRUE,FALSE,play-by-play candidates on the match key
+shot_clock_player_count,integer,linkage quality,TRUE,FALSE,shot-chart rows on the match key
+pbp_event_id,character,audit identifier,FALSE,FALSE,matched play-by-play event ID
+pbp_event_order,integer,audit ordering,FALSE,FALSE,matched play-by-play order
+pbp_sequence_number,integer,audit ordering,FALSE,FALSE,matched provider sequence number
+pbp_type_text,character,raw audit taxonomy,FALSE,FALSE,matched play-by-play type
+raw_pbp_description,character,post-shot audit,FALSE,FALSE,matched raw description; forbidden as predictor
+pbp_made,integer,cross-source audit,FALSE,FALSE,matched play-by-play result
+pbp_point_observed,integer,cross-source audit,FALSE,FALSE,auditable point value when observable
+result_disagreement,logical,quality,TRUE,FALSE,providers disagree on make or miss
+point_value_disagreement,logical,quality,TRUE,FALSE,providers disagree on observed point value
+coordinate_comparable,logical,quality,TRUE,FALSE,play-by-play coordinates support comparison
+coordinate_disagreement,logical,quality,TRUE,FALSE,either transformed coordinate differs by more than one foot
+score_sequence_agrees,logical,quality,FALSE,FALSE,score change equals the shot outcome and value
+and_one_candidate,logical,M5 audit flag,TRUE,FALSE,"same-clock made shot, shooting foul, and one free throw"
+unusual_description,logical,manual-review flag,TRUE,FALSE,heave or no-shot wording
+source_shot_sha256,character,provenance,TRUE,FALSE,source shot-file hash
+source_pbp_sha256,character,provenance,FALSE,FALSE,source play-by-play hash for a unique match
+m0_exclusion_reason,character,eligibility,FALSE,FALSE,null because all canonical rows support M0
+m1_exclusion_reason,character,eligibility,FALSE,FALSE,null because other/unknown remains valid for M1

@@ -1,0 +1,5 @@
+attempt_id,stage,status,wall_seconds,user_cpu_seconds,system_cpu_seconds,maximum_resident_bytes,peak_memory_footprint_bytes,checkpoint_published,validation_outcomes_analytically_accessed,note
+20260914T175629Z,canonical_rejected,rejected_reporting_guard,148.79,127.06,14.37,3983032320,9388811912,FALSE,FALSE,all canonical rows completed but an exact-set raw-label report falsely rejected accepted 2021-22
+20260914T222627Z,canonical_corrected,passed,153.87,130.34,15.96,4019732480,9436210824,TRUE,FALSE,corrected registered-subset guard passed and canonical bundle published atomically
+20260914T222712Z,training_preflight_first_attempt,failed_operational_check,137.96,133.36,2.05,1054703616,1436042992,FALSE,FALSE,both fits ran but a post-fit table variable-shadowing error stopped publication
+20260914T223138Z,training_preflight_recovery,passed,142.66,140.01,1.65,1133887488,1570686824,TRUE,FALSE,identical frozen fits reran because no checkpoint existed and published atomically
