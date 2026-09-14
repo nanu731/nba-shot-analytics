@@ -1,0 +1,7 @@
+stage,input_scale,wall_time_estimate,peak_memory_estimate,stored_output_estimate,status
+Audit rerun,1091329 shot rows plus 3120550 play-by-play events,about 1 minute on the audited Mac after source files were cached,not measured,about 150 KB aggregate outputs plus 122 MB compressed inputs,measured except memory
+Canonical field-goal build,about 1.1 million shot rows,minutes,1 to 4 GB,0.1 to 0.5 GB compressed,planning estimate
+M0 to M2,about 1.1 million rows with compact features,minutes to a few hours,2 to 8 GB,under 1 GB if fit summaries replace row predictions,planning estimate
+M3 to M4,about 1.1 million rows plus hierarchical player-family effects,hours to a day,8 to 32 GB,several GB if posterior draws are retained,planning estimate
+M5 restricted shot trips,field goals plus up to 122116 currently unambiguous foul trips,adds minutes to hours after linkage is built,similar to or moderately above M3 to M4,keep only aggregate posterior summaries in Git,planning estimate
+M6 volume curves,not recommended for version one,not estimated,not estimated,not estimated,no-go pending new identification evidence

@@ -1,0 +1,12 @@
+case_type,examples_reviewed,manual_result,main_observation
+ordinary_made_field_goal,1,pass,standalone made attempt and following event were ordered clearly
+ordinary_missed_field_goal,1,pass,miss and defensive rebound were ordered clearly
+two_shot_shooting_foul,1,pass,shooting foul and two free throws shared clock and shooter identity
+and_one,1,pass,made field goal shooting foul and one free throw shared clock and shooter identity
+three_shot_shooting_foul,1,pass_with_interleaving,team rebound and substitutions appeared inside the free-throw sequence
+technical_free_throw,1,exclude,technical and ordinary shooting-foul free throws shared one clock and must not be merged
+clear_path_sequence,1,exclude_or_manual_review,replay overturned wording and clear-path free throws require final adjudication logic
+take_foul_sequence,1,exclude,take-foul free throws were distinct from shooting-foul value
+offensive_rebound_inside_free_throws,1,placeholder_only,a team rebound between nonfinal free throws must not end the trip
+period_ending_shot,1,pass_with_rule,a shot at 0.1 seconds was followed by a placeholder rebound and period end
+provider_no_shot_correction,1,exclude_or_manual_review,a No Shot default event looked like a make and cannot be treated as an attempt without reconciliation

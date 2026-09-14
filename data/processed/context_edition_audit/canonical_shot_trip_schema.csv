@@ -1,0 +1,44 @@
+field,role,grain,source_or_derivation,required_for_first_version,leakage_rule
+source_provider,provenance,shot or event,raw source,yes,none
+source_game_id,immutable key,shot or event,raw source,yes,none
+source_event_id,immutable key,shot or event,raw source,yes,none
+source_event_order,immutable ordering,event,raw source,yes,none
+source_hash,provenance,source file,acquisition process,yes,none
+acquired_at,provenance,source file,acquisition process,yes,none
+mapping_version,provenance,shot or trip,versioned mapping,yes,none
+canonical_game_id,linkage key,game,crosswalk,yes,no outcome use
+canonical_shot_id,linkage key,field-goal attempt,crosswalk,yes,no outcome use
+canonical_shot_trip_id,linkage key,shot trip,sequence rules,no,build only after linkage validation
+season,context,game,raw source,yes,none
+game_date,context,game,raw source,yes,none
+player_id,identity,shot or trip,raw source,yes,excluded from M0 to M3 opportunity-quality predictors
+team_id,context,shot or trip,raw source,yes,pre-shot value only
+opponent_id,context,shot or trip,game crosswalk,yes,pre-shot value only
+home_road,context,shot or trip,game crosswalk,yes,pre-shot value only
+period,context,shot or trip,raw source,yes,pre-shot value only
+game_clock_remaining,context,shot or trip,raw source,yes,pre-shot value only
+score_home_before,context,shot or trip,lagged event score,no,must precede attempt
+score_away_before,context,shot or trip,lagged event score,no,must precede attempt
+score_margin_before,context,shot or trip,derived from pre-event scores,no,must precede attempt
+point_value,shot definition,shot or trip,raw source,yes,known at release
+raw_action_type,raw taxonomy,shot or event,raw source,yes,preserve exactly
+raw_subtype,raw taxonomy,event,raw source,no,preserve exactly
+raw_description,raw taxonomy,event,raw source,no,never use made-only assist text as a predictor
+raw_qualifiers,raw taxonomy,event,raw source,no,separate pre-shot descriptors from post-outcome facts
+creation_family,derived taxonomy,shot or trip,versioned mapping,conditional,unknown is required when evidence is absent
+finish_family,derived taxonomy,shot or trip,versioned mapping,yes,mapping frozen before evaluation
+shot_distance_feet,geometry,shot,raw source,yes,pre-shot value only
+location_x_tenths_feet,geometry,shot,raw source,yes,pre-shot value only
+location_y_tenths_feet,geometry,shot,raw source,yes,pre-shot value only
+shot_clock_remaining,context,shot,verified joint source,no,omit if unavailable at shot grain
+transition_flag,context,shot or trip,validated possession sequence,no,derive without future events beyond target construction
+second_chance_flag,context,shot or trip,validated possession sequence,no,derive without outcome leakage
+field_goal_made,target,shot,raw source,yes,target only
+shooting_foul_linked,target construction,trip,validated sequence,no,target only
+attributable_free_throw_attempts,target construction,trip,validated sequence,no,target only
+attributable_free_throw_makes,target construction,trip,validated sequence,no,target only
+attributable_free_throw_points,target construction,trip,validated sequence,no,target only
+lineup_player_ids,context,event interval,validated substitutions,no,pre-shot state only
+linkage_rule_version,quality,shot or trip,versioned code,yes,none
+linkage_status,quality,shot or trip,validation result,yes,never turn ambiguous into linked
+provider_correction_status,quality,event,final event feed,no,target construction only

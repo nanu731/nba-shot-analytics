@@ -1,0 +1,11 @@
+check,status,measured_value,required_value
+five_seasons_present,pass,5,5
+expected_games_each_season,pass,1230;1230;1230;1230;1230,1230 each
+thirty_teams_each_season,pass,30;30;30;30;30,30 each
+unique_shotchart_event_keys,pass,0,0 duplicates
+complete_shotchart_event_keys,pass,0,0 missing
+complete_24_field_shotchart_schema,pass,120 field-season rows; 0 missing values,120 field-season rows; 0 missing values
+all_finish_labels_mapped,pass,0,0 unknown finish rows
+play_by_play_game_crosswalk,warning,1230;1230;1230;1230;1229,document any season below 1230
+matched_result_agreement,pass,1;1;1;1;1,1 each season
+aggregate_outputs_only,pass,no shot-level writer exists,all tracked audit outputs aggregate or declarative

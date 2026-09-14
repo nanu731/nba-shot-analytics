@@ -1,0 +1,13 @@
+risk,prohibited_use,control,verification
+shot outcome in predictors,make miss or scored points used to predict opportunity quality,keep outcome columns target-only,schema and feature allow-list check
+assist flag leakage,official assist exists only after made baskets,never use assist text or flag as a pre-shot feature,feature-name and source-field audit
+post-shot score,score after the event used as if it preceded the shot,lag final event score within game and audit simultaneous events,hand checks and monotonic event-order tests
+future player ability,test-period attempts used to estimate a player effect,fit player effects from training games only,split-boundary hash and row audit
+same game across folds,events from one game split across training and validation,group every split by whole game,game-id disjointness check
+full-game hindsight,final score lineup or possession result predicts an earlier shot,construct only from prior event state,time-order feature audit
+fabricated joint context,season-level catch-and-shoot and defender bins joined into synthetic shot rows,keep marginal summaries separate and descriptive,grain field required in source inventory
+taxonomy tuning after test,raw-label mapping changed after final outcomes are viewed,version and commit mapping before evaluation,Git hash recorded with evaluation
+shot-trip misattribution,technical take clear-path or unrelated free throws assigned to a field goal,explicit exclusions and ambiguous status,sequence-class counts plus manual review
+provider correction leakage or error,overturned or corrected event interpreted from an earlier feed state,use final feed only for target construction and retain correction status,reconciliation against final box totals
+location target leakage,coordinates inferred from a result-only description,use ShotChartDetail coordinates captured with the attempt,source precedence check
+eligibility leakage,player inclusion set using future evaluation outcomes,declare eligibility from training history only,eligibility manifest by split
