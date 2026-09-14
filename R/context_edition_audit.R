@@ -83,6 +83,7 @@ coverage <- list()
 action_counts <- list()
 taxonomy_counts <- list()
 player_family <- list()
+taxonomy_player_family <- list()
 reconciliation <- list()
 pbp_coverage <- list()
 shot_trip_linkage <- list()
@@ -160,6 +161,12 @@ for (season in seasons) {
       three_point_share = mean(point_value == 3L),
       .groups = "drop"
     )
+
+  taxonomy_player_family[[season]] <- bind_rows(
+    shots |> count(season, PLAYER_ID, family = creation_family, name = "attempts") |> mutate(dimension = "creation"),
+    shots |> count(season, PLAYER_ID, family = finish_family, name = "attempts") |> mutate(dimension = "finish")
+  ) |>
+    select(season, dimension, PLAYER_ID, family, attempts)
 
   pbp <- readRDS(pbp_paths[match(season, seasons)]) |>
     filter(season_type == 2L) |>
@@ -367,6 +374,7 @@ coverage_out <- bind_rows(coverage)
 action_counts_out <- bind_rows(action_counts)
 taxonomy_counts_out <- bind_rows(taxonomy_counts)
 player_family_out <- bind_rows(player_family)
+taxonomy_player_family_out <- bind_rows(taxonomy_player_family)
 reconciliation_out <- bind_rows(reconciliation)
 pbp_coverage_out <- bind_rows(pbp_coverage)
 shot_trip_linkage_out <- bind_rows(shot_trip_linkage)
@@ -392,6 +400,19 @@ label_drift_out <- action_counts_out |>
 
 taxonomy_support_out <- player_family_out |>
   group_by(season, finish_family) |>
+  summarise(
+    player_seasons = n(),
+    player_seasons_10_plus = sum(attempts >= 10L),
+    player_seasons_25_plus = sum(attempts >= 25L),
+    player_seasons_50_plus = sum(attempts >= 50L),
+    median_attempts = median(attempts),
+    p90_attempts = as.numeric(quantile(attempts, 0.9, names = FALSE)),
+    maximum_attempts = max(attempts),
+    .groups = "drop"
+  )
+
+taxonomy_family_support_out <- taxonomy_player_family_out |>
+  group_by(season, dimension, family) |>
   summarise(
     player_seasons = n(),
     player_seasons_10_plus = sum(attempts >= 10L),
@@ -460,6 +481,7 @@ write_atomic_csv(action_counts_out, "raw_action_labels.csv")
 write_atomic_csv(label_drift_out, "raw_label_drift.csv")
 write_atomic_csv(taxonomy_counts_out, "taxonomy_coverage.csv")
 write_atomic_csv(taxonomy_support_out, "finish_family_support.csv")
+write_atomic_csv(taxonomy_family_support_out, "taxonomy_family_support.csv")
 write_atomic_csv(volume_variation_out, "volume_variation.csv")
 write_atomic_csv(volume_context_proxy_out, "volume_context_proxy.csv")
 write_atomic_csv(pbp_coverage_out, "pbp_source_coverage.csv")
