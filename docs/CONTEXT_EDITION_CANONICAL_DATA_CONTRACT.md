@@ -146,3 +146,25 @@ The ESPN archive is an independent provider, not official ground truth. Player-p
 The finish taxonomy remains provisional pending provider-definition or video review. The creation taxonomy cannot identify spot-up, transition, or post attempts from the available shot-level fields. Box-score reconciliation remains unfinished.
 
 These limits narrow the claims that M1 can support. They do not justify filling missing context with assumptions.
+
+## Verified v0.1.2 results
+
+The accepted build used code commit `c5a5b38` and source audit base `0066683`. It contains 433,942 attempts from 2,460 games and 700 distinct players across the two seasons. The primary files contain 216,722 attempts for 2021–22 and 217,220 for 2022–23.
+
+The exact join produced 191,079 unique matches, 276 ambiguous rows, and 25,367 unmatched rows in 2021–22. It produced 194,530 unique matches, 284 ambiguous rows, and 22,406 unmatched rows in 2022–23. These unique-link rates are 88.17% and 89.55%. Result agreement among unique links was 100%.
+
+The audit found 3 and 7 point-value disagreements, plus 8 and 27 coordinate disagreements over one foot. The stricter score rule retained verified score-before context for 190,156 rows in 2021–22 and 193,703 in 2022–23. The project must use the join and disagreement fields together in later context work.
+
+The seven finish families cover every row. The creation taxonomy assigns 224,865 attempts, or 51.82%, to `other_or_unknown`. That share measures missing creation evidence; it does not describe a basketball play type.
+
+The private manual review covered 198 stratum assignments across 25 strata. Reviewers checked all six unusual descriptions and eight examples from every other populated stratum. Ambiguous examples had multiple same-player, same-clock candidates. The unmatched sample's nearest same-player events differed by 0.4 to 0.9 seconds, which supports exact matching rather than a fuzzy join. All reviewed taxonomy assignments and quality flags received the intended conservative treatment. A passing review means the builder preserved or flagged the source issue correctly; it does not mean the providers agreed. [`manual_review_summary.csv`](../data/processed/context_edition_canonical_v0_1_2/manual_review_summary.csv) records deidentified findings.
+
+Both clean in-memory builds matched, and two serializations of the 16 automated aggregate files were byte-identical. The accepted local Parquet file has SHA-256 `292eba28ce0a37788945312169c0986c60bc9db5c6308d322bf5f8e073b2ded7`. It remains ignored with the private review rows and completion manifest.
+
+M0 receives a `go` because every field-goal target, point value, finish family, key, and leakage check passed. M1 also receives a `go` because every row has a conservative creation category and the manual review found no unsupported inference. M1 must keep `other_or_unknown` as a modeled category and state that spot-up, transition, and post creation remain unavailable.
+
+No model ran. Git contains schemas, mappings, aggregate diagnostics, hashes, and documentation only. The Location Edition and portfolio remain outside this branch's changes.
+
+## Next stage
+
+Pre-register M0 and M1 before fitting either model. Freeze whole-game rolling-origin splits, the exact M0 and M1 formulas, future-game log loss, calibration checks, new-player reporting, and the one-standard-error simplicity rule. The first comparison should test whether the partial creation axis adds stable forward value beyond point value and finish family.

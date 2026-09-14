@@ -1,0 +1,25 @@
+check,status,measured_value,required_value
+exactly_two_approved_seasons,pass,2021-22;2022-23,2021-22;2022-23
+expected_games,pass,1230;1230,1230 each
+expected_shots,pass,216722;217220,216722;217220
+unique_canonical_keys,pass,433942,433942
+no_duplicate_source_shots,pass,0,0
+valid_make_values,pass,0;1,0;1
+valid_point_values,pass,2;3,2;3
+valid_realized_points,pass,0;2;3,0;2;3
+valid_distance,pass,0;88,0 to 100 feet
+valid_coordinates,pass,-250;250,court bounds
+valid_clock,pass,0 0;12 59,minutes 0-12 and seconds 0-59
+valid_period,pass,1;7,1-10
+raw_labels_complete,pass,0,0 missing
+finish_mapping_complete,pass,0,0 missing
+creation_mapping_complete,pass,0,0 missing
+honest_creation_unknown,pass,0.518191371197072,indicator matches category
+taxonomy_stable,pass,680393bde5d3606066f04187a4cdff6a902409c018c904c33d7f6588493cbafa,frozen mapping hash
+deterministic_canonical_build,pass,two in-memory builds were identical,identical
+no_predictor_leakage,pass,,empty intersection
+no_later_seasons,pass,2021-22;2022-23,only approved seasons
+no_2026_27_access,pass,data/raw/shots/season=2021-22/shots.parquet;data/raw/shots/season=2022-23/shots.parquet;data/cache/context_edition_audit/play_by_play_2022.rds;data/cache/context_edition_audit/play_by_play_2023.rds;config/context_edition_taxonomy_v0_1.csv;R/context_edition_build_canonical.R,no 2026-27 source
+audited_exact_join_counts,pass,191079;194530,191079;194530
+all_rows_m0_eligible,pass,433942,433942
+all_rows_m1_eligible,pass,433942,433942

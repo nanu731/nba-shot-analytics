@@ -1,0 +1,33 @@
+field,classification,first_model_use,control
+season,approved pre-shot predictor,candidate after M1,source season fixed before the attempt
+period,approved pre-shot predictor,candidate after M1,ShotChartDetail clock field
+minutes_remaining,approved pre-shot predictor,candidate after M1,ShotChartDetail clock field
+seconds_remaining,approved pre-shot predictor,candidate after M1,ShotChartDetail clock field
+shooter_home_away,approved pre-shot predictor when matched,candidate after M1,derived only from the matched event team
+score_margin_before,approved pre-shot predictor when verified,candidate after M1,lagged event score retained only when the scoring delta agrees
+point_value,approved pre-shot predictor,M0,known from the attempt definition
+shot_distance_feet,approved pre-shot predictor,candidate after M1,raw attempt geometry
+location_x_tenths_feet,approved pre-shot predictor,candidate after M1,raw attempt geometry
+location_y_tenths_feet,approved pre-shot predictor,candidate after M1,raw attempt geometry
+raw_action_type,ambiguous timing; audit only,none,preserved for taxonomy review; models use frozen families
+finish_family,approved pre-shot shot descriptor,M0,versioned mapping from the attempt label
+creation_family,approved only for explicit cues,M1,other/unknown remains a model category when no cue exists
+field_goal_made,outcome,target only,excluded from predictor allow-lists
+realized_field_goal_points,outcome,target only,excluded from predictor allow-lists
+raw_pbp_description,post-shot leakage,none,local audit only; may contain result and assist
+pbp_made,post-shot leakage,none,cross-provider audit only
+pbp_point_observed,post-shot leakage,none,cross-provider audit only
+score_home_after_raw,post-shot leakage,none,never written to canonical predictor fields
+score_away_after_raw,post-shot leakage,none,never written to canonical predictor fields
+subsequent_free_throws,post-shot leakage,M5 target construction only,not attached in this dataset
+rebound_result,post-shot leakage,none,not stored
+final_game_outcome,post-shot leakage,none,not stored
+player_id,identifier or audit-only field,M4 at earliest,not an M0-M3 Opportunity Quality predictor
+player_name,identifier or audit-only field,none,local audit only
+source_game_id,identifier or audit-only field,split key only,local and ignored
+source_event_id,identifier or audit-only field,none,local and ignored
+raw_pbp_description_for_prediction,unavailable,none,no leakage-safe parsed context approved
+shot_clock_remaining,unavailable,none,no verified same-attempt source
+defender_distance,unavailable,none,no verified same-attempt source
+lineup,unavailable,none,not constructed in this stage
+transition_flag,unavailable,none,running wording is insufficient evidence

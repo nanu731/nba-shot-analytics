@@ -1,0 +1,26 @@
+review_stratum,population_rows,reviewed_rows,passing_rows,what_was_checked,observed_failure_types,logic_changed
+season_2021_22,216722,8,8,"raw outcome, point value, taxonomy, exact-link description, and score sequence","none in reviewed rows",no
+season_2022_23,217220,8,8,"raw outcome, point value, taxonomy, exact-link description, and score sequence","none in reviewed rows",no
+made,203190,8,8,"made flag and matched description where available","none in reviewed rows",no
+missed,230752,8,8,"miss flag and matched description where available","none in reviewed rows",no
+two_point,263243,8,8,"two-point value and matched description where available","none in reviewed rows",no
+three_point,170699,8,8,"three-point value and matched description where available","none in reviewed rows",no
+finish_dunk,25606,8,8,"raw label and dunk finish mapping","none in reviewed rows",no
+finish_layup,116196,8,8,"raw label and layup finish mapping","one event lacked an exact play-by-play match; taxonomy remained supported by ShotChartDetail",no
+finish_floater,35951,8,8,"raw label and floater finish mapping","one event lacked an exact play-by-play match; taxonomy remained supported by ShotChartDetail",no
+finish_hook,12908,8,8,"raw label and hook finish mapping","some independent descriptions used generic two-point wording",no
+finish_regular_jumper,201119,8,8,"raw label and regular-jumper finish mapping","pull-up remained separate on the creation axis",no
+finish_fadeaway_turnaround,21243,8,8,"raw label and combined fadeaway/turnaround mapping","one event lacked an exact play-by-play match; creation remained unknown",no
+finish_step_back,20919,8,8,"raw label, step-back finish, and explicit self-created cue","none in reviewed rows",no
+creation_drive_cut_roll,111684,8,8,"explicit driving, cutting, and alley-oop wording","one event lacked an exact play-by-play match",no
+creation_pull_up_self_created,78790,8,8,"explicit pull-up and step-back wording","some independent descriptions omitted pull-up wording; the primary raw label remained explicit",no
+creation_putback,18603,8,8,"explicit putback and tip wording","some independent descriptions used generic two-point wording",no
+creation_other_unknown,224865,8,8,"absence of an explicit supported creation cue","generic, running, hook, and turnaround descriptions did not justify a stronger label",no
+rare_raw_labels,1964,8,8,"rare label preservation and finish/creation mapping","two events lacked exact play-by-play matches",no
+ambiguous_join,560,8,8,"candidate multiplicity and refusal to force a match","each reviewed key had two shot rows and two play-by-play candidates",no
+unmatched_event,47773,8,8,"nearest same-player field goal in the crosswalked game and period","nearest events were 0.4 to 0.9 seconds away; exact matching correctly left them unmatched","yes: exact provider seconds retained; no fuzzy match added"
+close_clock_collision,704,8,8,"same-player, same-clock duplicate candidates","reviewed pairs included layup/putback or layup/tip sequences that could not be assigned safely",no
+and_one_candidate,10730,8,8,"same-clock made field goal, shooting foul, and one-of-one free throw","substitutions, timeout, or rebound events sometimes shared the clock but did not break the candidate flag",no
+heave_or_unusual_description,6,6,6,"all heave or unusual-description flags in the two-season dataset","no heaves occurred; six ESPN events used No Shot (Default Shot) for valid ShotChartDetail attempts",no
+coordinate_disagreement,35,8,8,"transformed provider coordinates and one-foot disagreement flag","reviewed discrepancies included opposite-court signs, long heaves, and possible clock-key mismatches","yes: score context now requires no observed coordinate disagreement"
+point_value_disagreement,10,8,8,"primary two/three-point value and independently observable provider value","reviewed rows contained real two-versus-three provider conflicts","yes: score context now requires no observed point-value disagreement"
