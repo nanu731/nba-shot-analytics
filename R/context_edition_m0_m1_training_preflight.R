@@ -102,6 +102,20 @@ dir.create(tracked_stage, recursive = TRUE, showWarnings = FALSE)
 log_path <- file.path(private_stage, "preflight.log")
 success <- FALSE
 
+options(error = function() {
+  if (dir.exists(private_stage)) {
+    writeLines(
+      c(
+        paste0("attempt_id=", attempt_id),
+        paste0("ended_at_utc=", format(Sys.time(), tz = "UTC", usetz = TRUE)),
+        "status=failed_or_interrupted",
+        "validation_outcomes_accessed=false"
+      ),
+      file.path(private_stage, "failure_or_interruption.txt")
+    )
+  }
+})
+
 log_line <- function(...) {
   line <- paste0(format(Sys.time(), tz = "UTC", usetz = TRUE), " ", paste0(..., collapse = ""))
   cat(line, "\n", file = log_path, append = TRUE)
@@ -239,6 +253,17 @@ memory_samples <- c(memory_samples, current_rss_bytes())
 
 fit_one <- function(model_id, counts) {
   log_line("Fitting ", model_id)
+  writeLines(
+    c(
+      paste0("pid=", Sys.getpid()),
+      paste0("attempt_id=", attempt_id),
+      paste0("updated_at_utc=", format(Sys.time(), tz = "UTC", usetz = TRUE)),
+      paste0("stage=fitting_", tolower(model_id)),
+      "training_seasons=2021-22;2022-23",
+      "validation_outcomes_accessed=false"
+    ),
+    file.path(private_lock, "metadata.txt")
+  )
   warnings_seen <- character()
   fit_started <- Sys.time()
   cpu_started <- proc.time()
@@ -281,6 +306,7 @@ m1_result <- fit_one("M1", m1_counts)
 memory_samples <- c(memory_samples, current_rss_bytes())
 
 validate_fit <- function(model_id, result, counts) {
+  model_id_value <- model_id
   fit <- result$fit
   prediction_started <- Sys.time()
   probabilities <- as.numeric(predict(fit, newdata = counts, type = "response"))
@@ -316,7 +342,7 @@ validate_fit <- function(model_id, result, counts) {
   convergence_text <- if (!is.null(fit$outer.info$conv)) fit$outer.info$conv else "unavailable"
   random_edf <- sum(fit$edf[grepl("player_id_factor", names(fit$edf), fixed = TRUE)])
   checks <- tibble(
-    model_id = model_id,
+    model_id = model_id_value,
     check = c(
       "fit_converged", "finite_coefficients", "finite_covariance",
       "positive_finite_smoothing", "nonboundary_player_effect",
@@ -340,17 +366,17 @@ validate_fit <- function(model_id, result, counts) {
       )),
       length(unseen_probability) == 1L && is.finite(unseen_probability) &&
         isTRUE(all.equal(unseen_probability, fixed_known_probability, tolerance = 1e-12)),
-      model_id == "M0" || (
+      model_id_value == "M0" || (
         length(taxonomy_probabilities) == 56L && all(is.finite(taxonomy_probabilities)) &&
           all(taxonomy_probabilities > 0 & taxonomy_probabilities < 1)
       ),
       identical(
         gsub("[[:space:]]+", "", paste(deparse(formula(fit)), collapse = "")),
-        gsub("[[:space:]]+", "", paste(deparse(formulas[[model_id]]), collapse = ""))
+        gsub("[[:space:]]+", "", paste(deparse(formulas[[model_id_value]]), collapse = ""))
       ),
       setequal(
         attr(terms(fit), "term.labels"),
-        if (model_id == "M0") {
+        if (model_id_value == "M0") {
           c("point_value_factor", "player_id_factor")
         } else {
           c(
@@ -364,12 +390,12 @@ validate_fit <- function(model_id, result, counts) {
   )
   if (any(checks$status == "fail")) {
     print(checks |> filter(status == "fail"))
-    stop(model_id, " failed a frozen sanity check", call. = FALSE)
+    stop(model_id_value, " failed a frozen sanity check", call. = FALSE)
   }
   list(
     checks = checks,
     diagnostics = tibble(
-      model_id = model_id,
+      model_id = model_id_value,
       training_shots = sum(counts$attempts),
       grouped_rows = nrow(counts),
       players = n_distinct(counts$player_id_factor),
