@@ -27,10 +27,11 @@ if (!identical(seasons, approved_seasons)) {
   stop("This frozen build accepts only 2021-22,2022-23 in that order")
 }
 
-schema_version <- "context_field_goal_v0.1.0"
+schema_version <- "context_field_goal_v0.1.1"
 taxonomy_version <- "context_taxonomy_v0.1.0"
-join_version <- "shotchart_espn_clock_player_v0.1.0"
+join_version <- "shotchart_espn_exact_clock_player_v0.1.1"
 expected_shots <- c(`2021-22` = 216722L, `2022-23` = 217220L)
+expected_unique_matches <- c(`2021-22` = 191079L, `2022-23` = 194530L)
 pbp_years <- c(`2021-22` = 2022L, `2022-23` = 2023L)
 
 shot_paths <- file.path(
@@ -43,7 +44,7 @@ pbp_paths <- file.path(
 taxonomy_path <- file.path(repo_root, "config", "context_edition_taxonomy_v0_1.csv")
 script_path <- file.path(repo_root, "R", "context_edition_build_canonical.R")
 tracked_parent <- file.path(repo_root, "data", "processed")
-tracked_dir <- file.path(tracked_parent, "context_edition_canonical_v0_1")
+tracked_dir <- file.path(tracked_parent, "context_edition_canonical_v0_1_1")
 cache_parent <- file.path(repo_root, "data", "cache", "context_edition_canonical")
 canonical_dir <- file.path(cache_parent, schema_version)
 lock_dir <- file.path(cache_parent, ".build.lock")
@@ -204,7 +205,9 @@ build_canonical <- function() {
       pbp_game_id = game_id,
       PERIOD = as.integer(period_number),
       MINUTES_REMAINING = as.integer(clock_minutes),
-      SECONDS_REMAINING = as.integer(clock_seconds),
+      # Preserve fractional provider seconds. Converting them to whole seconds
+      # creates false matches against ShotChartDetail's whole-second clock.
+      SECONDS_REMAINING = clock_seconds,
       player_name_normalized = normalize_name(athlete_name_1),
       pbp_event_id = as.character(id),
       pbp_event_order = as.integer(game_play_number),
@@ -646,7 +649,7 @@ checks <- tibble(
     "finish_mapping_complete", "creation_mapping_complete",
     "honest_creation_unknown", "taxonomy_stable", "deterministic_canonical_build",
     "no_predictor_leakage", "no_later_seasons", "no_2026_27_access",
-    "all_rows_m0_eligible", "all_rows_m1_eligible"
+    "audited_exact_join_counts", "all_rows_m0_eligible", "all_rows_m1_eligible"
   ),
   status = c(
     if_else(identical(sort(unique(canonical$season)), approved_seasons), "pass", "fail"),
@@ -670,6 +673,7 @@ checks <- tibble(
     if_else(length(intersect(feature_allow_list, prohibited_predictors)) == 0L, "pass", "fail"),
     if_else(all(canonical$season %in% approved_seasons), "pass", "fail"),
     if_else(!any(input_manifest$contains_2026_27), "pass", "fail"),
+    if_else(all(reconciliation$unique_matches == unname(.env$expected_unique_matches[reconciliation$season])), "pass", "fail"),
     if_else(all(is.na(canonical$m0_exclusion_reason)), "pass", "fail"),
     if_else(all(is.na(canonical$m1_exclusion_reason)), "pass", "fail")
   ),
@@ -695,6 +699,7 @@ checks <- tibble(
     paste(intersect(feature_allow_list, prohibited_predictors), collapse = ";"),
     paste(sort(unique(canonical$season)), collapse = ";"),
     paste(input_manifest$file, collapse = ";"),
+    paste(reconciliation$unique_matches, collapse = ";"),
     as.character(sum(is.na(canonical$m0_exclusion_reason))),
     as.character(sum(is.na(canonical$m1_exclusion_reason)))
   ),
@@ -704,6 +709,7 @@ checks <- tibble(
     "minutes 0-12 and seconds 0-59", "1-10", "0 missing", "0 missing",
     "0 missing", "indicator matches category", "frozen mapping hash",
     "identical", "empty intersection", "only approved seasons", "no 2026-27 source",
+    "191079;194530",
     "433942", "433942"
   )
 )

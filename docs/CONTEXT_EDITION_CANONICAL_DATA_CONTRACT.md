@@ -2,11 +2,11 @@
 
 Status: frozen for the 2021–22 and 2022–23 M0/M1 preparation stage
 
-Schema version: `context_field_goal_v0.1.0`
+Schema version: `context_field_goal_v0.1.1`
 
 Taxonomy version: `context_taxonomy_v0.1.0`
 
-Join version: `shotchart_espn_clock_player_v0.1.0`
+Join version: `shotchart_espn_exact_clock_player_v0.1.1`
 
 ## Purpose and boundary
 
@@ -37,7 +37,7 @@ One row represents one `ShotChartDetail` field-goal attempt. The internal key co
 
 The local dataset preserves player and team identity for joins and future grouped splits. Git receives no shot rows, game IDs, event IDs, dates, opponents, or player-level event records.
 
-[`canonical_schema.csv`](../data/processed/context_edition_canonical_v0_1/canonical_schema.csv) lists every local field, type, role, requirement, public status, and definition after the verified build runs.
+[`canonical_schema.csv`](../data/processed/context_edition_canonical_v0_1_1/canonical_schema.csv) lists every local field, type, role, requirement, public status, and definition after the verified build runs.
 
 ## Target
 
@@ -61,7 +61,7 @@ The raw label remains beside both derived fields. A future provider label such a
 
 ## Play-by-play join
 
-The builder first crosswalks games by season, date, home team, and away team. It then matches a shot to a field-goal event by crosswalked game, period, displayed minute, displayed second, and normalized player name.
+The builder first crosswalks games by season, date, home team, and away team. It then matches a shot to a field-goal event by crosswalked game, period, displayed minute, exact provider second, and normalized player name. It preserves fractional play-by-play seconds; rounding or truncating them would create false links to whole-second ShotChartDetail records.
 
 Each shot receives one of four statuses:
 
@@ -82,7 +82,7 @@ Period and game clock come from `ShotChartDetail` and remain available for every
 
 ## Leakage boundary
 
-[`leakage_register.csv`](../data/processed/context_edition_canonical_v0_1/leakage_register.csv) classifies each candidate as a pre-shot predictor, outcome, post-shot leakage, ambiguous-timing field, identifier, or unavailable field.
+[`leakage_register.csv`](../data/processed/context_edition_canonical_v0_1_1/leakage_register.csv) classifies each candidate as a pre-shot predictor, outcome, post-shot leakage, ambiguous-timing field, identifier, or unavailable field.
 
 The model feature allow-list excludes make/miss, realized points, raw play-by-play text, play-by-play result, later free throws, rebound result, and final game outcome. The raw description stays in the ignored local dataset for auditing because it can contain the result and an assist.
 
@@ -111,6 +111,8 @@ The build stops for a failed required check. Checks cover:
 - identical canonical rows across two clean in-memory builds;
 - byte-identical tracked aggregate bundles across two serializations.
 
+The exact join must also reproduce the feasibility audit's 191,079 unique matches in 2021–22 and 194,530 in 2022–23. This regression check prevents a clock conversion from inflating coverage.
+
 The aggregate manifest hashes each tracked payload. The ignored local completion manifest hashes the canonical Parquet file and private manual-review sample. The builder writes the completion manifest last and renames the completed directory into place as one atomic publication.
 
 ## M0 and M1 readiness gates
@@ -123,9 +125,11 @@ Neither decision authorizes model fitting. The next task must pre-register the m
 
 ## Storage and reproducibility
 
-The ignored canonical namespace is `data/cache/context_edition_canonical/context_field_goal_v0.1.0/`. It contains the Parquet dataset, private review sample, and completion manifest.
+The ignored canonical namespace is `data/cache/context_edition_canonical/context_field_goal_v0.1.1/`. It contains the Parquet dataset, private review sample, and completion manifest.
 
-The tracked aggregate namespace is `data/processed/context_edition_canonical_v0_1/`. It contains schemas, mappings, manifests, coverage, join results, leakage checks, review summaries, quality checks, and readiness decisions.
+The tracked aggregate namespace is `data/processed/context_edition_canonical_v0_1_1/`. It contains schemas, mappings, manifests, coverage, join results, leakage checks, review summaries, quality checks, and readiness decisions.
+
+The rejected `v0.1.0` attempt remains preserved and ignored. Its join code truncated fractional play-by-play seconds, so the project must not use its dataset or aggregate tables.
 
 Run the frozen build from the repository root with:
 
