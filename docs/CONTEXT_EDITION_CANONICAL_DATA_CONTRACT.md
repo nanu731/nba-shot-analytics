@@ -2,7 +2,7 @@
 
 Status: frozen for the 2021–22 and 2022–23 M0/M1 preparation stage
 
-Schema version: `context_field_goal_v0.1.1`
+Schema version: `context_field_goal_v0.1.2`
 
 Taxonomy version: `context_taxonomy_v0.1.0`
 
@@ -37,7 +37,7 @@ One row represents one `ShotChartDetail` field-goal attempt. The internal key co
 
 The local dataset preserves player and team identity for joins and future grouped splits. Git receives no shot rows, game IDs, event IDs, dates, opponents, or player-level event records.
 
-[`canonical_schema.csv`](../data/processed/context_edition_canonical_v0_1_1/canonical_schema.csv) lists every local field, type, role, requirement, public status, and definition after the verified build runs.
+[`canonical_schema.csv`](../data/processed/context_edition_canonical_v0_1_2/canonical_schema.csv) lists every local field, type, role, requirement, public status, and definition after the verified build runs.
 
 ## Target
 
@@ -76,13 +76,13 @@ The canonical dataset retains all four groups. It records candidate counts and r
 
 ESPN score fields describe the state after an ordered event. The builder sorts events by game play number and provider sequence number, then lags both team scores by one event.
 
-The builder independently checks the matched event’s score change. A made shot must add its two or three points to the shooter’s team and zero to the opponent. A miss must change neither score. The builder exposes score-before fields only when this check passes; other rows receive missing score context and a false verification flag.
+The builder independently checks the matched event’s score change. A made shot must add its two or three points to the shooter’s team and zero to the opponent. A miss must change neither score. The builder also requires no observed make/miss, point-value, or coordinate disagreement between providers. It exposes score-before fields only when all checks pass; other rows receive missing score context and a false verification flag.
 
 Period and game clock come from `ShotChartDetail` and remain available for every row. Home/away and score margin require a unique play-by-play match. M0 and M1 do not require play-by-play enrichment.
 
 ## Leakage boundary
 
-[`leakage_register.csv`](../data/processed/context_edition_canonical_v0_1_1/leakage_register.csv) classifies each candidate as a pre-shot predictor, outcome, post-shot leakage, ambiguous-timing field, identifier, or unavailable field.
+[`leakage_register.csv`](../data/processed/context_edition_canonical_v0_1_2/leakage_register.csv) classifies each candidate as a pre-shot predictor, outcome, post-shot leakage, ambiguous-timing field, identifier, or unavailable field.
 
 The model feature allow-list excludes make/miss, realized points, raw play-by-play text, play-by-play result, later free throws, rebound result, and final game outcome. The raw description stays in the ignored local dataset for auditing because it can contain the result and an assist.
 
@@ -125,11 +125,11 @@ Neither decision authorizes model fitting. The next task must pre-register the m
 
 ## Storage and reproducibility
 
-The ignored canonical namespace is `data/cache/context_edition_canonical/context_field_goal_v0.1.1/`. It contains the Parquet dataset, private review sample, and completion manifest.
+The ignored canonical namespace is `data/cache/context_edition_canonical/context_field_goal_v0.1.2/`. It contains the Parquet dataset, private review sample, and completion manifest.
 
-The tracked aggregate namespace is `data/processed/context_edition_canonical_v0_1_1/`. It contains schemas, mappings, manifests, coverage, join results, leakage checks, review summaries, quality checks, and readiness decisions.
+The tracked aggregate namespace is `data/processed/context_edition_canonical_v0_1_2/`. It contains schemas, mappings, manifests, coverage, join results, leakage checks, review summaries, quality checks, and readiness decisions.
 
-The rejected `v0.1.0` attempt remains preserved and ignored. Its join code truncated fractional play-by-play seconds, so the project must not use its dataset or aggregate tables.
+The rejected `v0.1.0` and `v0.1.1` attempts remain preserved and ignored. Version 0.1.0 truncated fractional play-by-play seconds. Version 0.1.1 corrected the join but exposed score-before context without rejecting observed point-value or coordinate disagreements. The project must not use either attempt.
 
 Run the frozen build from the repository root with:
 

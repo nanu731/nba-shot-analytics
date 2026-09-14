@@ -27,7 +27,7 @@ if (!identical(seasons, approved_seasons)) {
   stop("This frozen build accepts only 2021-22,2022-23 in that order")
 }
 
-schema_version <- "context_field_goal_v0.1.1"
+schema_version <- "context_field_goal_v0.1.2"
 taxonomy_version <- "context_taxonomy_v0.1.0"
 join_version <- "shotchart_espn_exact_clock_player_v0.1.1"
 expected_shots <- c(`2021-22` = 216722L, `2022-23` = 217220L)
@@ -44,7 +44,7 @@ pbp_paths <- file.path(
 taxonomy_path <- file.path(repo_root, "config", "context_edition_taxonomy_v0_1.csv")
 script_path <- file.path(repo_root, "R", "context_edition_build_canonical.R")
 tracked_parent <- file.path(repo_root, "data", "processed")
-tracked_dir <- file.path(tracked_parent, "context_edition_canonical_v0_1_1")
+tracked_dir <- file.path(tracked_parent, "context_edition_canonical_v0_1_2")
 cache_parent <- file.path(repo_root, "data", "cache", "context_edition_canonical")
 canonical_dir <- file.path(cache_parent, schema_version)
 lock_dir <- file.path(cache_parent, paste0(".build-lock-", schema_version))
@@ -305,14 +305,6 @@ build_canonical <- function() {
         field_goal_made == 0L ~ home_score_delta == 0L & away_score_delta == 0L,
         TRUE ~ FALSE
       ),
-      pre_shot_score_verified = coalesce(score_sequence_agrees, FALSE),
-      score_home_before = if_else(pre_shot_score_verified, score_home_before_raw, NA_integer_),
-      score_away_before = if_else(pre_shot_score_verified, score_away_before_raw, NA_integer_),
-      score_margin_before = case_when(
-        pre_shot_score_verified & shooter_side == "home" ~ score_home_before - score_away_before,
-        pre_shot_score_verified & shooter_side == "away" ~ score_away_before - score_home_before,
-        TRUE ~ NA_integer_
-      ),
       result_disagreement = linkage_status == "unique_exact" & !is.na(pbp_made) & field_goal_made != pbp_made,
       point_value_disagreement = linkage_status == "unique_exact" & !is.na(pbp_point_observed) & point_value != pbp_point_observed,
       coordinate_comparable = linkage_status == "unique_exact" & is.finite(pbp_x_raw) & is.finite(pbp_y_raw) &
@@ -320,6 +312,15 @@ build_canonical <- function() {
       coordinate_disagreement = coordinate_comparable & (
         abs(LOC_X - (pbp_x_raw - 25) * 10) > 10 |
           abs(LOC_Y - pbp_y_raw * 10) > 10
+      ),
+      pre_shot_score_verified = coalesce(score_sequence_agrees, FALSE) &
+        !result_disagreement & !point_value_disagreement & !coordinate_disagreement,
+      score_home_before = if_else(pre_shot_score_verified, score_home_before_raw, NA_integer_),
+      score_away_before = if_else(pre_shot_score_verified, score_away_before_raw, NA_integer_),
+      score_margin_before = case_when(
+        pre_shot_score_verified & shooter_side == "home" ~ score_home_before - score_away_before,
+        pre_shot_score_verified & shooter_side == "away" ~ score_away_before - score_home_before,
+        TRUE ~ NA_integer_
       ),
       and_one_candidate = linkage_status == "unique_exact" & field_goal_made == 1L &
         coalesce(same_clock_ft_one_of_one, FALSE) & coalesce(same_clock_shooting_foul, FALSE),

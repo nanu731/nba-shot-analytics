@@ -222,6 +222,7 @@ data/cache/
 # Preserve rejected or comparison-only Context Edition bundles without tracking them.
 data/processed/.context-canonical-*/
 data/processed/context_edition_canonical_v0_1/
+data/processed/context_edition_canonical_v0_1_1/
 # data/processed/ is deliberately COMMITTED: the three output tables are ~1 MB and
 # committing them lets a clone reproduce every chart and finding without an API run.
 # They contain no shot-level rows, so this does not breach rule A16.
