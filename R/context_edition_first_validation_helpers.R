@@ -105,8 +105,8 @@ context_predict_first_validation <- function(fit, data) {
 context_auc <- function(outcome, probability) {
   context_assert_binary(outcome)
   probability <- context_clip_probability(probability)
-  positives <- sum(outcome == 1L)
-  negatives <- sum(outcome == 0L)
+  positives <- as.double(sum(outcome == 1L))
+  negatives <- as.double(sum(outcome == 0L))
   if (positives == 0L || negatives == 0L) return(NA_real_)
   ranks <- rank(probability, ties.method = "average")
   (sum(ranks[outcome == 1L]) - positives * (positives + 1) / 2) / (positives * negatives)

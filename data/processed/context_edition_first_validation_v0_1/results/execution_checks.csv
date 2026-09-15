@@ -1,0 +1,28 @@
+check_id,passed,detail
+training_seasons_only,TRUE,2021-22 and 2022-23 metadata only
+validation_season_only,TRUE,2023-24 only
+whole_game_separation,TRUE,zero shared game identifiers
+validation_counts,TRUE,218700 shots; 1230 games; 568 players
+identical_model_rows,TRUE,both probabilities share one ordered table
+one_prediction_per_shot,TRUE,zero duplicated canonical shot keys
+point_values_two_or_three,TRUE,only two and three
+expected_points_exact,TRUE,probability times point value exactly
+probabilities_valid,TRUE,finite and strictly interior
+unseen_player_zero_effect,TRUE,unseen rows excluded from player random effect
+all_taxonomy_levels,TRUE,all seven finish and four creation levels
+other_unknown_included,TRUE,retained as ordinary level
+model_formulas_frozen,TRUE,fit formulas and hashes verified
+forbidden_features_absent,TRUE,model matrices come only from registered formulas
+outcome_not_predictor,TRUE,field_goal_made appears only as metric response
+bootstrap_draw_count,TRUE,exactly 2000 draws
+bootstrap_whole_game,TRUE,registered game-level resampler
+bootstrap_deterministic,TRUE,second run with frozen seed matched byte-for-byte in memory
+difference_sign_consistent,TRUE,all reported paired differences use M1 minus M0
+aggregate_outputs_only,TRUE,"tracked tables contain no shot, game, or player identifiers"
+later_seasons_sealed,TRUE,"2024-25, 2025-26, and 2026-27 not loaded"
+models_refit_zero,TRUE,two saved fits reused; no model call
+auc_values_finite,TRUE,M0 and M1 rank AUC are finite and within zero to one
+recovery_checkpoint_hashes,TRUE,source private prediction and completion hashes matched
+source_outcome_not_reopened,TRUE,recovery read only the ignored prediction checkpoint; canonical source outcome reads remain one
+original_atomic_result_preserved,TRUE,original public tables remain byte-for-byte inside the original private checkpoint and dated archive
+numerical_fix_did_not_change_frozen_metrics,TRUE,"double-precision denominator fixes integer overflow only; log loss, expected points, calibration, and bootstrap are unchanged"

@@ -65,6 +65,12 @@ record("toy_metrics", {
   expect_true(all(is.finite(metrics)), "toy metrics are invalid")
   expect_true(abs(metrics[["bernoulli_log_loss"]] - mean(-log(c(0.8, 0.8, 0.7, 0.7)))) < 1e-15, "toy log loss differs")
 })
+record("auc_large_sample_avoids_integer_overflow", {
+  outcome <- rep(c(0L, 1L), 60000L)
+  probability <- rep(c(0.25, 0.75), 60000L)
+  observed <- context_auc(outcome, probability)
+  expect_true(is.finite(observed) && observed == 1, "large-sample AUC overflowed")
+})
 record("expected_points_exact", {
   expect_true(identical(context_expected_points(c(0.25, 0.5), c(2, 3)), c(0.5, 1.5)), "expected points changed")
 })
