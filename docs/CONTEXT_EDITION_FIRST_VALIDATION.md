@@ -1,6 +1,6 @@
 # Context Edition: first rolling-origin validation
 
-Status: pre-result implementation frozen; 2023–24 outcomes remain analytically sealed until the recorded implementation is committed and pushed
+Status: pre-result implementation frozen and pushed at `5c1fc498d009c3a78efe0ccd09e615b4aadee1ed`; 2023–24 outcomes remain analytically sealed until the commit record below is also pushed
 
 Protocol: `context_m0_m1_protocol_v0.1.0`
 
@@ -29,6 +29,8 @@ This first result cannot select the final model. The registered breadth rule req
 ## Outcome access and publication
 
 The runner first performs an outcome-free audit using validation metadata. Before its single authorized outcome read, it requires a clean pushed branch, verified input and fit hashes, a recorded pre-result implementation commit, and no existing marker or result. It then publishes an exclusive private access marker. The code has no model-fitting call and no input path for 2024–25, 2025–26, or 2026–27.
+
+The recorded pre-result implementation commit is `5c1fc498d009c3a78efe0ccd09e615b4aadee1ed`. It contains the complete evaluation code, tests, output schema, and outcome-free population hashes. This later declarative edit records that already-pushed commit without changing an evaluation rule.
 
 Shot predictions, game and player identifiers, bootstrap draws, logs, locks, and fitted models remain ignored. Git receives only compact aggregate tables and manifests. Results are published atomically and hash-verified.
 
