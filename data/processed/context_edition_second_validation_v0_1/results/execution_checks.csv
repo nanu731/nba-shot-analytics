@@ -1,0 +1,26 @@
+check_id,passed,detail
+training_seasons_only,TRUE,2021-22 through 2023-24 only
+validation_season_only,TRUE,2024-25 only
+whole_game_separation,TRUE,zero shared game ids
+training_counts,TRUE,652642 shots; 3690 games; 808 players
+validation_counts,TRUE,219527 shots; 1230 games; 566 players
+identical_model_rows,TRUE,shared ordered prediction table
+one_prediction_per_shot,TRUE,zero duplicate shot keys
+expected_points_exact,TRUE,probability times point value exactly
+probabilities_valid,TRUE,finite and strictly interior
+unseen_player_zero_effect,TRUE,unseen rows exclude player random effect
+all_taxonomy_levels,TRUE,seven finish and four creation levels
+other_unknown_included,TRUE,ordinary registered level retained
+model_formulas_frozen,TRUE,M0/M1 formulas match protocol
+forbidden_features_absent,TRUE,no forbidden formula term
+outcome_not_predictor,TRUE,outcome used only for metrics
+bootstrap_draw_count,TRUE,2000 draws
+bootstrap_whole_game,TRUE,complete-game resampling
+bootstrap_deterministic,TRUE,repeat matched
+difference_sign_consistent,TRUE,M1 minus M0
+first_result_unchanged,TRUE,first public manifest unchanged
+aggregate_outputs_only,TRUE,no identifiers in tracked tables
+2025_26_sealed,TRUE,false access flag
+2026_27_sealed,TRUE,false access flag
+models_fit_exactly_once,TRUE,one completed atomic component per model
+final_model_not_selected,TRUE,third comparison still required
