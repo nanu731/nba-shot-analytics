@@ -213,7 +213,9 @@ if (mode == "audit") {
     manifest <- read_csv(file.path(private_pre_result, "completion_manifest.csv"), show_col_types = FALSE)
     context_verify_file_manifest(manifest, private_pre_result)
     saved_population <- read_csv(file.path(private_pre_result, "validation_population_manifest.csv"), show_col_types = FALSE)
-    if (!identical(saved_population, population_manifest)) stop("saved validation population changed", call. = FALSE)
+    saved_values <- lapply(saved_population, as.character)
+    current_values <- lapply(population_manifest, as.character)
+    if (!identical(saved_values, current_values)) stop("saved validation population changed", call. = FALSE)
   }
   dir.create(tracked_parent, recursive = TRUE, showWarnings = FALSE)
   context_atomic_write_csv(population_manifest, file.path(tracked_parent, "outcome_free_population_manifest.csv"))

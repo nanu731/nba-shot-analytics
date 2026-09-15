@@ -97,6 +97,17 @@ record("output_schema_frozen", {
   )
   expect_true(all(vapply(required, grepl, logical(1), x = runner, fixed = TRUE)), "tracked output schema is incomplete")
 })
+record("manifest_recovery_ignores_csv_type_inference", {
+  original <- tibble(integer_value = 1L, logical_value = FALSE, text_value = "x")
+  path <- tempfile(fileext = ".csv")
+  on.exit(unlink(path), add = TRUE)
+  write_csv(original, path)
+  recovered <- read_csv(path, show_col_types = FALSE)
+  expect_true(
+    identical(lapply(original, as.character), lapply(recovered, as.character)),
+    "unchanged serialized values failed recovery comparison"
+  )
+})
 
 output <- bind_rows(results)
 if (!all(output$passed)) {
