@@ -1,0 +1,26 @@
+check_id,passed,detail
+training_seasons_only,TRUE,2021-22 through 2024-25 only
+validation_season_only,TRUE,2025-26 only
+whole_game_separation,TRUE,zero shared game ids
+training_counts,TRUE,872169 shots; 4920 games; 913 players
+validation_counts,TRUE,219160 shots; 1230 games; 582 players
+identical_model_rows,TRUE,shared ordered prediction table
+one_prediction_per_shot,TRUE,zero duplicate shot keys
+expected_points_exact,TRUE,probability times point value exactly
+probabilities_valid,TRUE,finite and strictly interior
+unseen_player_zero_effect,TRUE,unseen rows exclude player random effect
+all_taxonomy_levels,TRUE,seven finish and four creation levels
+other_unknown_included,TRUE,ordinary registered level retained
+model_formulas_frozen,TRUE,M0/M1 formulas match protocol
+forbidden_features_absent,TRUE,no forbidden formula term
+outcome_not_predictor,TRUE,outcome used only for metrics
+third_bootstrap_deterministic,TRUE,2000 whole-game draws repeated exactly
+pooled_bootstrap_stratified_deterministic,TRUE,2000 whole-game draws within each season repeated exactly
+difference_sign_consistent,TRUE,M1 minus M0
+prior_results_unchanged,TRUE,first and second public manifests unchanged
+prior_predictions_split_specific,TRUE,original split-specific checkpoints
+pooled_row_count,TRUE,657387 shots across three seasons
+final_decision_reproducible,TRUE,frozen selection function reproduced exactly
+aggregate_outputs_only,TRUE,no identifiers in tracked tables
+2026_27_sealed,TRUE,false access flag and no loader
+models_fit_exactly_once,TRUE,one completed atomic component per model

@@ -1,6 +1,6 @@
 # Context Edition: third rolling-origin validation and final decision
 
-Status: pre-result implementation frozen; 2025–26 outcomes remain unopened
+Status: third rolling-origin validation and frozen pooled decision completed; M1 selected
 
 Protocol: `context_m0_m1_protocol_v0.1.0`
 
@@ -40,6 +40,32 @@ Before 2025–26 can be opened, the complete runner, configuration, structural t
 
 Only compact aggregate tables are tracked. Fits, private predictions, outcomes, identifiers, bootstrap draws, logs, locks, and checkpoints remain ignored. The first and second public results are immutable, and their split-specific predictions cannot be replaced by predictions from later fits.
 
-## Result placeholder
+## Verified four-season fits
 
-The verified 2025–26 result, three-season pooled metrics, gate outcomes, and final selected model will be added only after the pre-result implementation and lock commit are pushed and the one-time evaluation completes.
+The implementation was committed and pushed at `e29e255badcf8ed823f547a58367b419e6a07164`, then locked in pushed commit `1905ee34f33ca72d48a8c30f0409a481166080b9`, before 2025–26 was opened. M0 and M1 were each fit once on 872,169 shots. Grouping reproduced every attempt and make: M0 used 1,774 grouped rows and M1 used 12,415.
+
+M0 fit in 49.23 seconds and M1 in 274.55 seconds. The full training run took 343.32 wall seconds and about 310.20 CPU seconds. Sampled R memory peaked at 682.0 MB. Both fits reported full convergence, finite coefficients and covariance, one positive player smoothing parameter, deterministic interior training probabilities, and no warnings. The M0 and M1 fit hashes are `69d4af142d4407e406463ff4c27e56f3064c3187837a0b65c58559733db9da9a` and `24bf051f847825bb835fda7025aea119b89b5e9a2a93b252f3a5eeb0b765db4f`.
+
+## Verified 2025–26 result
+
+The exclusive access marker was created at `2026-09-20 20:47:26 UTC`. The source was read once, after both pushed freezes and all outcome-free checks passed. All 219,160 registered shots from 1,230 games and 582 players were evaluated. There were 478 returning and 104 unseen players; unseen players contributed 21,561 shots and received zero player deviation as registered.
+
+M0 log loss was `0.6723819641`; M1 was `0.6499648682`. The signed M1-minus-M0 difference was `-0.0224170959`, with paired whole-game bootstrap standard error `0.0004327559` and 95% interval `[-0.0232691911, -0.0215610730]`. M1 therefore improved by more than one standard error.
+
+Overall absolute bias was `0.00421095` for M0 and `0.00727275` for M1. The paired increase was below the frozen `0.005` material-worsening margin; equal-count-bin ECE improved from `0.00853` to `0.00787`. The calibration gate passed. M1 also lowered shot expected-points RMSE from `1.19902` to `1.18188`, game-total MAE from `13.4148` to `13.0959`, and game-total RMSE from `16.6034` to `16.2827`. These secondary measures did not control the decision.
+
+The `other_or_unknown` absolute calibration gap worsened from `0.0101` to `0.0123`, while the unseen-player gap improved from `0.00833` to `0.00548`. Point-value calibration was mixed. These are descriptive diagnostics without paired subgroup uncertainty and do not override the registered gates. The third season counts as a qualifying M1 result, making the season record three of three.
+
+## Verified pooled decision
+
+The pooled calculation covered 657,387 untouched out-of-sample shots from 3,690 games across the three validation seasons. Hash verification passed for both earlier public results and their original split-specific private prediction checkpoints. No earlier source partition was reread and no prediction was regenerated with a later fit.
+
+Pooled M0 log loss was `0.6732749661`; pooled M1 was `0.6511742771`. The signed difference was `-0.0221006890`, with stratified paired-game bootstrap standard error `0.0002445270` and 95% interval `[-0.0225790677, -0.0216387522]`. Pooled absolute bias increased from `0.00298268` to `0.00394046`, but the paired lower interval bound was only `0.00063890`, below the material threshold. Pooled ECE improved from `0.00668` to `0.00548`, and its paired interval was entirely below zero. The pooled calibration gate passed.
+
+M1 had lower log loss in all three seasons. It therefore passed the pooled one-standard-error, calibration, and two-of-three breadth gates. The frozen rule mechanically selects M1.
+
+This supports a narrow conclusion: broad creation and finish categories add repeatable out-of-sample predictive information beyond shot value and a pooled player baseline. It does not establish causality, measure total offense or defense, compare against a location model, resolve unknown creation types, or make unseen-player predictions fully satisfactory. In the pooled unseen-player diagnostic, M1's absolute gap was `0.01616` versus `0.01009` for M0.
+
+The evaluation took 1,761.56 wall seconds and about 1,707.01 CPU seconds, including exact reproducibility repeats for both bootstraps. Sampled R memory peaked at about 1.19 GB. All 25 execution checks passed; there were no model or evaluation warnings or errors. The Arrow build-version notice was the same environment notice seen previously and did not fail an operation or statistical check.
+
+The private completion-manifest SHA-256 is `3f6bb79ad229617a0bd756a6d5b80874d3c12bc2401b9bf69d877999e4a632dd`; the tracked aggregate manifest SHA-256 is `fcc7b6002c8fdb31d70a2b284f534c72339be41dda6f21784c20f8e8f2f0b5ed`. The 2026–27 access flag remains false, and the prospective season was not accessed.
