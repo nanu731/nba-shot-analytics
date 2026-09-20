@@ -1,0 +1,18 @@
+artifact,public_granularity,contains_shot_rows,contains_identifiers
+execution_manifest.csv,one evaluation row,FALSE,FALSE
+fit_diagnostics.csv,one row per model,FALSE,FALSE
+pooled_metrics.csv,metric by model and paired difference,FALSE,FALSE
+season_metrics.csv,season-metric by model and paired difference,FALSE,FALSE
+calibration_bins.csv,model by calibration bin,FALSE,FALSE
+subgroup_calibration.csv,model by registered aggregate subgroup,FALSE,FALSE
+bootstrap_summary.csv,three aggregate paired-bootstrap rows,FALSE,FALSE
+model_selection.csv,one completed season record,FALSE,FALSE
+running_season_status.csv,one row per completed retrospective season,FALSE,FALSE
+three_season_metrics.csv,season-model-metric rows,FALSE,FALSE
+pooled_three_season_metrics.csv,pooled model-metric rows,FALSE,FALSE
+pooled_calibration_bins.csv,pooled model-bin rows,FALSE,FALSE
+pooled_subgroup_calibration.csv,pooled registered subgroup rows,FALSE,FALSE
+pooled_bootstrap_summary.csv,three pooled bootstrap rows,FALSE,FALSE
+final_model_decision.csv,one mechanical final decision,FALSE,FALSE
+execution_checks.csv,aggregate pass-fail rows,FALSE,FALSE
+artifact_manifest.csv,one row per public artifact,FALSE,FALSE
