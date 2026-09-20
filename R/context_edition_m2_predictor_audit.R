@@ -75,7 +75,8 @@ overall <- shots |>
     ),
     outcomes_selected = FALSE,
     prospective_2026_27_accessed = FALSE
-  )
+  ) |>
+  mutate(across(where(is.double), ~ round(.x, 12)))
 
 by_season <- shots |>
   group_by(season) |>
@@ -97,6 +98,7 @@ by_season <- shots |>
     two_point_max_feet = max(shot_distance_feet[point_value == 2L]),
     .groups = "drop"
   ) |>
+  mutate(across(where(is.double), ~ round(.x, 12))) |>
   arrange(season)
 
 band_support <- shots |>
@@ -104,6 +106,7 @@ band_support <- shots |>
   group_by(season) |>
   mutate(share = shots / sum(shots)) |>
   ungroup() |>
+  mutate(share = round(share, 12)) |>
   arrange(season, distance_band)
 
 point_distance_overlap <- bind_rows(
@@ -244,7 +247,8 @@ audit <- tibble(
     "0", "0", "0;100 guard", "all rows", "maximum <= 1 foot",
     "positive count", "positive count", "positive count", "0", "0", "FALSE", "0"
   )
-)
+) |>
+  mutate(across(where(is.double), ~ round(.x, 12)))
 if (!all(audit$passed)) stop("a predictor-only distance audit check failed", call. = FALSE)
 
 output_dir <- file.path(repo_root, "data", "processed", "context_edition_m2_preregistration_v0_1")
@@ -264,5 +268,54 @@ write_atomic(boundary_counts, "point_value_boundary_counts.csv")
 write_atomic(grouping, "grouping_dimensions.csv")
 write_atomic(computation, "computational_estimate.csv")
 write_atomic(audit, "pre_registration_audit.csv")
+
+sha256_file <- function(path) {
+  output <- system2("shasum", c("-a", "256", path), stdout = TRUE)
+  if (length(output) != 1L) stop("unable to hash ", path, call. = FALSE)
+  sub("[[:space:]].*$", "", output)
+}
+
+artifact_files <- c(
+  "docs/CONTEXT_EDITION_M2_PREREGISTRATION.md",
+  "docs/SPATIAL_MODEL_PLAN.md",
+  "R/context_edition_m2_predictor_audit.R",
+  "R/context_edition_m2_protocol.R",
+  "R/context_edition_m2_structural_tests.R",
+  "R/context_edition_m2_verify.R",
+  "config/context_edition_m2_d1_policy_v0_1.csv",
+  "config/context_edition_m2_decision_v0_1.csv",
+  "config/context_edition_m2_development_plan_v0_1.csv",
+  "config/context_edition_m2_feature_allowlist_v0_1.csv",
+  "config/context_edition_m2_grouping_v0_1.csv",
+  "config/context_edition_m2_metrics_v0_1.csv",
+  "config/context_edition_m2_model_spec_v0_1.csv",
+  "config/context_edition_m2_prospective_v0_1.csv",
+  "config/context_edition_m2_smooth_v0_1.csv",
+  "config/context_edition_m2_subgroups_v0_1.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/computational_estimate.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/distance_audit_by_season.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/distance_audit_overall.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/distance_band_support.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/grouping_dimensions.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/point_distance_overlap.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/point_value_boundary_counts.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/pre_registration_audit.csv",
+  "data/processed/context_edition_m2_preregistration_v0_1/structural_test_results.csv"
+)
+artifact_paths <- file.path(repo_root, artifact_files)
+if (!all(file.exists(artifact_paths))) stop("a registered preregistration artifact is missing", call. = FALSE)
+artifact_role <- c(
+  "methodology", "current_authority_pointer", rep("protocol_or_verification_code", 4),
+  rep("declarative_configuration", 10), rep("aggregate_audit_or_test_result", 9)
+)
+artifact_manifest <- tibble(
+  protocol_version = CONTEXT_M2_PROTOCOL_VERSION,
+  file = artifact_files,
+  bytes = as.numeric(file.info(artifact_paths)$size),
+  sha256 = vapply(artifact_paths, sha256_file, character(1)),
+  contains_shot_level_rows = FALSE,
+  artifact_role = artifact_role
+)
+write_atomic(artifact_manifest, "artifact_manifest.csv")
 
 message("Predictor-only M2 distance audit passed; no outcomes were selected.")

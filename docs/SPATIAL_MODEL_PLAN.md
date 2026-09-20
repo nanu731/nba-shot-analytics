@@ -18,6 +18,17 @@ export have now passed their registered checks. Portfolio integration remains.
 This document records the current direction without treating the design as
 finished. Move decisions as evidence changes.
 
+## Separate Context Edition status
+
+The selected Context Edition M1 and its results remain immutable. The next
+Context candidate is now fully preregistered, but not fitted, in
+`docs/CONTEXT_EDITION_M2_PREREGISTRATION.md`. It adds one shared nonlinear
+whole-foot distance smooth to M1 and keeps D1 as a non-selection diagnostic.
+The 2023-24 through 2025-26 comparisons are explicitly historical development
+evidence because their M0/M1 outcomes were previously viewed; 2026-27 remains
+untouched prospective confirmation. This Context work does not alter the CAR
+Location Edition, relocation, score, or website artifacts governed below.
+
 ## Settled
 
 ### Question
