@@ -1,0 +1,12 @@
+protocol_version,metric_id,scope,definition,direction,selection_role,uncertainty
+context_m2_protocol_v0.1.0,pooled_bernoulli_log_loss,"three pooled out-of-fold development seasons","shot-weighted log loss; clip probabilities to [1e-15,1-1e-15] only inside logarithms",lower_is_better,primary,"2000 paired whole-game bootstrap samples stratified by validation season; seed 20260914; percentile 95% interval and sample SD"
+context_m2_protocol_v0.1.0,season_bernoulli_log_loss,each_development_season,"shot-weighted log loss with identical clipping",lower_is_better,breadth_gate,"paired whole-game point estimate by season"
+context_m2_protocol_v0.1.0,calibration_in_large_abs,pooled,"absolute observed-minus-predicted make rate",lower_is_better,calibration_gate,"paired bootstrap M2-minus-M1 error; materially worse only when lower 95% bound exceeds 0.005"
+context_m2_protocol_v0.1.0,equal_count_decile_ece,pooled,"shot-weighted absolute calibration gaps in ten deterministic equal-count probability bins",lower_is_better,calibration_gate,"paired bootstrap M2-minus-M1 error; materially worse only when lower 95% bound exceeds 0.005"
+context_m2_protocol_v0.1.0,brier_score,pooled_and_season,"mean squared make-probability error",lower_is_better,diagnostic_only,"paired whole-game interval"
+context_m2_protocol_v0.1.0,roc_auc,pooled_and_season,"rank discrimination of makes and misses",higher_is_better,diagnostic_only,"paired whole-game interval"
+context_m2_protocol_v0.1.0,expected_points_rmse,shot,"RMSE of point_value*probability against point_value*outcome",lower_is_better,diagnostic_only,"paired whole-game interval"
+context_m2_protocol_v0.1.0,game_points_mae,whole_game,"MAE of summed expected field-goal points against realized field-goal points",lower_is_better,diagnostic_only,"paired whole-game interval"
+context_m2_protocol_v0.1.0,game_points_rmse,whole_game,"RMSE of summed expected field-goal points against realized field-goal points",lower_is_better,diagnostic_only,"paired whole-game interval"
+context_m2_protocol_v0.1.0,points_bias_per_100,pooled,"100 times mean predicted-minus-realized field-goal points",absolute_closer_to_zero,diagnostic_only,"paired whole-game interval"
+

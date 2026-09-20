@@ -1,0 +1,18 @@
+protocol_version,field_or_concept,role,m0,m1,d1,m2,decision
+context_m2_protocol_v0.1.0,field_goal_made,response,RESPONSE,RESPONSE,RESPONSE,RESPONSE,"likelihood only; never predictor"
+context_m2_protocol_v0.1.0,point_value,predictor_and_conversion,ALLOW,ALLOW,ALLOW,ALLOW,"fixed two-versus-three make-probability effect and expected-points multiplier"
+context_m2_protocol_v0.1.0,player_id,predictor,ALLOW,ALLOW,ALLOW,ALLOW,"pooled random intercept; private identifier"
+context_m2_protocol_v0.1.0,finish_family,predictor,BLOCK,ALLOW,BLOCK,ALLOW,"frozen seven-level additive taxonomy"
+context_m2_protocol_v0.1.0,creation_family,predictor,BLOCK,ALLOW,BLOCK,ALLOW,"frozen four-level additive taxonomy; other_or_unknown retained"
+context_m2_protocol_v0.1.0,shot_distance_feet,predictor,BLOCK,BLOCK,ALLOW,ALLOW,"single shared penalized smooth of canonical whole-foot distance"
+context_m2_protocol_v0.1.0,season,split_and_report,BLOCK,BLOCK,BLOCK,BLOCK,"chronology and reporting only"
+context_m2_protocol_v0.1.0,game_id,split_and_resample,BLOCK,BLOCK,BLOCK,BLOCK,"whole-game separation and paired bootstrap only"
+context_m2_protocol_v0.1.0,location_x_or_y,predictor,BLOCK,BLOCK,BLOCK,BLOCK,"audit only; no two-dimensional model term"
+context_m2_protocol_v0.1.0,period_or_game_clock,predictor,BLOCK,BLOCK,BLOCK,BLOCK,"outside M2"
+context_m2_protocol_v0.1.0,home_away_or_score_margin,predictor,BLOCK,BLOCK,BLOCK,BLOCK,"outside M2"
+context_m2_protocol_v0.1.0,team_id,predictor,BLOCK,BLOCK,BLOCK,BLOCK,"outside M2"
+context_m2_protocol_v0.1.0,player_by_family_or_distance,interaction,BLOCK,BLOCK,BLOCK,BLOCK,"outside M2"
+context_m2_protocol_v0.1.0,raw_action_type,audit_only,BLOCK,BLOCK,BLOCK,BLOCK,"taxonomy audit only"
+context_m2_protocol_v0.1.0,raw_play_by_play_text,audit_only,BLOCK,BLOCK,BLOCK,BLOCK,"contains outcome language"
+context_m2_protocol_v0.1.0,post_shot_or_future_context,predictor,BLOCK,BLOCK,BLOCK,BLOCK,"prohibited leakage"
+

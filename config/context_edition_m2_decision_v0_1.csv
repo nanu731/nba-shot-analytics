@@ -1,0 +1,7 @@
+protocol_version,priority,condition,action,reason
+context_m2_protocol_v0.1.0,1,"M2 pooled log loss is not lower than M1 pooled log loss",retain_M1,"M1 is empirically best or tied"
+context_m2_protocol_v0.1.0,2,"M2 pooled log-loss improvement is less than or equal to one paired whole-game bootstrap standard error",retain_M1,"M1 is within one standard error of the best"
+context_m2_protocol_v0.1.0,3,"the lower 95% paired-bootstrap bound for M2-minus-M1 absolute calibration-in-large error or ECE exceeds 0.005",retain_M1,"M2 is materially worse calibrated"
+context_m2_protocol_v0.1.0,4,"M2 has lower log loss in fewer than two of three historical development seasons",retain_M1,"pooled improvement lacks rolling-season breadth"
+context_m2_protocol_v0.1.0,5,"M2 passes priorities 1 through 4",advance_M2_to_prospective_confirmation,"distance adds more than one standard error of broad development value without material calibration loss"
+

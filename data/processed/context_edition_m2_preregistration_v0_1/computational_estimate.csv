@@ -1,0 +1,4 @@
+comparison_id,training_shots,players,d1_grouped_rows,m2_grouped_rows,d1_nominal_coefficients,m2_nominal_coefficients,d1_runtime_estimate,m2_runtime_estimate,peak_memory_estimate,serialized_checkpoint_estimate,estimate_basis,estimate_only
+development_1,433942,700,18396,57190,711,720,2-8 minutes,5-20 minutes,1-4 GB,20-50 MB,"M1 measured 104.7 s at 9,328 rows; distance raises grouped rows to 57,190 but adds only 9 coefficients",TRUE
+development_2,652642,808,21636,69649,819,828,3-10 minutes,8-30 minutes,2-5 GB,25-60 MB,"M1 measured 159.7 s at 10,852 rows; distance raises grouped rows to 69,649 but adds only 9 coefficients",TRUE
+development_3,872169,913,24951,81746,924,933,4-15 minutes,12-45 minutes,3-6 GB,30-70 MB,"M1 measured 274.6 s at 12,415 rows; distance raises grouped rows to 81,746 but adds only 9 coefficients",TRUE

@@ -1,0 +1,11 @@
+protocol_version,group_id,definition,role,minimum_validation_shots,selection_use
+context_m2_protocol_v0.1.0,restricted_0_to_under_4,"0 <= shot_distance_feet < 4",distance_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,other_paint_4_to_under_10,"4 <= shot_distance_feet < 10",distance_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,midrange_10_to_under_22,"10 <= shot_distance_feet < 22",distance_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,three_point_distance_22_to_under_30,"22 <= shot_distance_feet < 30",distance_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,long_heave_30_plus,"shot_distance_feet >= 30",distance_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,point_value,"two;three",retained_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,finish_family,"seven frozen levels",retained_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,creation_family,"four frozen levels including other_or_unknown",retained_diagnostic,200,FALSE
+context_m2_protocol_v0.1.0,training_player_volume,"four training-attempt quartiles plus unseen",retained_diagnostic,200,FALSE
+

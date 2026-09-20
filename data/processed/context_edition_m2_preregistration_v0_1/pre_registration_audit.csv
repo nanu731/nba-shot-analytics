@@ -1,0 +1,16 @@
+check_id,passed,observed,expected
+exact_source_scope,TRUE,1091329,1091329
+five_seasons_only,TRUE,2021-22;2022-23;2023-24;2024-25;2025-26,2021-22;2022-23;2023-24;2024-25;2025-26
+predictor_fields_only,TRUE,season;player_id;point_value;finish_family;creation_family;shot_distance_feet;location_x_tenths_feet;location_y_tenths_feet,season;player_id;point_value;finish_family;creation_family;shot_distance_feet;location_x_tenths_feet;location_y_tenths_feet
+distance_complete,TRUE,0,0
+coordinates_complete,TRUE,0,0
+distance_range_valid,TRUE,0;88,0;100 guard
+recorded_equals_coordinate_floor,TRUE,1091329,all rows
+agreement_within_one_foot,TRUE,0.9996774176764625,maximum <= 1 foot
+corner_three_distance_overlap,TRUE,34064,positive count
+long_two_distance_overlap,TRUE,4022,positive count
+heaves_retained,TRUE,10794,positive count
+model_fits_created,TRUE,0,0
+historical_outcomes_analyzed,TRUE,0,0
+prospective_2026_27_accessed,TRUE,FALSE,FALSE
+shot_level_rows_written,TRUE,0,0
