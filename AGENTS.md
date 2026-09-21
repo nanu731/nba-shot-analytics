@@ -2,25 +2,38 @@
 
 ## Purpose
 
-This repository asks:
+This repository contains two related projects:
+
+- The completed **Location Edition**, which asks:
 
 > How many additional points could a player score by relocating a limited share
 > of shots from weaker locations toward locations where that player has
 > demonstrated stronger ability, while preserving shot variety?
+
+- The active **Context Edition**, which tests whether shot type, distance, and
+  verified pre-shot context improve future expected field-goal-point prediction
+  beyond a pooled player baseline.
 
 The analysis is being redesigned. Treat the plan as living, explain statistics
 and code briefly in plain language, and follow Occam's razor.
 
 ## Current authority
 
-- Read `docs/SPATIAL_MODEL_PLAN.md` before changing the model.
+- For Context Edition work, read `docs/CONTEXT_EDITION_ROADMAP.md` first, then
+  read the preregistration and execution document for the active stage.
+- For Location Edition work, read `docs/SPATIAL_MODEL_PLAN.md` before changing
+  the model.
 - `CLAUDE.md`, `ZONE_MODEL_ACCEPTANCE.md`, and `docs/METRIC_REFRAME.md` are
   earlier designs. Use them as evidence, not current model instructions.
 - `ASSUMPTIONS.md` is a historical audit log. Do not rewrite old entries.
 - Report conflicts between documentation, data, and code.
 - Never present a proposed decision as settled.
 
-## Settled direction
+The Location Edition is protected historical work. Do not change its models,
+exports, score, relocation rules, or website while developing the Context
+Edition unless Narayan separately authorizes that change.
+
+## Location Edition settled direction
 
 - Replace the 10-zone beta-binomial model with a continuous spatial surface.
 - Do not use zones in the new model, exports, charts, or website presentation.
