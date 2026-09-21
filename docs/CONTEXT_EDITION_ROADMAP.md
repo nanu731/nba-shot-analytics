@@ -78,7 +78,7 @@ beyond two-versus-three status and player history. The result does not establish
 causality, total offensive value, defensive adjustment, or superiority over a
 location model.
 
-### Active stage: M2 distance preflight
+### Active stage: M2 historical development freeze
 
 M2 keeps M1 unchanged and adds one shared nonlinear smooth of canonical
 `shot_distance_feet`. D1 is a distance-only diagnostic and cannot win model
@@ -107,14 +107,17 @@ Current execution state at this update:
 - Approved design commit: `5b54ebf6354198b2111fba084e55a9a473802eac`.
 - Pre-fit implementation commit: `18cbe2ffcd85641214419d88a5520f0b55e561da`.
 - Recovery implementation commit: `669e48ae4270d8448fe460b19baa291f159f09e0`.
-- D1 was fitted once on 2021-22 and 2022-23 and preserved privately.
-- D1 passed the registered `k = 10` adequacy rule and corrected frozen checks.
-- M2 training-only fitting and atomic two-model checkpoint verification remain
-  unfinished at the time of this update.
+- Training-preflight result commit: `a0d8ae71a89cbd5b1b6ee5a6ebf2341eaefe9846`.
+- D1 was fitted once on 2021-22 and 2022-23, preserved privately, and recovered
+  without refitting.
+- M2 was fitted exactly once on the same training window.
+- Both models passed the registered `k = 10` adequacy rule and every corrected
+  frozen check.
+- The private atomic checkpoint and both prediction hashes recovered without
+  refitting either model.
 - No validation outcome was opened during the M2 preflight.
-
-Update this subsection after the next verified M2 handoff. Do not infer success
-from a stale lock or partial fit.
+- The next gated action is to freeze the historical M2-versus-M1 evaluation
+  implementation before opening any 2023-24 outcome.
 
 ## Model ladder and stage gates
 
@@ -277,8 +280,9 @@ refit.
 
 ## Foreseeable execution order
 
-1. Finish and verify the M2 first-window training preflight.
-2. Freeze the historical M2 runner before outcome evaluation.
+1. Freeze the historical M2 runner before outcome evaluation.
+2. Verify its inputs, split-specific fit reuse, and outcome-access guards before
+   opening 2023-24.
 3. Run the three M2-versus-M1 historical development comparisons unchanged.
 4. Apply the frozen M2 advancement rule.
 5. Preregister and audit M3 game-context fields.
