@@ -1,0 +1,41 @@
+model_id,check_id,passed,detail
+D1,formula_identity,TRUE,"cbind(makes, misses) ~ point_value_factor + s(player_id_factor,      bs = ""re"") + s(shot_distance_feet, bs = ""cr"", k = 10, m = 2)"
+D1,frozen_fit_settings,TRUE,method=REML;optimizer=outer+newton;discrete=FALSE;select=FALSE;gamma=1;drop.unused.levels=FALSE
+D1,registered_terms_only,TRUE,player_id_factor;point_value_factor;shot_distance_feet
+D1,coefficient_dimension,TRUE,711
+D1,model_matrix_identity,TRUE,25x711
+D1,full_convergence,TRUE,full convergence
+D1,finite_coefficients,TRUE,0
+D1,finite_covariance,TRUE,0
+D1,two_positive_smoothing_parameters,TRUE,38.2469406213;2.26653306796
+D1,registered_smooths_only,TRUE,s(player_id_factor);s(shot_distance_feet)
+D1,finite_interior_probabilities,TRUE,0.00532426213458697;0.801375157906887
+D1,deterministic_predictions,TRUE,0
+D1,expected_points_exact,TRUE,0
+D1,known_player_effect_used,TRUE,0.08807909773020262
+D1,unseen_player_zero_deviation,TRUE,0
+D1,all_0_to_88_distances_predict,TRUE,0;88
+D1,heave_and_boundary_predict,TRUE,0;22;23;30;88 feet
+D1,all_taxonomy_levels_predict,TRUE,not_applicable
+D1,other_or_unknown_predicts,TRUE,not_applicable
+D1,k_10_adequate,TRUE,retain_k_10
+M2,formula_identity,TRUE,"cbind(makes, misses) ~ point_value_factor + finish_family + creation_family +      s(player_id_factor, bs = ""re"") + s(shot_distance_feet, bs = ""cr"",      k = 10, m = 2)"
+M2,frozen_fit_settings,TRUE,method=REML;optimizer=outer+newton;discrete=FALSE;select=FALSE;gamma=1;drop.unused.levels=FALSE
+M2,registered_terms_only,TRUE,creation_family;finish_family;player_id_factor;point_value_factor;shot_distance_feet
+M2,coefficient_dimension,TRUE,720
+M2,model_matrix_identity,TRUE,25x720
+M2,full_convergence,TRUE,full convergence
+M2,finite_coefficients,TRUE,0
+M2,finite_covariance,TRUE,0
+M2,two_positive_smoothing_parameters,TRUE,43.2035372326;3.25392765287
+M2,registered_smooths_only,TRUE,s(player_id_factor);s(shot_distance_feet)
+M2,finite_interior_probabilities,TRUE,0.00623957984326788;0.949290136512093
+M2,deterministic_predictions,TRUE,0
+M2,expected_points_exact,TRUE,0
+M2,known_player_effect_used,TRUE,0.08996157668404281
+M2,unseen_player_zero_deviation,TRUE,0
+M2,all_0_to_88_distances_predict,TRUE,0;88
+M2,heave_and_boundary_predict,TRUE,0;22;23;30;88 feet
+M2,all_taxonomy_levels_predict,TRUE,56 combinations
+M2,other_or_unknown_predicts,TRUE,ordinary frozen level
+M2,k_10_adequate,TRUE,retain_k_10

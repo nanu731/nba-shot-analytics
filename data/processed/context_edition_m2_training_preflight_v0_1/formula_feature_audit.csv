@@ -1,0 +1,3 @@
+model_id,formula,registered_predictors_only,coordinates_in_model,game_context_in_model,point_value_preserved,distance_smooth_shared
+D1,"cbind(makes, misses) ~ point_value_factor + s(player_id_factor,      bs = ""re"") + s(shot_distance_feet, bs = ""cr"", k = 10, m = 2)",TRUE,FALSE,FALSE,TRUE,TRUE
+M2,"cbind(makes, misses) ~ point_value_factor + finish_family + creation_family +      s(player_id_factor, bs = ""re"") + s(shot_distance_feet, bs = ""cr"",      k = 10, m = 2)",TRUE,FALSE,FALSE,TRUE,TRUE
