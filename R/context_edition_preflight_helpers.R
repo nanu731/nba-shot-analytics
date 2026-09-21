@@ -77,3 +77,17 @@ context_preflight_fixed_prediction <- function(model, newdata) {
     newdata.guaranteed = TRUE
   ))
 }
+
+context_preflight_boundary_grid <- function(player_levels, point_value_levels, distances) {
+  if (length(player_levels) < 1L || length(point_value_levels) != 2L || length(distances) < 1L) {
+    stop("boundary-grid inputs are incomplete", call. = FALSE)
+  }
+  grid <- tidyr::crossing(
+    point_value_factor = point_value_levels,
+    shot_distance_feet = distances
+  )
+  grid$player_id_factor <- factor(player_levels[[1]], levels = player_levels)
+  grid$point_value_factor <- factor(grid$point_value_factor, levels = point_value_levels)
+  grid |>
+    dplyr::select(player_id_factor, point_value_factor, shot_distance_feet)
+}

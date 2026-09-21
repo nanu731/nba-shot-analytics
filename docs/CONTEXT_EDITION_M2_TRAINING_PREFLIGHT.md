@@ -1,8 +1,10 @@
 # Context Edition M2 first-window training preflight
 
-Status: implementation frozen before fitting; execution pending
+Status: approved partial recovery frozen before the one-time M2 fit
 
 Approved design: `5b54ebf6354198b2111fba084e55a9a473802eac`
+
+Pre-fit implementation commit: `18cbe2ffcd85641214419d88a5520f0b55e561da`
 
 Preflight version: `context_m2_training_preflight_v0.1.0`
 
@@ -62,3 +64,23 @@ Stop when both `k = 10` fits pass and the checkpoint recovers without refitting,
 or when a genuine fit, sanity, or basis-dimension blocker is preserved. Do not
 open 2023-24.
 
+## Approved partial recovery
+
+The first execution fitted D1 once and saved it before its checker stopped on
+an omitted import for the already-frozen expected-points helper. A second
+checker defect expanded all retained player factor levels when it intended to
+construct a one-player, 178-row distance boundary grid. Neither defect changed
+the fitted D1 model or exposed a validation outcome.
+
+Narayan approved one infrastructure-only recovery. It verifies the exact saved
+D1 fit and grouped-count hashes, imports the existing expected-points helper,
+constructs the boundary grid from one character value before restoring all
+training factor levels, and permits only M2 to enter the fitting loop. The D1
+warning count remains unavailable because the interrupted parent process did
+not persist its returned warning metadata. The recovery does not interpret that
+missing metadata as zero.
+
+The recovered D1 artifact may be promoted only after every corrected frozen
+check passes. M2 may then be fitted exactly once. The final two-model checkpoint
+is published atomically only if both models pass and its recovery prediction
+hashes reproduce without refitting.

@@ -1,7 +1,9 @@
 #!/usr/bin/env Rscript
 
 # Atomic first-window training-only preflight for the frozen D1 and M2 models.
-# Modes: audit (no data/outcomes), run (fit exactly once), verify (no refit).
+# Modes: audit (no data/outcomes), verify-partial (check preserved D1 without
+# mutation), run (fit exactly once), resume (reuse D1 and fit M2 exactly once),
+# verify (no refit).
 
 suppressPackageStartupMessages({
   library(arrow)
@@ -19,14 +21,21 @@ script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
 script_path <- if (length(script_arg) == 1L) sub("^--file=", "", script_arg) else "R/context_edition_m2_training_preflight.R"
 repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
 mode <- commandArgs(trailingOnly = TRUE)
-if (length(mode) != 1L || !mode %in% c("audit", "run", "verify")) {
-  stop("usage: Rscript R/context_edition_m2_training_preflight.R audit|run|verify", call. = FALSE)
+if (length(mode) != 1L || !mode %in% c("audit", "verify-partial", "run", "resume", "verify")) {
+  stop("usage: Rscript R/context_edition_m2_training_preflight.R audit|verify-partial|run|resume|verify", call. = FALSE)
 }
 
+source(file.path(repo_root, "R", "context_edition_m0_m1_protocol.R"), local = TRUE)
 source(file.path(repo_root, "R", "context_edition_m2_protocol.R"), local = TRUE)
 source(file.path(repo_root, "R", "context_edition_preflight_helpers.R"), local = TRUE)
 
 PREFLIGHT_VERSION <- "context_m2_training_preflight_v0.1.0"
+PREFIT_IMPLEMENTATION_COMMIT <- "18cbe2ffcd85641214419d88a5520f0b55e561da"
+RECOVERY_ATTEMPT_ID <- "20260921T003642Z"
+RECOVERY_INPUT_HASH <- "07c541d645e8336a64f2d2266c52eb9077707cb6dd991d08597731d2429139a1"
+RECOVERY_D1_FIT_SHA256 <- "e7632292dd9a8c0d2b223430862efa9bf0216d7d16d171e37d9f2752c24b3fb9"
+RECOVERY_D1_COUNTS_SHA256 <- "3fa19b60755dae9b82dc8a26dac16c336974be0e447c2d82c206a93166eb6782"
+RECOVERY_M2_COUNTS_SHA256 <- "fce87be19053655ff65a2fa77e477dbece15f93edd9acd1c26f101fc11cb03ae"
 TRAINING_SEASONS <- c("2021-22", "2022-23")
 PROHIBITED_OUTCOME_SEASONS <- c("2023-24", "2024-25", "2025-26", "2026-27")
 EXPECTED <- c(
@@ -34,6 +43,10 @@ EXPECTED <- c(
   makes = 203190L, misses = 230752L,
   D1_rows = 18396L, M2_rows = 57190L,
   distance_min = 0L, distance_max = 88L
+)
+EXPECTED_PACKAGE_VERSIONS <- c(
+  R = "4.6.0", arrow = "25.0.0", dplyr = "1.2.1", mgcv = "1.9.4",
+  Matrix = "1.7.5", purrr = "1.2.2", readr = "2.2.0", tidyr = "1.3.2"
 )
 
 canonical_root <- file.path(
@@ -93,6 +106,7 @@ read_configuration <- function() {
   values <- setNames(config$value, config$key)
   required <- c(
     "preflight_version", "protocol_version", "approved_design_commit",
+    "pre_fit_implementation_commit",
     "training_seasons", "prohibited_outcome_seasons", "engine_version",
     "method", "optimizer", "discrete", "select", "gamma", "k_initial",
     "k_check_seed", "k_check_subsample", "k_check_replicates",
@@ -105,6 +119,7 @@ read_configuration <- function() {
   if (!all(required %in% names(values))) stop("preflight config is incomplete", call. = FALSE)
   if (!identical(values[["preflight_version"]], PREFLIGHT_VERSION) ||
       !identical(values[["protocol_version"]], CONTEXT_M2_PROTOCOL_VERSION) ||
+      !identical(values[["pre_fit_implementation_commit"]], PREFIT_IMPLEMENTATION_COMMIT) ||
       !identical(strsplit(values[["training_seasons"]], ";", fixed = TRUE)[[1]], TRAINING_SEASONS) ||
       !identical(strsplit(values[["prohibited_outcome_seasons"]], ";", fixed = TRUE)[[1]], PROHIBITED_OUTCOME_SEASONS)) {
     stop("preflight scope differs from the frozen configuration", call. = FALSE)
@@ -119,7 +134,11 @@ read_configuration <- function() {
 
 static_audit <- function() {
   config_values <- read_configuration()
-  if (!identical(as.character(packageVersion("mgcv")), "1.9.4")) stop("mgcv version mismatch", call. = FALSE)
+  installed_versions <- c(
+    R = paste(R.version$major, R.version$minor, sep = "."),
+    vapply(names(EXPECTED_PACKAGE_VERSIONS)[-1L], function(x) as.character(packageVersion(x)), character(1))
+  )
+  if (!identical(installed_versions, EXPECTED_PACKAGE_VERSIONS)) stop("frozen package versions changed", call. = FALSE)
   formulas <- context_m2_formulas()
   model_spec <- readr::read_csv(model_spec_path, show_col_types = FALSE)
   feature_spec <- readr::read_csv(feature_path, show_col_types = FALSE)
@@ -148,6 +167,7 @@ static_audit <- function() {
     model_spec = model_spec,
     feature_spec = feature_spec,
     smooth_spec = smooth_spec,
+    package_versions = installed_versions,
     configuration_sha256 = sha256_file(config_path),
     preregistration_inputs_sha256 = hash_values(c(
       sha256_file(model_spec_path), sha256_file(feature_path), sha256_file(smooth_path),
@@ -249,14 +269,22 @@ fit_worker <- function(model_id, counts, formula, output_path) {
   cpu <- proc.time() - started_cpu
   serialized_started <- Sys.time()
   saveRDS(fit, output_path, compress = "xz")
+  serialization_seconds <- as.numeric(difftime(Sys.time(), serialized_started, units = "secs"))
   list(
     model_id = model_id,
     fit_seconds = fit_seconds,
-    serialization_seconds = as.numeric(difftime(Sys.time(), serialized_started, units = "secs")),
+    serialization_seconds = serialization_seconds,
+    fit_and_serialization_wall_seconds = fit_seconds + serialization_seconds,
     cpu_user_seconds = unname(cpu[["user.self"]]),
     cpu_system_seconds = unname(cpu[["sys.self"]]),
     fit_object_bytes = as.numeric(object.size(fit)),
+    sampled_cpu_seconds = NA_real_,
+    reused_from_partial = FALSE,
+    warning_count = length(unique(warnings_seen)),
+    warning_metadata_status = "complete",
     warnings = unique(warnings_seen),
+    message_count = length(unique(messages_seen)),
+    message_metadata_status = "complete",
     messages = unique(messages_seen)
   )
 }
@@ -327,10 +355,10 @@ validate_fit <- function(model_id, fit_path, counts, run_metadata, setup_seconds
   unseen_probability <- fixed_prediction(fit, unseen)
 
   levels_frozen <- context_m2_factor_levels()
-  boundary <- tidyr::crossing(
-    player_id_factor = factor(levels(counts$player_id_factor)[[1]], levels = levels(counts$player_id_factor)),
-    point_value_factor = factor(levels_frozen$point_value_factor, levels = levels_frozen$point_value_factor),
-    shot_distance_feet = 0:88
+  boundary <- context_preflight_boundary_grid(
+    player_levels = levels(counts$player_id_factor),
+    point_value_levels = levels_frozen$point_value_factor,
+    distances = 0:88
   )
   if (model_id == "M2") {
     boundary <- boundary |>
@@ -383,7 +411,7 @@ validate_fit <- function(model_id, fit_path, counts, run_metadata, setup_seconds
   checks <- tibble(
     model_id = model_id_value,
     check_id = c(
-      "formula_identity", "registered_terms_only", "coefficient_dimension",
+      "formula_identity", "frozen_fit_settings", "registered_terms_only", "coefficient_dimension",
       "model_matrix_identity", "full_convergence", "finite_coefficients",
       "finite_covariance", "two_positive_smoothing_parameters",
       "registered_smooths_only", "finite_interior_probabilities",
@@ -398,6 +426,9 @@ validate_fit <- function(model_id, fit_path, counts, run_metadata, setup_seconds
         gsub("[[:space:]]+", "", paste(deparse(formula(fit)), collapse = "")),
         gsub("[[:space:]]+", "", paste(deparse(context_m2_formulas()[[model_id_value]]), collapse = ""))
       ),
+      identical(fit$method, "REML") && identical(fit$optimizer, c("outer", "newton")) &&
+        identical(eval(fit$call$discrete), FALSE) && identical(eval(fit$call$select), FALSE) &&
+        identical(eval(fit$call$gamma), 1) && identical(eval(fit$call$drop.unused.levels), FALSE),
       setequal(attr(terms(fit), "term.labels"), expected_terms),
       length(coef(fit)) == expected_coefficients,
       ncol(lpmatrix) == length(coef(fit)) && identical(colnames(lpmatrix), names(coef(fit))),
@@ -421,6 +452,11 @@ validate_fit <- function(model_id, fit_path, counts, run_metadata, setup_seconds
     ),
     detail = c(
       paste(deparse(formula(fit)), collapse = " "),
+      paste0(
+        "method=", fit$method, ";optimizer=", paste(fit$optimizer, collapse = "+"),
+        ";discrete=", eval(fit$call$discrete), ";select=", eval(fit$call$select),
+        ";gamma=", eval(fit$call$gamma), ";drop.unused.levels=", eval(fit$call$drop.unused.levels)
+      ),
       paste(sort(attr(terms(fit), "term.labels")), collapse = ";"),
       as.character(length(coef(fit))),
       paste0(nrow(lpmatrix), "x", ncol(lpmatrix)),
@@ -468,15 +504,20 @@ validate_fit <- function(model_id, fit_path, counts, run_metadata, setup_seconds
     setup_seconds = setup_seconds,
     fit_seconds = run_metadata$fit_seconds,
     serialization_seconds = run_metadata$serialization_seconds,
+    fit_and_serialization_wall_seconds = run_metadata$fit_and_serialization_wall_seconds,
     prediction_and_check_seconds = prediction_seconds,
     cpu_user_seconds = run_metadata$cpu_user_seconds,
     cpu_system_seconds = run_metadata$cpu_system_seconds,
     peak_process_tree_rss_bytes = run_metadata$peak_process_tree_rss_bytes,
     fit_object_bytes = run_metadata$fit_object_bytes,
     serialized_fit_bytes = as.numeric(file.info(fit_path)$size),
-    warning_count = length(run_metadata$warnings),
+    sampled_cpu_seconds = run_metadata$sampled_cpu_seconds,
+    reused_from_partial = run_metadata$reused_from_partial,
+    warning_count = run_metadata$warning_count,
+    warning_metadata_status = run_metadata$warning_metadata_status,
     warnings = paste(run_metadata$warnings, collapse = " | "),
-    message_count = length(run_metadata$messages),
+    message_count = run_metadata$message_count,
+    message_metadata_status = run_metadata$message_metadata_status,
     messages = paste(run_metadata$messages, collapse = " | "),
     probability_sha256 = probability_hash,
     coefficient_sha256 = coefficient_hash
@@ -515,6 +556,54 @@ verify_private_checkpoint <- function(expected_input_hash = NULL) {
   )
 }
 
+read_key_value_file <- function(path) {
+  if (!file.exists(path)) stop("required recovery metadata is missing: ", path, call. = FALSE)
+  lines <- readLines(path, warn = FALSE)
+  parts <- strsplit(lines, "=", fixed = TRUE)
+  keys <- vapply(parts, `[[`, character(1), 1L)
+  values <- vapply(parts, function(x) paste(x[-1L], collapse = "="), character(1))
+  setNames(values, keys)
+}
+
+parse_ps_cpu_seconds <- function(value) {
+  fields <- as.numeric(strsplit(value, ":", fixed = TRUE)[[1]])
+  if (anyNA(fields) || !length(fields) %in% c(2L, 3L)) return(NA_real_)
+  if (length(fields) == 2L) fields[[1]] * 60 + fields[[2]] else
+    fields[[1]] * 3600 + fields[[2]] * 60 + fields[[3]]
+}
+
+recovered_d1_metadata <- function(fit_path, resource_path) {
+  samples <- readr::read_csv(
+    resource_path, show_col_types = FALSE,
+    col_types = readr::cols(.default = readr::col_character())
+  )
+  samples$wall_seconds <- as.numeric(samples$wall_seconds)
+  samples$rss_bytes <- as.numeric(samples$rss_bytes)
+  cpu_seconds <- vapply(samples$cpu_time_text, parse_ps_cpu_seconds, numeric(1))
+  tree_rss <- samples |>
+    group_by(sampled_at_utc) |>
+    summarise(total = sum(rss_bytes), .groups = "drop")
+  fit <- readRDS(fit_path)
+  list(
+    model_id = "D1",
+    fit_seconds = NA_real_,
+    serialization_seconds = NA_real_,
+    fit_and_serialization_wall_seconds = max(samples$wall_seconds),
+    cpu_user_seconds = NA_real_,
+    cpu_system_seconds = NA_real_,
+    fit_object_bytes = as.numeric(object.size(fit)),
+    sampled_cpu_seconds = max(cpu_seconds, na.rm = TRUE),
+    peak_process_tree_rss_bytes = max(tree_rss$total),
+    reused_from_partial = TRUE,
+    warning_count = NA_integer_,
+    warning_metadata_status = "unavailable_after_interrupted_checker",
+    warnings = character(),
+    message_count = NA_integer_,
+    message_metadata_status = "unavailable_after_interrupted_checker",
+    messages = character()
+  )
+}
+
 if (mode == "audit") {
   audit <- static_audit()
   message(
@@ -536,11 +625,17 @@ dir.create(private_parent, recursive = TRUE, showWarnings = FALSE)
 if (dir.exists(private_final) || dir.exists(tracked_final)) {
   stop("a completed M2 preflight exists; use verify instead of fitting again", call. = FALSE)
 }
-if (dir.exists(private_lock)) stop("an M2 preflight lock already exists; inspect its PID before recovery", call. = FALSE)
+recovery_mode <- mode %in% c("verify-partial", "resume")
+partial_verification_only <- identical(mode, "verify-partial")
+if (!recovery_mode && dir.exists(private_lock)) {
+  stop("an M2 preflight lock already exists; inspect its PID before recovery", call. = FALSE)
+}
+if (recovery_mode && !dir.exists(private_lock)) stop("the approved recovery lock is missing", call. = FALSE)
 
 process_lines <- system2("ps", c("-axo", "pid=,command="), stdout = TRUE)
 matching <- process_lines[
-  grepl("context_edition_m2_training_preflight.R run", process_lines, fixed = TRUE) &
+  grepl("context_edition_m2_training_preflight.R", process_lines, fixed = TRUE) &
+    (grepl(" run", process_lines, fixed = TRUE) | grepl(" resume", process_lines, fixed = TRUE)) &
     grepl("/bin/exec/R", process_lines, fixed = TRUE)
 ]
 matching_pids <- suppressWarnings(as.integer(sub("^[[:space:]]*([0-9]+).*$", "\\1", matching)))
@@ -548,130 +643,196 @@ other_pids <- matching_pids[is.finite(matching_pids) & matching_pids != Sys.getp
 if (length(other_pids) > 0L) stop("another M2 training preflight process is active", call. = FALSE)
 
 current_branch <- git_value(c("branch", "--show-current"))
-if (current_branch != "codex/context-edition-m2-training-preflight") stop("run mode requires the isolated preflight branch", call. = FALSE)
+if (current_branch != "codex/context-edition-m2-training-preflight") stop("execution requires the isolated preflight branch", call. = FALSE)
 head_commit <- git_value(c("rev-parse", "HEAD"))
 origin_commit <- git_value(c("rev-parse", "origin/codex/context-edition-m2-training-preflight"))
 if (head_commit != origin_commit) stop("local and origin preflight commits differ", call. = FALSE)
+if (recovery_mode && system2(
+  "git", c("-C", repo_root, "merge-base", "--is-ancestor", PREFIT_IMPLEMENTATION_COMMIT, head_commit)
+) != 0L) stop("the approved pre-fit commit is not in recovery history", call. = FALSE)
 status <- git_value(c("status", "--porcelain", "--untracked-files=all"))
 status_lines <- status[nzchar(status)]
 unrelated <- status_lines[!grepl("^\\?\\? skill-observations/", status_lines)]
 if (length(unrelated) > 0L) stop("tracked or unrelated untracked work is present", call. = FALSE)
 
-if (!dir.create(private_lock, showWarnings = FALSE)) stop("could not acquire M2 preflight lock", call. = FALSE)
-attempt_id <- format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC")
-private_stage <- file.path(private_parent, paste0(".preflight-", attempt_id, ".partial"))
-tracked_stage <- file.path(tracked_parent, paste0(".context-m2-preflight-", attempt_id))
-dir.create(private_stage, recursive = TRUE, showWarnings = FALSE)
-dir.create(tracked_stage, recursive = TRUE, showWarnings = FALSE)
-log_path <- file.path(private_stage, "preflight.log")
-stage_path <- file.path(private_lock, "metadata.txt")
-success <- FALSE
+started_wall <- Sys.time()
+started_cpu <- proc.time()
+disk_before <- available_disk_bytes(repo_root)
+if (disk_before < 5 * 1024^3) stop("less than 5 GiB free disk", call. = FALSE)
 
-training_paths <- file.path(canonical_root, paste0("season=", TRAINING_SEASONS), "canonical_shots.parquet")
-if (!all(file.exists(training_paths))) stop("training partitions are missing", call. = FALSE)
-canonical_manifest_path <- file.path(canonical_root, "completion_manifest.csv")
-canonical_manifest <- readr::read_csv(canonical_manifest_path, show_col_types = FALSE)
-training_manifest <- canonical_manifest[canonical_manifest$artifact %in% file.path(paste0("season=", TRAINING_SEASONS), "canonical_shots.parquet"), , drop = FALSE]
-if (nrow(training_manifest) != 2L || any(!training_manifest$checks_passed) || any(!training_manifest$atomic_complete)) {
-  stop("training partition manifest is incomplete", call. = FALSE)
+if (recovery_mode) {
+  attempt_id <- RECOVERY_ATTEMPT_ID
+  private_stage <- file.path(private_parent, paste0(".preflight-", attempt_id, ".partial"))
+  tracked_stage <- file.path(
+    tracked_parent,
+    paste0(".context-m2-preflight-recovery-", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC"))
+  )
+  if (!dir.exists(private_stage)) stop("the approved partial checkpoint is missing", call. = FALSE)
+  if (!partial_verification_only) {
+    if (dir.exists(tracked_stage)) stop("the recovery tracked stage already exists", call. = FALSE)
+    dir.create(tracked_stage, recursive = TRUE, showWarnings = FALSE)
+  }
+  log_path <- file.path(private_stage, "preflight.log")
+  stage_path <- file.path(private_lock, "metadata.txt")
+  lock_metadata <- read_key_value_file(stage_path)
+  old_pid <- suppressWarnings(as.integer(lock_metadata[["pid"]]))
+  old_pid_line <- system2("ps", c("-p", old_pid, "-o", "pid="), stdout = TRUE)
+  if (length(old_pid_line) > 0L && any(nzchar(trimws(old_pid_line)))) {
+    stop("the original preflight PID is still active", call. = FALSE)
+  }
+  if (!identical(lock_metadata[["attempt_id"]], RECOVERY_ATTEMPT_ID) ||
+      !identical(lock_metadata[["input_hash"]], RECOVERY_INPUT_HASH)) {
+    stop("the stale lock does not belong to the approved recovery attempt", call. = FALSE)
+  }
+  input_hash <- RECOVERY_INPUT_HASH
+  required_hashes <- c(
+    "d1_fit.unverified.rds" = RECOVERY_D1_FIT_SHA256,
+    "d1_counts.rds" = RECOVERY_D1_COUNTS_SHA256,
+    "m2_counts.rds" = RECOVERY_M2_COUNTS_SHA256
+  )
+  observed_hashes <- map_chr(file.path(private_stage, names(required_hashes)), sha256_file)
+  if (!identical(unname(observed_hashes), unname(required_hashes))) {
+    stop("a preserved recovery artifact hash changed", call. = FALSE)
+  }
+  if (file.exists(file.path(private_stage, "m2_fit.unverified.rds")) ||
+      file.exists(file.path(private_stage, "m2_fit.rds"))) {
+    stop("an M2 fit artifact already exists; duplicate fitting is prohibited", call. = FALSE)
+  }
+  d1_counts <- readRDS(file.path(private_stage, "d1_counts.rds"))
+  m2_counts <- readRDS(file.path(private_stage, "m2_counts.rds"))
+  setup_seconds <- NA_real_
+  training_counts <- tibble(
+    training_seasons = paste(TRAINING_SEASONS, collapse = ";"),
+    games = EXPECTED[["games"]], shots = sum(d1_counts$attempts),
+    players = n_distinct(d1_counts$player_id_factor), makes = sum(d1_counts$makes),
+    misses = sum(d1_counts$misses), distance_min = min(d1_counts$shot_distance_feet),
+    distance_max = max(d1_counts$shot_distance_feet),
+    heaves_30_plus = sum(d1_counts$attempts[d1_counts$shot_distance_feet >= 30L]),
+    validation_outcomes_accessed = FALSE, prospective_2026_27_accessed = FALSE
+  )
+} else {
+  if (!dir.create(private_lock, showWarnings = FALSE)) stop("could not acquire M2 preflight lock", call. = FALSE)
+  attempt_id <- format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC")
+  private_stage <- file.path(private_parent, paste0(".preflight-", attempt_id, ".partial"))
+  tracked_stage <- file.path(tracked_parent, paste0(".context-m2-preflight-", attempt_id))
+  dir.create(private_stage, recursive = TRUE, showWarnings = FALSE)
+  dir.create(tracked_stage, recursive = TRUE, showWarnings = FALSE)
+  log_path <- file.path(private_stage, "preflight.log")
+  stage_path <- file.path(private_lock, "metadata.txt")
+  training_paths <- file.path(canonical_root, paste0("season=", TRAINING_SEASONS), "canonical_shots.parquet")
+  if (!all(file.exists(training_paths))) stop("training partitions are missing", call. = FALSE)
+  canonical_manifest_path <- file.path(canonical_root, "completion_manifest.csv")
+  canonical_manifest <- readr::read_csv(canonical_manifest_path, show_col_types = FALSE)
+  training_manifest <- canonical_manifest[
+    canonical_manifest$artifact %in% file.path(paste0("season=", TRAINING_SEASONS), "canonical_shots.parquet"),,
+    drop = FALSE
+  ]
+  if (nrow(training_manifest) != 2L || any(!training_manifest$checks_passed) || any(!training_manifest$atomic_complete)) {
+    stop("training partition manifest is incomplete", call. = FALSE)
+  }
+  if (!identical(unname(vapply(training_paths, sha256_file, character(1))), unname(training_manifest$sha256))) {
+    stop("training partition hash mismatch", call. = FALSE)
+  }
+  input_hash <- hash_values(c(
+    sha256_file(config_path), audit$preregistration_inputs_sha256,
+    training_manifest$sha256, head_commit
+  ))
+  write_stage(stage_path, attempt_id, "setup", input_hash)
+  write_stage(file.path(private_stage, "stage.txt"), attempt_id, "setup", input_hash)
+  message("Loading only frozen first-window training outcomes")
+  required_fields <- c(
+    "season", "source_game_id", "player_id", "point_value", "finish_family",
+    "creation_family", "shot_distance_feet", "field_goal_made"
+  )
+  training <- purrr::map_dfr(training_paths, function(path) {
+    arrow::read_parquet(path, col_select = all_of(required_fields), as_data_frame = TRUE)
+  })
+  if (!identical(sort(unique(training$season)), TRAINING_SEASONS)) stop("non-training season entered preflight", call. = FALSE)
+  if (any(training$season %in% PROHIBITED_OUTCOME_SEASONS)) stop("protected season entered preflight", call. = FALSE)
+  context_m2_validate_distance(training$shot_distance_feet)
+  if (range(training$shot_distance_feet)[1] != EXPECTED[["distance_min"]] ||
+      range(training$shot_distance_feet)[2] != EXPECTED[["distance_max"]]) stop("distance range changed", call. = FALSE)
+  if (anyNA(training) || any(!training$field_goal_made %in% 0:1)) stop("training model fields are invalid", call. = FALSE)
+  levels_frozen <- context_m2_factor_levels()
+  player_levels <- sort(unique(as.character(training$player_id)))
+  training <- training |>
+    mutate(
+      player_id_factor = factor(as.character(player_id), levels = player_levels),
+      point_value_factor = factor(if_else(point_value == 2L, "two", "three"), levels = levels_frozen$point_value_factor),
+      finish_family = factor(finish_family, levels = levels_frozen$finish_family),
+      creation_family = factor(creation_family, levels = levels_frozen$creation_family)
+    )
+  if (anyNA(training[c("player_id_factor", "point_value_factor", "finish_family", "creation_family")])) {
+    stop("factor handling introduced missing values", call. = FALSE)
+  }
+  training_counts <- tibble(
+    training_seasons = paste(TRAINING_SEASONS, collapse = ";"),
+    games = n_distinct(training$source_game_id), shots = nrow(training),
+    players = n_distinct(training$player_id_factor), makes = sum(training$field_goal_made),
+    misses = nrow(training) - sum(training$field_goal_made),
+    distance_min = min(training$shot_distance_feet), distance_max = max(training$shot_distance_feet),
+    heaves_30_plus = sum(training$shot_distance_feet >= 30L),
+    validation_outcomes_accessed = FALSE, prospective_2026_27_accessed = FALSE
+  )
+  d1_counts <- group_counts(training, "D1")
+  m2_counts <- group_counts(training, "M2")
+  rm(training)
+  invisible(gc())
+  saveRDS(d1_counts, file.path(private_stage, "d1_counts.rds"), compress = "xz")
+  saveRDS(m2_counts, file.path(private_stage, "m2_counts.rds"), compress = "xz")
+  setup_seconds <- as.numeric(difftime(Sys.time(), started_wall, units = "secs"))
 }
-if (!identical(unname(vapply(training_paths, sha256_file, character(1))), unname(training_manifest$sha256))) {
-  stop("training partition hash mismatch", call. = FALSE)
-}
-input_hash <- hash_values(c(
-  sha256_file(config_path), audit$preregistration_inputs_sha256,
-  training_manifest$sha256, head_commit
-))
 
 log_line <- function(...) {
   line <- paste0(format(Sys.time(), tz = "UTC", usetz = TRUE), " ", paste0(..., collapse = ""))
   cat(line, "\n", file = log_path, append = TRUE)
   message(line)
 }
-write_stage(stage_path, attempt_id, "setup", input_hash)
-write_stage(file.path(private_stage, "stage.txt"), attempt_id, "setup", input_hash)
-on.exit({
-  if (!success) {
-    write_lines_atomic(
-      c(
-        paste0("attempt_id=", attempt_id),
-        paste0("ended_at_utc=", format(Sys.time(), tz = "UTC", usetz = TRUE)),
-        "status=failed_or_interrupted",
-        "validation_outcomes_accessed=false",
-        "prospective_2026_27_accessed=false"
-      ),
-      file.path(private_stage, "failure_or_interruption.txt")
-    )
-  }
-}, add = TRUE)
 
-started_wall <- Sys.time()
-started_cpu <- proc.time()
-disk_before <- available_disk_bytes(repo_root)
-if (disk_before < 5 * 1024^3) stop("less than 5 GiB free disk", call. = FALSE)
-log_line("Loading only frozen first-window training outcomes")
-required_fields <- c(
-  "season", "source_game_id", "player_id", "point_value", "finish_family",
-  "creation_family", "shot_distance_feet", "field_goal_made"
-)
-training <- purrr::map_dfr(training_paths, function(path) {
-  arrow::read_parquet(path, col_select = all_of(required_fields), as_data_frame = TRUE)
-})
-if (!identical(sort(unique(training$season)), TRAINING_SEASONS)) stop("non-training season entered preflight", call. = FALSE)
-if (any(training$season %in% PROHIBITED_OUTCOME_SEASONS)) stop("protected season entered preflight", call. = FALSE)
-context_m2_validate_distance(training$shot_distance_feet)
-if (range(training$shot_distance_feet)[1] != EXPECTED[["distance_min"]] ||
-    range(training$shot_distance_feet)[2] != EXPECTED[["distance_max"]]) stop("distance range changed", call. = FALSE)
-if (anyNA(training) || any(!training$field_goal_made %in% 0:1)) stop("training model fields are invalid", call. = FALSE)
-
-levels_frozen <- context_m2_factor_levels()
-player_levels <- sort(unique(as.character(training$player_id)))
-training <- training |>
-  mutate(
-    player_id_factor = factor(as.character(player_id), levels = player_levels),
-    point_value_factor = factor(if_else(point_value == 2L, "two", "three"), levels = levels_frozen$point_value_factor),
-    finish_family = factor(finish_family, levels = levels_frozen$finish_family),
-    creation_family = factor(creation_family, levels = levels_frozen$creation_family)
-  )
-if (anyNA(training[c("player_id_factor", "point_value_factor", "finish_family", "creation_family")])) {
-  stop("factor handling introduced missing values", call. = FALSE)
+if (nrow(d1_counts) != EXPECTED[["D1_rows"]] || nrow(m2_counts) != EXPECTED[["M2_rows"]]) {
+  stop("grouped row counts changed", call. = FALSE)
 }
-training_counts <- tibble(
-  training_seasons = paste(TRAINING_SEASONS, collapse = ";"),
-  games = n_distinct(training$source_game_id),
-  shots = nrow(training),
-  players = n_distinct(training$player_id_factor),
-  makes = sum(training$field_goal_made),
-  misses = nrow(training) - sum(training$field_goal_made),
-  distance_min = min(training$shot_distance_feet),
-  distance_max = max(training$shot_distance_feet),
-  heaves_30_plus = sum(training$shot_distance_feet >= 30L),
-  validation_outcomes_accessed = FALSE,
-  prospective_2026_27_accessed = FALSE
-)
-observed_counts <- unlist(training_counts[c("games", "shots", "players", "makes", "misses")])
-if (!identical(as.integer(observed_counts), as.integer(EXPECTED[names(observed_counts)]))) stop("frozen training counts changed", call. = FALSE)
-
-d1_counts <- group_counts(training, "D1")
-m2_counts <- group_counts(training, "M2")
-if (nrow(d1_counts) != EXPECTED[["D1_rows"]] || nrow(m2_counts) != EXPECTED[["M2_rows"]]) stop("grouped row counts changed", call. = FALSE)
 for (counts in list(d1_counts, m2_counts)) {
   if (sum(counts$attempts) != EXPECTED[["shots"]] || sum(counts$makes) != EXPECTED[["makes"]] ||
       sum(counts$misses) != EXPECTED[["misses"]] || any(counts$makes + counts$misses != counts$attempts)) {
     stop("grouped counts do not reproduce training totals", call. = FALSE)
   }
 }
-rm(training)
-invisible(gc())
+observed_counts <- unlist(training_counts[c("games", "shots", "players", "makes", "misses")])
+if (!identical(as.integer(observed_counts), as.integer(EXPECTED[names(observed_counts)]))) {
+  stop("frozen training counts changed", call. = FALSE)
+}
 
-saveRDS(d1_counts, file.path(private_stage, "d1_counts.rds"), compress = "xz")
-saveRDS(m2_counts, file.path(private_stage, "m2_counts.rds"), compress = "xz")
-setup_seconds <- as.numeric(difftime(Sys.time(), started_wall, units = "secs"))
 formulas <- audit$formulas
 all_checks <- list()
 all_diagnostics <- list()
+models_to_fit <- c("D1", "M2")
 
-for (model_id in c("D1", "M2")) {
+if (recovery_mode) {
+  if (!partial_verification_only) write_stage(stage_path, attempt_id, "verifying_preserved_d1", input_hash)
+  d1_unverified_path <- file.path(private_stage, "d1_fit.unverified.rds")
+  d1_resource_path <- file.path(private_stage, "d1_resource_samples.csv")
+  d1_metadata <- recovered_d1_metadata(d1_unverified_path, d1_resource_path)
+  d1_verified <- validate_fit("D1", d1_unverified_path, d1_counts, d1_metadata, setup_seconds)
+  all_checks[["D1"]] <- d1_verified$checks
+  all_diagnostics[["D1"]] <- d1_verified$diagnostics
+  if (any(!d1_verified$checks$passed)) {
+    write_csv_stable(d1_verified$checks, file.path(private_stage, "d1_failed_checks.csv"))
+    write_csv_stable(d1_verified$diagnostics, file.path(private_stage, "d1_failed_diagnostics.csv"))
+    stop("preserved D1 fit failed a frozen recovery check", call. = FALSE)
+  }
+  if (partial_verification_only) {
+    message("Preserved D1 fit passed every corrected frozen check without mutation or refitting.")
+    quit(save = "no", status = 0L)
+  }
+  if (!file.rename(d1_unverified_path, file.path(private_stage, "d1_fit.rds"))) {
+    stop("could not promote the verified preserved D1 fit", call. = FALSE)
+  }
+  log_line("D1 preserved fit passed all corrected frozen checks without refitting")
+  models_to_fit <- "M2"
+}
+
+for (model_id in models_to_fit) {
   counts <- if (model_id == "D1") d1_counts else m2_counts
   unverified_path <- file.path(private_stage, paste0(tolower(model_id), "_fit.unverified.rds"))
   final_fit_path <- file.path(private_stage, paste0(tolower(model_id), "_fit.rds"))
@@ -743,6 +904,9 @@ private_artifacts <- c(
   "verification_state.csv", "d1_resource_samples.csv", "m2_resource_samples.csv",
   "preflight.log", "stage.txt"
 )
+if (recovery_mode && file.exists(file.path(private_stage, "failure_or_interruption.txt"))) {
+  private_artifacts <- c(private_artifacts, "failure_or_interruption.txt")
+}
 private_manifest <- tibble(
   artifact = private_artifacts,
   sha256 = map_chr(file.path(private_stage, private_artifacts), sha256_file),
@@ -752,7 +916,9 @@ private_manifest <- tibble(
   protocol_version = CONTEXT_M2_PROTOCOL_VERSION,
   input_hash = input_hash,
   configuration_sha256 = audit$configuration_sha256,
+  pre_fit_implementation_commit = PREFIT_IMPLEMENTATION_COMMIT,
   execution_commit = head_commit,
+  recovery_mode = recovery_mode,
   validation_outcomes_accessed = FALSE,
   prospective_2026_27_accessed = FALSE
 )
@@ -771,15 +937,29 @@ preflight_summary <- tibble(
   preflight_version = PREFLIGHT_VERSION,
   protocol_version = CONTEXT_M2_PROTOCOL_VERSION,
   execution_commit = head_commit,
+  pre_fit_implementation_commit = PREFIT_IMPLEMENTATION_COMMIT,
   configuration_sha256 = audit$configuration_sha256,
   input_hash = input_hash,
   training_seasons = paste(TRAINING_SEASONS, collapse = ";"),
   models_fit = 2L,
+  d1_fit_count = 1L,
+  d1_refit_count = 0L,
+  m2_fit_count = 1L,
+  models_fit_during_recovery = if_else(recovery_mode, 1L, 2L),
   validation_models_fit = 0L,
   performance_metrics_created = 0L,
-  total_wall_seconds = as.numeric(difftime(Sys.time(), started_wall, units = "secs")),
-  total_cpu_user_seconds = unname(total_cpu[["user.self"]]) + sum(fit_diagnostics$cpu_user_seconds),
-  total_cpu_system_seconds = unname(total_cpu[["sys.self"]]) + sum(fit_diagnostics$cpu_system_seconds),
+  total_wall_seconds = as.numeric(difftime(Sys.time(), started_wall, units = "secs")) +
+    if_else(recovery_mode, fit_diagnostics$fit_and_serialization_wall_seconds[fit_diagnostics$model_id == "D1"], 0),
+  recovery_wall_seconds = as.numeric(difftime(Sys.time(), started_wall, units = "secs")),
+  total_cpu_user_seconds = if_else(
+    anyNA(fit_diagnostics$cpu_user_seconds), NA_real_,
+    unname(total_cpu[["user.self"]]) + sum(fit_diagnostics$cpu_user_seconds)
+  ),
+  total_cpu_system_seconds = if_else(
+    anyNA(fit_diagnostics$cpu_system_seconds), NA_real_,
+    unname(total_cpu[["sys.self"]]) + sum(fit_diagnostics$cpu_system_seconds)
+  ),
+  d1_sampled_cpu_seconds = fit_diagnostics$sampled_cpu_seconds[fit_diagnostics$model_id == "D1"],
   peak_process_tree_rss_bytes = max(fit_diagnostics$peak_process_tree_rss_bytes, na.rm = TRUE),
   available_disk_bytes_before = disk_before,
   available_disk_bytes_after = available_disk_bytes(repo_root),
