@@ -78,7 +78,7 @@ beyond two-versus-three status and player history. The result does not establish
 causality, total offensive value, defensive adjustment, or superiority over a
 location model.
 
-### Active stage: M2 historical development freeze
+### Active stage: M2 historical development evaluation authorization
 
 M2 keeps M1 unchanged and adds one shared nonlinear smooth of canonical
 `shot_distance_feet`. D1 is a distance-only diagnostic and cannot win model
@@ -116,8 +116,20 @@ Current execution state at this update:
 - The private atomic checkpoint and both prediction hashes recovered without
   refitting either model.
 - No validation outcome was opened during the M2 preflight.
-- The next gated action is to freeze the historical M2-versus-M1 evaluation
-  implementation before opening any 2023-24 outcome.
+- The historical M2-versus-M1 evaluation runner, split configuration, recovery
+  rules, output schema, and structural/synthetic test suite are frozen on the
+  isolated evaluation branch.
+- The outcome-free audit reverified all three historical M1 fits and the
+  first-window M2 fit. The later two M2 fits remain intentionally absent and
+  may each be fit only once under the frozen runner.
+- Validation-access flags for 2023-24, 2024-25, and 2025-26 remain false.
+  The hard 2026-27 guard also remains false and rejects access in every runner
+  mode.
+- Reuse requires exact split, formula, factor, engine, configuration, manifest,
+  and artifact hashes; a merely similar fit is rejected.
+- The next gated action is explicit authorization for `development_1`. It will
+  reuse the verified first-window M1 and M2 fits and open 2023-24 outcomes once.
+  No historical comparison has run at this update.
 
 ## Model ladder and stage gates
 
@@ -280,10 +292,11 @@ refit.
 
 ## Foreseeable execution order
 
-1. Freeze the historical M2 runner before outcome evaluation.
-2. Verify its inputs, split-specific fit reuse, and outcome-access guards before
-   opening 2023-24.
-3. Run the three M2-versus-M1 historical development comparisons unchanged.
+1. Obtain explicit authorization for the frozen `development_1` execution.
+2. Reverify its inputs, exact first-window fit reuse, pushed pre-result commit,
+   and private authorization marker before opening 2023-24 once.
+3. Run the three M2-versus-M1 historical development comparisons unchanged,
+   with separate authorization boundaries and atomic recovery.
 4. Apply the frozen M2 advancement rule.
 5. Preregister and audit M3 game-context fields.
 6. Decide whether a valid direct-defense data source exists. Omit defense if it
