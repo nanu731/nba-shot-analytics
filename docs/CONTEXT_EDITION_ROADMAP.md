@@ -78,7 +78,7 @@ beyond two-versus-three status and player history. The result does not establish
 causality, total offensive value, defensive adjustment, or superiority over a
 location model.
 
-### Active stage: M2 historical development evaluation authorization
+### Active stage: M2 historical development evaluation
 
 M2 keeps M1 unchanged and adds one shared nonlinear smooth of canonical
 `shot_distance_feet`. D1 is a distance-only diagnostic and cannot win model
@@ -122,14 +122,30 @@ Current execution state at this update:
 - The outcome-free audit reverified all three historical M1 fits and the
   first-window M2 fit. The later two M2 fits remain intentionally absent and
   may each be fit only once under the frozen runner.
-- Validation-access flags for 2023-24, 2024-25, and 2025-26 remain false.
-  The hard 2026-27 guard also remains false and rejects access in every runner
-  mode.
+- `development_1` reused the exact first-window M1 and M2 fits, opened the
+  2023-24 outcome partition once, and fit no model during evaluation. Its 1,230
+  games contained 218,700 shots from 568 players.
+- M1 log loss was `0.6526580077`; M2 log loss was `0.6441082854`. The registered
+  M2-minus-M1 difference was `-0.0085497223` with a paired whole-game bootstrap
+  standard error of `0.0003190340` and 95% interval
+  `[-0.0091846695, -0.0079310758]`. This first development window favors M2 on
+  the primary metric but cannot select the final model by itself.
+- M2's ten-bin ECE was worse by `0.0087576814`, with a paired 95% interval of
+  `[0.0065030683, 0.0101974740]`. This registered calibration limitation remains
+  diagnostic until the three-window pooled decision is available.
+- The private result and prediction checkpoint hashes passed recovery
+  verification without reopening the canonical outcome. The successful process
+  left an empty ignored evaluation lock directory, which is preserved for an
+  operational recovery decision before the next audit.
+- The validation-access flag for 2023-24 is now true. The 2024-25 and 2025-26
+  flags remain false. The hard 2026-27 guard remains false and rejects access in
+  every runner mode.
 - Reuse requires exact split, formula, factor, engine, configuration, manifest,
   and artifact hashes; a merely similar fit is rejected.
-- The next gated action is explicit authorization for `development_1`. It will
-  reuse the verified first-window M1 and M2 fits and open 2023-24 outcomes once.
-  No historical comparison has run at this update.
+- The next gated action is separate authorization for `development_2`. It must
+  preserve and resolve the stale private first-window lock, fit the registered
+  second-window M2 component exactly once, and open only 2024-25 after all
+  frozen checks pass.
 
 ## Model ladder and stage gates
 
@@ -292,11 +308,12 @@ refit.
 
 ## Foreseeable execution order
 
-1. Obtain explicit authorization for the frozen `development_1` execution.
-2. Reverify its inputs, exact first-window fit reuse, pushed pre-result commit,
-   and private authorization marker before opening 2023-24 once.
-3. Run the three M2-versus-M1 historical development comparisons unchanged,
-   with separate authorization boundaries and atomic recovery.
+1. Obtain explicit authorization for the frozen `development_2` execution and
+   the operational handling of the preserved stale `development_1` lock.
+2. Reverify its inputs, pushed implementation, prior result, exact M1 reuse,
+   and private authorization marker before fitting M2 once and opening 2024-25.
+3. Complete `development_2` and `development_3` unchanged, with separate
+   authorization boundaries and atomic recovery.
 4. Apply the frozen M2 advancement rule.
 5. Preregister and audit M3 game-context fields.
 6. Decide whether a valid direct-defense data source exists. Omit defense if it

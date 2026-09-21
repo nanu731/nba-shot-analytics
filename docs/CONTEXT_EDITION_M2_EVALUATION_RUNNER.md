@@ -1,7 +1,7 @@
 # Context Edition M2 historical evaluation runner
 
-Status: frozen and outcome-sealed; implementation complete, no historical
-validation outcome opened
+Status: `development_1` complete; `development_2`, `development_3`, and the
+prospective 2026-27 outcome remain sealed
 
 Protocol: `context_m2_protocol_v0.1.0`
 
@@ -21,7 +21,7 @@ a model or override the formal comparison.
 
 | Comparison | Training outcomes | Validation outcomes | Current access |
 |---|---|---|---|
-| `development_1` | 2021–22 and 2022–23 | 2023–24 | sealed |
+| `development_1` | 2021–22 and 2022–23 | 2023–24 | opened once; aggregate result complete |
 | `development_2` | 2021–22 through 2023–24 | 2024–25 | sealed |
 | `development_3` | 2021–22 through 2024–25 | 2025–26 | sealed |
 
@@ -181,9 +181,47 @@ expected points, and private-output exclusion.
 No M1, D1, or M2 model was fit or refit. No 2023–24, 2024–25, 2025–26, or
 2026–27 make/miss outcome was loaded. No performance comparison was calculated.
 
+## Measured `development_1` result
+
+Narayan separately authorized `development_1` after the frozen pre-result
+commit was pushed. The runner reused the verified M1 and M2 fits, fit no model,
+and opened the 2023-24 outcome partition once. The comparison covered 218,700
+shots from 1,230 games and 568 players.
+
+M1 log loss was `0.6526580077`; M2 log loss was `0.6441082854`. The registered
+M2-minus-M1 difference was `-0.0085497223`, with paired whole-game bootstrap
+standard error `0.0003190340` and percentile 95% interval
+`[-0.0091846695, -0.0079310758]`. This first window therefore favors M2 on the
+primary metric by more than one bootstrap standard error. It is not a final
+selection because two registered development windows remain.
+
+M2's absolute calibration-in-the-large error was `0.0053532870`, compared with
+`0.0041256001` for M1. Its ten-bin ECE was worse by `0.0087576814`; the paired
+95% interval for that difference was `[0.0065030683, 0.0101974740]`. These
+calibration diagnostics are limitations, not grounds to change the frozen
+models or evaluation rules. M2 improved Brier score by `0.0037916178`, ROC AUC
+by `0.0137228310`, and expected-points RMSE by `0.0072533553`, while its
+whole-game points MAE was `0.5357043803` higher. Secondary metrics cannot
+override the primary rule.
+
+The evaluation took `290.7524` wall seconds and `287.9030` recorded CPU seconds;
+the point-in-time post-evaluation RSS sample was 846,118,912 bytes. The paired
+bootstrap and its deterministic repeat used `286.1296` seconds. The private
+prediction checkpoint is 2.3 MB and its prediction payload SHA-256 is
+`65d5d2c18f596063a4c4bd8e379b1fe7829db7a81000b905d81c690086631336`.
+The private result checkpoint and tracked aggregate result directory are each
+44 KB. Hash verification passed without reopening canonical outcomes.
+
+The only warning observed was the existing environment notice that Arrow
+25.0.0 was built under R 4.6.1 while the locked runtime is R 4.6.0; no model was
+fit and the evaluation exited successfully. The successful R process left its
+empty ignored `development_1` evaluation lock directory behind. It is preserved
+as execution evidence and must be handled as an operational recovery issue
+before a later outcome-free audit; it does not invalidate the atomic result.
+
 ## Next authorization boundary
 
-After the recorded pre-result commit is pushed and local/upstream/GitHub
-revisions match, stop. The next action requires Narayan to authorize
-`development_1`. That run will reuse both verified first-window fits and open
-2023–24 outcomes once. It must not open 2024–25, 2025–26, or 2026–27.
+Stop here. The next action requires Narayan to authorize `development_2`. That
+stage must first preserve and resolve the stale private `development_1` lock,
+then fit the frozen second-window M2 component once before opening 2024-25.
+The 2025-26 and 2026-27 outcomes must remain sealed.
