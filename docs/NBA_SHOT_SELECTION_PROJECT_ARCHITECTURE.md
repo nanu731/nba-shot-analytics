@@ -57,6 +57,12 @@ injuries, or strategic responses.
 
 ### Approved future expansion themes
 
+Active Location stage: sensitivity preregistration only, under
+`docs/LOCATION_EDITION_SENSITIVITY_PREREGISTRATION.md`. The 27-condition grid
+preserves the production baseline and requires separate authorization before
+calculation. No sensitivity result or production-default change is approved by
+this planning stage. The completed Context decision and artifacts stay protected.
+
 These are separate Location Edition improvements. They do not change the
 Context Edition model and require their own preregistration or implementation
 approval.
