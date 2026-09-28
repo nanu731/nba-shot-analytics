@@ -171,6 +171,19 @@ hashes and zero-fit, zero-prediction, zero-canonical-validation-read audit field
 It never replaces the original result files or changes their primary,
 calibration, expected-points, or game-total results.
 
+Both earlier-window supplements completed using those verified private sources.
+Each contains ten rows (five groups for each model), stored separately in
+`results/development_1_training_volume_supplement` and
+`results/development_2_training_volume_supplement`. First-window validation shot
+counts for Q1/Q2/Q3/Q4/unseen are 3,711/14,679/48,397/133,944/17,969; second-window
+counts are 3,772/16,874/44,744/135,460/18,677. All five groups exceed the registered
+200-shot reporting threshold. In the first window M2 has larger absolute
+calibration gaps in each returning quartile and a smaller gap for unseen players.
+In the second it has smaller gaps in Q1, Q2, and unseen players, but larger gaps
+in Q3 and Q4. These supplemental diagnostics do not alter model selection.
+Both audits record zero refits, new predictions, and canonical validation reads;
+the original result files remain byte-for-byte unchanged.
+
 Fit components, prediction checkpoints, and final results each publish by
 renaming a completed staging directory. Their manifests hash every payload and
 mark checks complete. Per-stage locks prevent duplicate work.
