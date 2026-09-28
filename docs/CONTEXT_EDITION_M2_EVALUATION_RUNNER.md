@@ -1,7 +1,8 @@
 # Context Edition M2 historical evaluation runner
 
-Status: `development_1` and `development_2` complete; `development_3` and the
-prospective 2026-27 outcome remain sealed
+Status: `development_1` and `development_2` complete; `development_3` training
+verified, evaluation blocked before outcome access; 2025-26 and prospective
+2026-27 outcomes remain sealed for this stage
 
 Protocol: `context_m2_protocol_v0.1.0`
 
@@ -77,7 +78,7 @@ Frozen reusable fit hashes:
 |---|---|---|---|
 | `development_1` | `a856e98b376cc0a3d5291c6e6599578dbaea04c6cb0aeb1bf6ce83ad0608f7ac` | `5c71318fc300b2f5a77ab41656a69af895a111280f26a1e3fe6035b1259ff43f` | reuse both |
 | `development_2` | `17d31cb4c157f31d262f079f1a3703acb0f8cc7de21f9009a691cfca97fa2576` | `f004bf912ef292c8fd1f263ab9766249af6b4b4d3928356e3c889ec078985a8c` | reuse both |
-| `development_3` | `24bf051f847825bb835fda7025aea119b89b5e9a2a93b252f3a5eeb0b765db4f` | not fit | reuse M1; fit M2 once later |
+| `development_3` | `24bf051f847825bb835fda7025aea119b89b5e9a2a93b252f3a5eeb0b765db4f` | `a1cf2afe399f04403f52570ae70b75c3127f53abd7ebdcdf1f43c679d4c00bd4` | reuse both; training verification passed |
 
 The completed first-window M2 training checkpoint has input hash
 `07c541d645e8336a64f2d2266c52eb9077707cb6dd991d08597731d2429139a1`,
@@ -88,12 +89,12 @@ and completion-manifest hash
 Its verification mode passed again during this freeze without refitting.
 
 Fit accounting is split-specific. Six formal model-window fits are required in
-total: three M1 and three M2. Five now exist and are reusable; only the
-`development_3` M2 fit has not started. Evaluation itself must report zero fits.
+total: three M1 and three M2. All six now exist and are reusable. Evaluation
+itself must report zero fits.
 
 ## Execution order and authorization boundary
 
-The runner supports five modes:
+The runner supports six modes:
 
 1. `audit` verifies configuration and reusable artifacts without reading a
    validation outcome or fitting a model.
@@ -106,6 +107,8 @@ The runner supports five modes:
 5. `finalize` combines the three original split-specific private prediction
    checkpoints and applies the pooled decision rule without rereading canonical
    outcomes.
+6. `supplement <comparison>` reconstructs registered training-volume diagnostics
+   from existing private checkpoints without refitting or predicting.
 
 Before `fit` or `evaluate`, the runner requires all of the following:
 
@@ -117,9 +120,11 @@ Before `fit` or `evaluate`, the runner requires all of the following:
 - a private, ignored authorization record naming one comparison and the same
   pre-result commit.
 
-The first two comparison-specific authorizations were created privately under
-separate explicit instructions. No authorization exists for `development_3`;
-the frozen runner cannot open 2025-26 merely because its code has been committed.
+The comparison-specific authorizations remain private. Narayan's attached
+repair request authorized `development_3` training and evaluation. The third
+authorization record now exists, but the execution approval system rejected
+the evaluation before launch and requires approval in a direct chat message.
+The record alone does not bypass that block.
 
 ## Metrics and decision
 
@@ -199,7 +204,7 @@ locks, authorizations, and checkpoints live under ignored `data/cache/` paths.
 Git receives only configurations, code, documentation, and compact aggregate
 tables. No tracked output schema permits shot, game, or player identifiers.
 
-## Verified freeze checks
+## Verified initial freeze checks (historical)
 
 The outcome-free audit verified the three exact M1 artifacts and the first M2
 artifact. It confirmed that the later two M2 components do not exist, all three
@@ -289,6 +294,74 @@ frozen verification mode passed without reopening canonical outcomes.
 
 ## Next authorization boundary
 
-Stop here. The next action requires Narayan to authorize `development_3`. That
-stage must fit the frozen third-window M2 component exactly once before opening
-2025-26. The 2026-27 outcome must remain sealed.
+Narayan must directly authorize executing the frozen `development_3` evaluation
+with both preserved fits, opening only 2025-26 once, completing the registered
+three-window decision, and publishing aggregate results. Do not fit M2 again.
+Do not begin M3 or prospective confirmation. The 2026-27 outcome remains sealed.
+
+## Verified `development_3` training and safe stop
+
+Repair commit `da1dfd3a584acca2a65ad6334ec46fc670c9e74c` was pushed and checked
+against HEAD, upstream, remote tracking, and GitHub before training. It moved
+predictor-support checks before outcome access and restored registered
+training-volume quartiles without changing formulas, prediction behavior, or
+selection rules. Ninety-two outcome-free tests passed: 21 evaluation tests,
+21 M2 protocol tests, 17 training-preflight tests, 21 baseline tests, and 12
+first-validation tests. The previous verifier-parentheses regression passed.
+After fitting, 12 second-validation, 12 third-validation, and 19 validation-data
+preflight tests also passed without real outcome access. Parsing and the compact
+audit's agreement with private fit metadata passed; 135 outcome-free tests
+passed across these suites.
+
+The earlier-window supplements were committed at
+`323884109d0956195762fc233301ba99e4faf685` and
+`82cc7850f17c473fa9198220f56c3dede78bc956`. We preserved the previous empty locks
+and authorization in an ignored dated archive, verified the moved authorization
+hash, and created the authorized private third-window record. We changed no
+original evaluation result.
+
+Under execution commit `82cc7850f17c473fa9198220f56c3dede78bc956`, we reused M1
+and fitted M2 once on 872,169 shots from 4,920 games and 913 players in 2021-22
+through 2024-25. M1 has 12,415 grouped rows; M2 has 81,746 grouped rows and 933
+coefficients. The atomic M2 component completed at 2026-09-28 19:43:44 UTC.
+Its manifest, fit and metadata hashes passed verification before saved-fit QA.
+The compact aggregate audit is `development_3_training_verification.csv` in
+the established processed evaluation directory.
+
+M2 reported full convergence, zero fitting warnings, finite coefficients and
+covariance, and two positive smoothing parameters: 41.7784590361 for players
+and 2.63089515537 for distance. The maximum absolute outer gradient was
+0.0308397227. Distance EDF was 7.6139413572; total EDF was 543.8719529304.
+The repeated frozen check gave k-index 0.9472851696 and p-value 0. The registered
+conjunctive rule retained `k=10` because EDF was below its 8.55 near-ceiling
+threshold; this does not mean the isolated k-test p-value was reassuring.
+
+Saved-training probabilities ranged from 0.0046726515 to 0.9497516699.
+Repeated predictions were identical, and expected points equaled point value
+times probability. The 178-row 0-to-88-foot synthetic grid, 56 taxonomy
+combinations, `other_or_unknown`, known-player effects, and unseen-player
+zero effects passed. These are numerical checks, not predictive performance.
+
+Fitting took 13,981.1117 wall seconds; component completion took 13,995.4786
+seconds. Recorded fitting CPU was 2,737.577 user plus 65.286 system seconds.
+Wall time contained substantial gaps in CPU progress, so it is not a continuous
+compute-speed benchmark. Post-fit RSS was 1,220,575,232 bytes, not a measured
+peak. The object occupied 58,039,816 bytes; its serialized file occupied
+28,615,944 bytes. Available disk after completion was 107,554,111,488 bytes.
+The frozen package-version checks passed. Arrow reported its existing build
+notice (built under R 4.6.1; runtime R 4.6.0). A later sandboxed predictor-only
+check also emitted three denied hardware-cache-query notices, then exited 0.
+
+The saved-fit QA and predictor-only 2025-26 support check passed. The latter
+selected no outcome column. The execution approval system rejected both
+evaluation launch requests before creating a process, including the request
+that quoted the attached authorization. It required direct chat authorization;
+we did not bypass that denial. Thus the third-window outcome-read, validation
+prediction, and bootstrap counts are zero. No access marker, prediction
+checkpoint, result checkpoint, or pooled decision exists. The completed M2
+artifact and empty inactive fit lock remain ignored and preserved. No model
+process remains. The next task must reuse the fit and must not repeat training.
+
+The full historical M2 decision remains incomplete. M1 remains the selected
+baseline; the first two windows alone cannot promote M2. No prospective claim
+or 2026-27 access is authorized by these training checks.

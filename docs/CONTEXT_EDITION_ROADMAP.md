@@ -119,9 +119,9 @@ Current execution state at this update:
 - The historical M2-versus-M1 evaluation runner, split configuration, recovery
   rules, output schema, and structural/synthetic test suite are frozen on the
   isolated evaluation branch.
-- The outcome-free audit reverified all three historical M1 fits and the
-  first-window M2 fit. The later two M2 fits remain intentionally absent and
-  may each be fit only once under the frozen runner.
+- The initial outcome-free audit reverified all three historical M1 fits and
+  the first-window M2 fit. All six registered model-window fits now exist;
+  each later M2 component was fitted once under the frozen runner.
 - `development_1` reused the exact first-window M1 and M2 fits, opened the
   2023-24 outcome partition once, and fit no model during evaluation. Its 1,230
   games contained 218,700 shots from 568 players.
@@ -155,9 +155,25 @@ Current execution state at this update:
   runner mode.
 - Reuse requires exact split, formula, factor, engine, configuration, manifest,
   and artifact hashes; a merely similar fit is rejected.
-- The next gated action is separate authorization for `development_3`. It must
-  fit the registered third-window M2 component exactly once and open only
-  2025-26 after all frozen checks pass.
+- Authorized repair `da1dfd3a584acca2a65ad6334ec46fc670c9e74c` moved predictor
+  checks before outcome access and restored the exact training-volume quartiles
+  plus unseen-player group. All 92 outcome-free tests passed. Separate
+  supplements at `3238841` and `82cc785` restored the earlier-window quartile
+  diagnostics without altering original results, refitting, predicting, or
+  reopening canonical outcomes.
+- The third-window M2 fit completed once on 872,169 training shots, 913 players,
+  and 81,746 grouped rows. Its SHA-256 is
+  `a1cf2afe399f04403f52570ae70b75c3127f53abd7ebdcdf1f43c679d4c00bd4`.
+  Full convergence, finite covariance, registered `k=10` adequacy, deterministic
+  training predictions, taxonomy, and 178-row synthetic checks passed. The
+  predictor-only validation-support check also passed without reading outcomes.
+- The execution approval system rejected evaluation launch before process
+  creation despite the attached authorization and requires direct chat approval.
+  Third-window outcome reads, validation predictions, and bootstrap passes
+  remain zero. The private fit and empty inactive fit lock are preserved.
+- Next: obtain direct authorization to reuse both third-window fits, open only
+  2025-26 once, and finish the frozen evaluation and pooled decision. Do not
+  refit either model. No final M2-versus-M1 decision exists yet.
 
 ## Model ladder and stage gates
 
@@ -320,9 +336,9 @@ refit.
 
 ## Foreseeable execution order
 
-1. Obtain explicit authorization for the frozen `development_3` execution.
-2. Reverify its inputs, pushed implementation, prior results, exact M1 reuse,
-   and private authorization marker before fitting M2 once and opening 2025-26.
+1. Obtain direct chat authorization for the blocked `development_3` evaluation.
+2. Reverify its inputs, pushed implementation, prior results, both saved fits,
+   and private authorization marker before opening 2025-26. Do not refit.
 3. Complete `development_3` unchanged with atomic recovery.
 4. Apply the frozen M2 advancement rule.
 5. Preregister and audit M3 game-context fields.

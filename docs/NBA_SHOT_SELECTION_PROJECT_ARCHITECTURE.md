@@ -137,9 +137,18 @@ unless a later preregistration gives it a defensible new meaning.
 - That result is one historical-development window, not a final model decision.
 - The frozen M2 process still requires the remaining registered development
   windows and all decision gates before M2 can replace M1.
-- The next operational stage is `development_2`. Recover the current handoff,
-  frozen configuration, private authorization state, and lock state before
-  doing anything.
+- `development_2` is complete at `63febf4`; it also favors M2 on log loss,
+  but cannot determine the pooled historical choice.
+- Registered training-volume quartile diagnostics for both earlier windows
+  now have separately labeled supplements. The original results are unchanged.
+- `development_3` training is verified: M1 was reused and M2 was fitted once.
+  The 2025-26 predictor-only support check passed, but the execution approval
+  system blocked evaluation before outcome access and requires direct chat
+  authorization. Recover the saved fits, frozen configuration, authorization,
+  and inactive lock state; do not repeat training.
+- The next operational action is the frozen third-window evaluation followed
+  by the registered pooled decision, once the execution block is resolved.
+  M1 remains the selected baseline. No final M2 decision exists.
 - Do not treat this architecture document as outcome-access authorization.
 - Preserve the 2026–27 prospective season as sealed confirmation data.
 
@@ -243,9 +252,10 @@ project's result silently change the other.
 
 Unless a later approved preregistration changes the sequence:
 
-1. Complete Context `development_2` under its frozen authorization and
-   recovery controls.
-2. Complete Context `development_3` under a separate authorization.
+1. Preserve the completed Context `development_1` and `development_2` results
+   and their separately labeled training-volume supplements.
+2. Resolve the `development_3` execution-approval block and complete its frozen
+   evaluation using both saved fits, without refitting.
 3. Apply all frozen gates and make the historical M2-versus-M1 decision.
 4. Preregister and run the Location Edition sensitivity audit.
 5. Add the Location Edition aggregate relocation-flow view.
