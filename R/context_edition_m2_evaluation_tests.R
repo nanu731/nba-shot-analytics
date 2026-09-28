@@ -13,6 +13,7 @@ repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRU
 source(file.path(repo_root, "R", "context_edition_m0_m1_protocol.R"), local = TRUE)
 source(file.path(repo_root, "R", "context_edition_m2_protocol.R"), local = TRUE)
 source(file.path(repo_root, "R", "context_edition_preflight_helpers.R"), local = TRUE)
+source(file.path(repo_root, "R", "context_edition_first_validation_helpers.R"), local = TRUE)
 source(file.path(repo_root, "R", "context_edition_m2_evaluation_helpers.R"), local = TRUE)
 
 results <- list()
@@ -64,6 +65,58 @@ record("m2_minus_m1_sign", {
   m1 <- c(.55, .45, .55, .45)
   m2 <- c(.75, .25, .75, .25)
   expect_true(context_log_loss(outcome, m2) - context_log_loss(outcome, m1) < 0, "negative no longer favors M2")
+})
+record("predictor_support_precedes_marker_and_outcomes", {
+  support <- regexpr("context_m2_evaluation_preaccess(m2$fit", runner, fixed = TRUE)[[1]]
+  marker <- regexpr("if (!dir.create(marker", runner, fixed = TRUE)[[1]]
+  outcome <- regexpr("validation <- read_parquet", runner, fixed = TRUE)[[1]]
+  expect_true(support > 0L && support < marker && marker < outcome, "support check is not before access")
+  fields_seen <- NULL; marked <- FALSE; outcome_reads <- 0L
+  fake_fit <- list(model = data.frame(shot_distance_feet = c(0L, 88L)))
+  toy <- tibble(season = "2025-26", player_id = "synthetic", point_value = 3L,
+                finish_family = "regular_jumper", creation_family = "other_or_unknown", shot_distance_feet = 89L)
+  reader <- function(path, fields) {
+    fields_seen <<- fields
+    if ("field_goal_made" %in% fields) { outcome_reads <<- outcome_reads + 1L; stop("outcome requested") }
+    toy[, fields]
+  }
+  attempt <- function() {
+    context_m2_evaluation_preaccess(fake_fit, "synthetic", "2025-26", reader)
+    marked <<- TRUE
+  }
+  expect_error(attempt(), "training")
+  expect_true(!marked && outcome_reads == 0L, "unsupported distance reached outcome access")
+  toy$shot_distance_feet <- 88L
+  expect_true(context_m2_evaluation_preaccess(fake_fit, "synthetic", "2025-26", reader), "valid support rejected")
+  expect_true(!marked && outcome_reads == 0L && length(fields_seen) == 6L, "support check accessed outcomes")
+  toy$creation_family <- "unregistered"
+  expect_error(attempt(), "factor support")
+  expect_true(!marked, "unsupported taxonomy reached access")
+})
+record("training_volume_quartiles_ties_and_boundaries", {
+  players <- letters[1:8]
+  attempts <- c(1L, 2L, 2L, 2L, 4L, 4L, 7L, 8L)
+  fake_fit <- list(model = data.frame(player_id_factor = factor(players)))
+  fake_fit$model[["cbind(makes, misses)"]] <- cbind(makes = rep(0L, 8L), misses = attempts)
+  groups <- context_m2_evaluation_volume_groups(fake_fit, sum(attempts), 8L)
+  expect_true(identical(groups$player_volume_group, rep(paste0("returning_q", 1:4), each = 2L)), "quartile boundaries changed")
+  expect_true(identical(groups$player_id, players), "equal-count ties no longer follow player ID")
+  expected <- context_training_volume_groups(data.frame(player_id = rep(players, attempts)))
+  expect_true(identical(groups, expected), "saved counts differ from frozen shot-row grouping")
+  shuffled <- fake_fit; shuffled$model <- fake_fit$model[8:1, , drop = FALSE]
+  expect_true(identical(groups, context_m2_evaluation_volume_groups(shuffled, sum(attempts), 8L)), "grouping depends on row order")
+  fake_fit$model <- fake_fit$model[1:5, , drop = FALSE]
+  uneven <- context_m2_evaluation_volume_groups(fake_fit, sum(attempts[1:5]), 5L)
+  expect_true(identical(uneven$player_volume_group, paste0("returning_q", c(1, 1, 2, 3, 4))), "uneven quartile boundary changed")
+})
+record("training_volume_excludes_validation_and_future_volume", {
+  groups <- context_training_volume_groups(data.frame(player_id = rep(letters[1:8], 1:8)))
+  validation <- tibble(player_id = c("a", "c", "e", "g", "new"), outcome = 0L, future_volume = 1L)
+  first <- context_m2_evaluation_volume_labels(validation$player_id, groups)
+  validation$outcome <- 1L; validation$future_volume <- 999999L
+  second <- context_m2_evaluation_volume_labels(validation$player_id, groups)
+  expect_true(identical(first, c(paste0("returning_q", 1:4), "unseen_player")), "quartile or unseen assignment changed")
+  expect_true(identical(first, second), "outcomes or future volume changed assignment")
 })
 record("paired_whole_game_bootstrap_by_season", {
   toy <- bind_rows(

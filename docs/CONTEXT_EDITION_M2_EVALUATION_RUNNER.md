@@ -148,6 +148,29 @@ not replace log loss.
 
 ## Recovery and publication
 
+### Authorized preregistration-compliance repairs before `development_3`
+
+Predictor support is now checked before creating an outcome-access marker or
+reading make/miss values. The separate Parquet read selects only season, player,
+point value, finish, creation, and recorded distance. It verifies the frozen
+factor levels and the existing distance guard against the saved M2 training
+range. The prediction function retains its original guard and behavior.
+
+Training-volume diagnostics now use the registered four training-player
+quartiles plus unseen players. Counts are recovered from the verified M1 fit's
+grouped makes-plus-misses response. The existing frozen helper sorts by training
+attempt count and then player ID, and assigns rank-based groups using
+`floor((rank - 1) * 4 / number_of_training_players) + 1`. Ties can cross a
+quartile boundary in player-ID order. No validation volume or outcome enters
+this assignment, and the diagnostic does not enter model selection.
+
+The `supplement` mode reconstructs only this diagnostic for `development_1`
+and `development_2` from verified saved training counts and prediction
+checkpoints. It publishes separately labeled aggregate supplements, with source
+hashes and zero-fit, zero-prediction, zero-canonical-validation-read audit fields.
+It never replaces the original result files or changes their primary,
+calibration, expected-points, or game-total results.
+
 Fit components, prediction checkpoints, and final results each publish by
 renaming a completed staging directory. Their manifests hash every payload and
 mark checks complete. Per-stage locks prevent duplicate work.

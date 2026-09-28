@@ -24,8 +24,8 @@ repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRU
 args <- commandArgs(trailingOnly = TRUE)
 mode <- if (length(args) >= 1L) args[[1]] else "audit"
 comparison_id <- if (length(args) >= 2L) args[[2]] else NA_character_
-if (!mode %in% c("audit", "fit", "evaluate", "verify", "finalize")) {
-  stop("usage: Rscript R/context_edition_m2_evaluation.R audit|fit|evaluate|verify [development_1|development_2|development_3] or finalize", call. = FALSE)
+if (!mode %in% c("audit", "fit", "evaluate", "verify", "supplement", "finalize")) {
+  stop("usage: Rscript R/context_edition_m2_evaluation.R audit|fit|evaluate|verify|supplement [development_1|development_2|development_3] or finalize", call. = FALSE)
 }
 if (!mode %in% c("audit", "finalize") && (is.na(comparison_id) || !comparison_id %in% paste0("development_", 1:3))) {
   stop("a registered comparison_id is required", call. = FALSE)
@@ -379,6 +379,52 @@ if (mode == "verify") {
 }
 
 commits <- verify_clean_pushed()
+if (mode == "supplement") {
+  if (!comparison_id %in% c("development_1", "development_2")) stop("only the two completed windows need supplements", call. = FALSE)
+  verify_manifest(result_root(comparison_id))
+  verify_manifest(prediction_root(comparison_id))
+  m1 <- verify_fit(row, "M1")
+  volume_groups <- context_m2_evaluation_volume_groups(m1$fit, row$training_shots, row$training_players)
+  predictions <- read_parquet(file.path(prediction_root(comparison_id), "shot_predictions.parquet"), as_data_frame = TRUE)
+  if (anyNA(predictions) || anyDuplicated(predictions$canonical_shot_key) ||
+      !identical(unique(predictions$comparison_id), comparison_id)) stop("supplement checkpoint population invalid", call. = FALSE)
+  subgroup_input <- predictions |>
+    mutate(field_goal_made = outcome,
+           player_volume_group = context_m2_evaluation_volume_labels(player_id, volume_groups))
+  supplement <- bind_rows(
+    context_subgroup_calibration(subgroup_input, predictions$probability_m1, "M1"),
+    context_subgroup_calibration(subgroup_input, predictions$probability_m2, "M2")
+  ) |> filter(subgroup_axis == "player_training_volume")
+  audit <- tibble(
+    comparison_id, execution_commit = commits[["head"]], training_seasons = row$training_seasons,
+    training_shots = row$training_shots, training_players = row$training_players,
+    m1_fit_sha256 = m1$hash,
+    prediction_sha256 = sha256_file(file.path(prediction_root(comparison_id), "shot_predictions.parquet")),
+    original_result_manifest_sha256 = sha256_file(file.path(result_root(comparison_id), "completion_manifest.csv")),
+    model_fits = 0L, prediction_passes = 0L, canonical_validation_reads = 0L,
+    original_results_modified = FALSE, prospective_2026_27_accessed = FALSE
+  )
+  final <- file.path(private_root, "results", paste0(comparison_id, "_training_volume_supplement_v0.1.0"))
+  if (dir.exists(final)) stop("supplement already exists; preserve it", call. = FALSE)
+  stage <- paste0(final, ".partial")
+  if (dir.exists(stage)) stop("partial supplement exists; manual recovery required", call. = FALSE)
+  dir.create(stage, recursive = TRUE)
+  payloads <- list("subgroup_calibration.csv" = supplement, "supplement_audit.csv" = audit)
+  walk2(payloads, names(payloads), ~ write_csv_stable(.x, file.path(stage, .y)))
+  manifest <- tibble(artifact = names(payloads), sha256 = vapply(file.path(stage, names(payloads)), sha256_file, character(1)), atomic_complete = TRUE, checks_passed = TRUE)
+  write_csv_stable(manifest, file.path(stage, "completion_manifest.csv"))
+  verify_manifest(stage)
+  context_m2_evaluation_atomic_publish(stage, final)
+  tracked_final <- file.path(tracked_root, "results", paste0(comparison_id, "_training_volume_supplement"))
+  tracked_stage <- paste0(tracked_final, ".partial")
+  if (dir.exists(tracked_final) || dir.exists(tracked_stage)) stop("tracked supplement exists; preserve it", call. = FALSE)
+  dir.create(tracked_stage, recursive = TRUE)
+  walk2(payloads, names(payloads), ~ write_csv_stable(.x, file.path(tracked_stage, .y)))
+  write_csv_stable(manifest, file.path(tracked_stage, "artifact_manifest.csv"))
+  context_m2_evaluation_atomic_publish(tracked_stage, tracked_final)
+  message("Published supplemental training-volume diagnostics without refitting, predicting, or reopening canonical outcomes")
+  quit(save = "no", status = 0L)
+}
 context_m2_evaluation_verify_authorization(
   authorization_path, comparison_id, commits[["pre_result"]]
 )
@@ -483,6 +529,7 @@ if (mode == "fit") {
 
 # Evaluation begins only after both exact split-specific fits pass verification.
 m1 <- verify_fit(row, "M1")
+volume_groups <- context_m2_evaluation_volume_groups(m1$fit, row$training_shots, row$training_players)
 if (row$m2_fit_policy == "reuse_verified_preflight") {
   m2 <- verify_fit(row, "M2")
 } else {
@@ -508,6 +555,9 @@ if (dir.exists(marker) && !dir.exists(prediction_final)) {
 }
 
 if (!dir.exists(prediction_final)) {
+  validation_path <- file.path(canonical_root, paste0("season=", row$validation_season), "canonical_shots.parquet")
+  if (sha256_file(validation_path) != row$validation_partition_sha256) stop("validation partition hash mismatch", call. = FALSE)
+  context_m2_evaluation_preaccess(m2$fit, validation_path, row$validation_season)
   if (!dir.create(marker, recursive = TRUE, showWarnings = FALSE)) stop("could not publish exclusive validation-access marker", call. = FALSE)
   access_record <- tibble(
     evaluation_version = CONTEXT_M2_EVALUATION_VERSION, comparison_id,
@@ -518,8 +568,6 @@ if (!dir.exists(prediction_final)) {
     prospective_2026_27_accessed = FALSE
   )
   context_atomic_write_csv(access_record, file.path(marker, "access_marker.csv"))
-  validation_path <- file.path(canonical_root, paste0("season=", row$validation_season), "canonical_shots.parquet")
-  if (sha256_file(validation_path) != row$validation_partition_sha256) stop("validation partition hash mismatch", call. = FALSE)
   fields <- c("season", "canonical_shot_key", "source_game_id", "player_id", "point_value", "finish_family", "creation_family", "shot_distance_feet", "field_goal_made")
   outcome_started <- Sys.time()
   validation <- read_parquet(validation_path, col_select = all_of(fields), as_data_frame = TRUE) |>
@@ -610,7 +658,7 @@ subgroup_input <- metric_data |>
   mutate(
     finish_family = predictions$finish_family,
     creation_family = predictions$creation_family,
-    player_volume_group = if_else(predictions$known_player_m2, "known_player", "unseen_player")
+    player_volume_group = context_m2_evaluation_volume_labels(predictions$player_id, volume_groups)
   )
 subgroup_calibration <- bind_rows(
   context_subgroup_calibration(subgroup_input, predictions$probability_m1, "M1"),

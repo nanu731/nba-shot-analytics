@@ -108,6 +108,53 @@ context_m2_evaluation_group_counts <- function(data) {
     )
 }
 
+context_m2_evaluation_preaccess <- function(
+  fit, validation_path, validation_season,
+  read_predictors = function(path, fields) arrow::read_parquet(
+    path, col_select = dplyr::all_of(fields), as_data_frame = TRUE
+  )
+) {
+  fields <- c("season", "player_id", "point_value", "finish_family", "creation_family", "shot_distance_feet")
+  predictors <- read_predictors(validation_path, fields)
+  if (!setequal(names(predictors), fields) || nrow(predictors) == 0L || anyNA(predictors) ||
+      !identical(unique(predictors$season), validation_season)) {
+    stop("predictor-only population or columns failed pre-access checks", call. = FALSE)
+  }
+  levels_frozen <- context_m2_factor_levels()
+  if (any(!predictors$point_value %in% c(2L, 3L)) ||
+      any(!predictors$finish_family %in% levels_frozen$finish_family) ||
+      any(!predictors$creation_family %in% levels_frozen$creation_family)) {
+    stop("predictor-only factor support failed pre-access checks", call. = FALSE)
+  }
+  context_m2_validate_distance(predictors$shot_distance_feet, range(fit$model$shot_distance_feet))
+  invisible(TRUE)
+}
+
+context_m2_evaluation_volume_groups <- function(fit, expected_shots, expected_players) {
+  # The saved grouped-binomial response retains exact training attempt counts.
+  response <- fit$model[["cbind(makes, misses)"]]
+  if (!is.matrix(response) || ncol(response) != 2L || anyNA(response) ||
+      any(!is.finite(response)) || any(response < 0 | response != floor(response))) {
+    stop("saved training counts are invalid", call. = FALSE)
+  }
+  attempts <- rowSums(response)
+  players <- as.character(fit$model$player_id_factor)
+  if (length(players) != length(attempts) || anyNA(players) ||
+      sum(attempts) != expected_shots || length(unique(players)) != expected_players) {
+    stop("saved training-volume population differs from the frozen window", call. = FALSE)
+  }
+  context_training_volume_groups(data.frame(player_id = rep(players, attempts)))
+}
+
+context_m2_evaluation_volume_labels <- function(player_id, volume_groups) {
+  if (anyNA(player_id) || anyDuplicated(volume_groups$player_id)) {
+    stop("training-volume assignment keys are invalid", call. = FALSE)
+  }
+  groups <- volume_groups$player_volume_group[match(as.character(player_id), volume_groups$player_id)]
+  groups[is.na(groups)] <- "unseen_player"
+  groups
+}
+
 context_m2_evaluation_predict <- function(fit, data) {
   levels_frozen <- context_m2_factor_levels()
   player_levels <- levels(fit$model$player_id_factor)
