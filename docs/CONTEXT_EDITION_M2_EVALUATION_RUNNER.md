@@ -1,7 +1,8 @@
 # Context Edition M2 historical evaluation runner
 
-Status: all three development windows complete; pooled historical decision in
-progress. The prospective 2026-27 outcome remains sealed.
+Status: all three development windows and pooled historical selection complete.
+The frozen rule retains M1 because M2 is materially worse calibrated.
+The prospective 2026-27 outcome remains sealed.
 
 Protocol: `context_m2_protocol_v0.1.0`
 
@@ -432,3 +433,82 @@ only aggregate tables and documentation are published. The existing Arrow
 build-version notice was the only warning reported by evaluation and recovery.
 The runtime and dependencies remained frozen. Location Edition, portfolio,
 2026-27, and M3 were untouched.
+
+## Frozen three-window historical decision
+
+The unchanged `finalize` mode hash-verified the three private result and
+prediction checkpoints, combined 657,387 unique shots from 3,690 games, and ran
+2,000 season-stratified paired whole-game bootstrap samples plus an identical
+repeat. It read no canonical outcome partition and fitted no model. All five
+pooled checks passed, including row uniqueness, bootstrap determinism, D1
+exclusion, and the prospective seal.
+
+| Window | M1 log loss | M2 log loss | M2 minus M1 |
+|---|---:|---:|---:|
+| 2023-24 | 0.6526580077 | 0.6441082854 | -0.0085497223 |
+| 2024-25 | 0.6509035230 | 0.6431333748 | -0.0077701483 |
+| 2025-26 | 0.6499648682 | 0.6433467898 | -0.0066180784 |
+| Pooled | 0.6511742771 | 0.6435288572 | -0.0076454199 |
+
+The pooled paired-bootstrap standard error is `0.00018135102618663278`.
+M2 passed the log-loss and one-SE gates and improved log loss in all three
+seasons. However, it failed the registered material-calibration gate. The
+frozen decision is **retain M1**, with reason `M2 is materially worse calibrated`.
+Pooled M2-minus-M1 absolute calibration error increased by `0.0016907377033295815`
+and ECE increased by `0.006980480467932546`.
+
+The frozen publisher retained the decision and standard error but did not save
+the numerical pooled intervals. One additional reporting-verification pass used
+the same hash-verified saved predictions, unchanged bootstrap helper, 2,000
+samples, and seed. Its standard error matched the published value to the
+`1e-14` comparison tolerance, and the frozen selection function returned the
+identical model and reason. This was not a new analysis or a larger bootstrap;
+the original decision files remain unchanged. A separate aggregate
+`pooled_reporting_verification.csv` records the recovered summaries.
+
+| Pooled M2-minus-M1 quantity | Difference | Bootstrap SE | 95% interval |
+|---|---:|---:|---|
+| Log loss | -0.0076454199 | 0.0001813510 | [-0.0079871425, -0.0072691795] |
+| Absolute calibration error | 0.0016907377 | 0.0002579125 | [0.0012050559, 0.0021921232] |
+| ECE | 0.0069804805 | 0.0006408037 | [0.0057229897, 0.0082350598] |
+
+The ECE lower bound exceeds the frozen `0.005` margin; the absolute-bias lower
+bound does not. Pooled absolute calibration errors are 0.0039404590 for M1 and
+0.0056311967 for M2. Pooled ECE values are 0.0054763204 and 0.0124568009.
+These pooled equal-count-bin calculations are not averages of season-specific
+ECE values. The reporting pass took 667.3886 wall seconds and 646.695 user plus
+7.345 system CPU seconds. It performed zero canonical reads, fits, or predictions.
+
+Distance helped predict individual makes and misses, but M2 did not satisfy the
+registered probability-calibration requirement. This is a historical model
+selection result. It does not make M1 superior on log loss, establish causality,
+or provide prospective confirmation. The frozen protocol does not permit using
+2026-27 to rescue M2 after failed historical advancement.
+
+The original aggregate results and earlier-window supplements remain unchanged.
+The private pooled checkpoint and matching tracked aggregate directory each
+occupy 16 KiB on disk. Its three payload hashes and five checks passed. The
+existing Arrow build-version notice remained the only reported warning. The
+frozen publisher does not record separate pooled runtime or peak memory; those
+measurements are unavailable, not zero.
+
+Execution accounting is explicit: third-window prediction ran once per model;
+the third-window bootstrap ran once plus its deterministic repeat; pooled
+selection ran once plus its deterministic repeat; the omitted pooled summaries
+required one further identical reporting pass. Each bootstrap pass contained
+2,000 replicates, not a combined 10,000-replicate inference. Recovery hash checks
+performed no fitting or prediction. The 21 frozen evaluation structural and
+synthetic tests passed again after evaluation, without loading real outcomes.
+
+The configuration's `FALSE` access fields describe the original pre-result
+freeze. Current access is recorded by private access markers and execution
+manifests: each historical M2 validation partition was opened once, and 2026-27
+was never accessed. Do not revise the frozen configuration to overwrite history.
+
+## Next authorization boundary
+
+Stop after recording this historical decision. No M3 or prospective work is
+authorized. Under the current project architecture, the next planned task is a
+separately approved Location Edition sensitivity preregistration. Any later
+Context M3 audit must start from retained M1 and receive its own authorization;
+it cannot silently restore M2's rejected distance term.

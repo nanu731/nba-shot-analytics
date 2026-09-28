@@ -107,7 +107,8 @@ definitions, limitations, and eventual portfolio page.
 - **M1 — Shot taxonomy:** M0 plus finish family and creation family. M1 is the
   selected current baseline.
 - **M2 — Nonlinear distance:** M1 plus the preregistered nonlinear distance
-  smooth. M2 is the active evaluation stage.
+  smooth. Historical evaluation is complete; M2 did not advance because it
+  failed the registered material-calibration gate. Retain M1.
 - **M3 — Audited pre-shot context:** add only context fields shown to be
   available before the attempt and reliable enough for future-season use.
 - **M4 — Player shot fit:** consider partially pooled player-by-family effects
@@ -134,21 +135,24 @@ unless a later preregistration gives it a defensible new meaning.
   `c57ced37e97e9f06fbb18232b743fea68c8034d6`.
 - M2 improved 2023–24 pooled log loss, but calibration worsened on the
   registered ECE check.
-- That result is one historical-development window, not a final model decision.
-- The frozen M2 process still requires the remaining registered development
-  windows and all decision gates before M2 can replace M1.
+- That first-window result alone did not select a model.
 - `development_2` is complete at `63febf4`; it also favors M2 on log loss,
   but cannot determine the pooled historical choice.
 - Registered training-volume quartile diagnostics for both earlier windows
   now have separately labeled supplements. The original results are unchanged.
-- `development_3` training is verified: M1 was reused and M2 was fitted once.
-  The 2025-26 predictor-only support check passed, but the execution approval
-  system blocked evaluation before outcome access and requires direct chat
-  authorization. Recover the saved fits, frozen configuration, authorization,
-  and inactive lock state; do not repeat training.
-- The next operational action is the frozen third-window evaluation followed
-  by the registered pooled decision, once the execution block is resolved.
-  M1 remains the selected baseline. No final M2 decision exists.
+- `development_3` completed at `7e58153` after direct authorization resolved
+  the earlier access block and hash typo. It reused both saved models, opened
+  2025-26 once, and evaluated 219,160 shots without refitting.
+- The pooled three-window result covers 657,387 shots and 3,690 games. M2
+  improved log loss in all three seasons, with pooled difference -0.0076454199
+  and paired SE 0.0001813510, but failed the registered material-calibration
+  gate. The frozen decision is **retain M1**. No formula or rule changed.
+- Historical M2 development is complete. M1 remains the selected baseline;
+  M2 does not advance to prospective confirmation. This is not a causal or
+  prospectively confirmed conclusion. No M3 work has begun.
+- Next work requires separate authorization. The current work order places
+  Location Edition sensitivity preregistration next; do not change the deployed
+  Location Edition or start a Context stage under this completed authorization.
 - Do not treat this architecture document as outcome-access authorization.
 - Preserve the 2026–27 prospective season as sealed confirmation data.
 
@@ -254,9 +258,10 @@ Unless a later approved preregistration changes the sequence:
 
 1. Preserve the completed Context `development_1` and `development_2` results
    and their separately labeled training-volume supplements.
-2. Resolve the `development_3` execution-approval block and complete its frozen
-   evaluation using both saved fits, without refitting.
-3. Apply all frozen gates and make the historical M2-versus-M1 decision.
+2. Preserve completed `development_3`, its private recovery checkpoints, and
+   the one-time outcome-access evidence. Do not repeat model fitting.
+3. Preserve the frozen historical decision to retain M1. Steps 1-3 are complete;
+   the following work requires new authorization.
 4. Preregister and run the Location Edition sensitivity audit.
 5. Add the Location Edition aggregate relocation-flow view.
 6. Add the Location Edition two-player comparison.

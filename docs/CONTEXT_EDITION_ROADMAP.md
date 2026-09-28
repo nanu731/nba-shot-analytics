@@ -2,7 +2,7 @@
 
 Status: living project context for Codex
 
-Last updated: 2026-09-21
+Last updated: 2026-09-28
 
 ## How Codex must use this file
 
@@ -78,7 +78,7 @@ beyond two-versus-three status and player history. The result does not establish
 causality, total offensive value, defensive adjustment, or superiority over a
 location model.
 
-### Active stage: M2 historical development evaluation
+### Completed stage: M2 historical development evaluation; retain M1
 
 M2 keeps M1 unchanged and adds one shared nonlinear smooth of canonical
 `shot_distance_feet`. D1 is a distance-only diagnostic and cannot win model
@@ -150,9 +150,10 @@ Current execution state at this update:
   `0.0034921603`, with interval `[0.0001311615, 0.0043478717]`. Neither lower
   bound exceeded the registered `0.005` material-worsening threshold, so the
   frozen calibration gate passed despite the descriptive calibration loss.
-- The 2023-24 and 2024-25 validation-access flags are now true. The 2025-26 flag
-  remains false. The hard 2026-27 guard remains false and rejects access in every
-  runner mode.
+- The private M2 validation-access records are now true for 2023-24, 2024-25,
+  and 2025-26, each opened once. The hard 2026-27 guard remains false and rejects
+  access in every runner mode. The frozen configuration's pre-result access
+  flags remain unchanged; they are not the current execution ledger.
 - Reuse requires exact split, formula, factor, engine, configuration, manifest,
   and artifact hashes; a merely similar fit is rejected.
 - Authorized repair `da1dfd3a584acca2a65ad6334ec46fc670c9e74c` moved predictor
@@ -167,13 +168,29 @@ Current execution state at this update:
   Full convergence, finite covariance, registered `k=10` adequacy, deterministic
   training predictions, taxonomy, and 178-row synthetic checks passed. The
   predictor-only validation-support check also passed without reading outcomes.
-- The execution approval system rejected evaluation launch before process
-  creation despite the attached authorization and requires direct chat approval.
-  Third-window outcome reads, validation predictions, and bootstrap passes
-  remain zero. The private fit and empty inactive fit lock are preserved.
-- Next: obtain direct authorization to reuse both third-window fits, open only
-  2025-26 once, and finish the frozen evaluation and pooled decision. Do not
-  refit either model. No final M2-versus-M1 decision exists yet.
+- Direct chat authorization and confirmation of the corrected M2 hash resolved
+  the earlier pre-access stops. Execution from `0c0a721` reused both models and
+  opened 2025-26 once at 2026-09-28 21:26:58 UTC. No M1 or M2 refit occurred.
+- `development_3`, committed at `7e58153`, contains 219,160 shots from 1,230
+  games and 582 players. M1/M2 log losses are 0.6499648682/0.6433467898;
+  difference -0.0066180784, SE 0.0002993954, 95% interval
+  [-0.0071797533, -0.0060363608]. Its calibration gate passed despite higher
+  M2 ECE. The private atomic result passed recovery verification.
+- The pooled comparison contains 657,387 shots from 3,690 games. M1/M2 log
+  losses are 0.6511742771/0.6435288572; difference -0.0076454199 and paired SE
+  0.0001813510. M2 improved all three seasons and exceeded one SE, but failed
+  the registered material-calibration gate. The mechanical result is **retain
+  M1**. M2's pooled ECE increased by 0.0069804805 and absolute calibration
+  error by 0.0016907377. No diagnostic overrode or changed a selection rule.
+- The pooled log-loss 95% interval is [-0.0079871425, -0.0072691795]. The ECE
+  difference interval is [0.0057229897, 0.0082350598], whose lower bound exceeds
+  the frozen 0.005 margin. One extra identical bootstrap reporting pass recovered
+  intervals omitted by the frozen publisher and reproduced its SE and decision;
+  it reopened no canonical outcomes and changed no rule or original result.
+- This completes historical development selection, not prospective
+  confirmation. M2 does not advance and cannot use 2026-27 as a rescue test.
+  M1 remains the immutable Context baseline. Future work requires separate
+  authorization; no M3 or prospective analysis has begun.
 
 ## Model ladder and stage gates
 
@@ -199,7 +216,7 @@ Purpose: test whether broad creation and finish information improves future
 prediction. Do not relabel unknown creation as catch-and-shoot, transition, or
 post play without a validated same-attempt source.
 
-### M2: nonlinear distance — active
+### M2: nonlinear distance — complete; not advanced
 
 Adds one league-wide natural cubic distance smooth to M1. D1 supplies the
 distance-only diagnostic.
@@ -208,9 +225,10 @@ Purpose: test whether exact distance adds information after broad shot type.
 Two-dimensional coordinates remain outside M2 because they duplicate the
 separate Location Edition question.
 
-Gate: complete the training-only preflight, freeze execution, and compare M2
-with M1 over the three registered historical rolling-origin splits. These are
-development results because their outcomes were already viewed during M0/M1.
+The three registered historical comparisons are complete. M2 improved pooled
+log loss but failed the material-calibration gate, so the frozen rule retains
+M1. These are development results because their outcomes were already viewed
+during M0/M1, not prospective confirmation.
 
 ### M3: verified pre-shot game context — planned
 
@@ -223,7 +241,8 @@ Before M3 fitting:
 1. Audit field availability and missingness by season.
 2. Prove that each value represents the state before the shot.
 3. Define honest missing or unmatched handling.
-4. Freeze a small feature set and M3-versus-M2 decision rule.
+4. Freeze a small feature set and an M3-versus-retained-M1 decision rule. Do not
+   reintroduce the rejected M2 distance term without separate preregistration.
 5. Keep post-shot score, result descriptions, later events, rebounds, and final
    game outcomes outside the predictors.
 
@@ -336,12 +355,12 @@ refit.
 
 ## Foreseeable execution order
 
-1. Obtain direct chat authorization for the blocked `development_3` evaluation.
-2. Reverify its inputs, pushed implementation, prior results, both saved fits,
-   and private authorization marker before opening 2025-26. Do not refit.
-3. Complete `development_3` unchanged with atomic recovery.
-4. Apply the frozen M2 advancement rule.
-5. Preregister and audit M3 game-context fields.
+1. Preserve the completed three-window M2 evaluation and retained-M1 decision.
+2. Keep 2026-27 sealed; historical selection does not authorize confirmation.
+3. Follow the project architecture's next separately approved Location Edition
+   sensitivity-planning task before starting later Context work.
+4. Obtain separate authorization before any M3 data audit or model work.
+5. Preregister and audit M3 game-context fields using M1 as the current baseline.
 6. Decide whether a valid direct-defense data source exists. Omit defense if it
    does not pass the source and join gates.
 7. Preregister and evaluate M4 player Shot Fit.
