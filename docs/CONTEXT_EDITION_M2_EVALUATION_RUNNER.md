@@ -1,6 +1,6 @@
 # Context Edition M2 historical evaluation runner
 
-Status: `development_1` complete; `development_2`, `development_3`, and the
+Status: `development_1` and `development_2` complete; `development_3` and the
 prospective 2026-27 outcome remain sealed
 
 Protocol: `context_m2_protocol_v0.1.0`
@@ -22,7 +22,7 @@ a model or override the formal comparison.
 | Comparison | Training outcomes | Validation outcomes | Current access |
 |---|---|---|---|
 | `development_1` | 2021–22 and 2022–23 | 2023–24 | opened once; aggregate result complete |
-| `development_2` | 2021–22 through 2023–24 | 2024–25 | sealed |
+| `development_2` | 2021–22 through 2023–24 | 2024–25 | opened once; aggregate result complete |
 | `development_3` | 2021–22 through 2024–25 | 2025–26 | sealed |
 
 The 2026–27 season is not a runner window. A hard season guard rejects it in
@@ -76,7 +76,7 @@ Frozen reusable fit hashes:
 | Window | M1 SHA-256 | M2 SHA-256 | Decision |
 |---|---|---|---|
 | `development_1` | `a856e98b376cc0a3d5291c6e6599578dbaea04c6cb0aeb1bf6ce83ad0608f7ac` | `5c71318fc300b2f5a77ab41656a69af895a111280f26a1e3fe6035b1259ff43f` | reuse both |
-| `development_2` | `17d31cb4c157f31d262f079f1a3703acb0f8cc7de21f9009a691cfca97fa2576` | not fit | reuse M1; fit M2 once later |
+| `development_2` | `17d31cb4c157f31d262f079f1a3703acb0f8cc7de21f9009a691cfca97fa2576` | `f004bf912ef292c8fd1f263ab9766249af6b4b4d3928356e3c889ec078985a8c` | reuse both |
 | `development_3` | `24bf051f847825bb835fda7025aea119b89b5e9a2a93b252f3a5eeb0b765db4f` | not fit | reuse M1; fit M2 once later |
 
 The completed first-window M2 training checkpoint has input hash
@@ -87,10 +87,9 @@ and completion-manifest hash
 `5a3e3265284bd97d050246adf4d6c0ac5552575ba47490058821f65de5d6ae29`.
 Its verification mode passed again during this freeze without refitting.
 
-Fit accounting is split-specific. At freeze time, six formal model-window fits
-are required in total: three M1 and three M2. Four already exist and are
-reusable; the later two M2 fits have not started. Evaluation itself must report
-zero fits.
+Fit accounting is split-specific. Six formal model-window fits are required in
+total: three M1 and three M2. Five now exist and are reusable; only the
+`development_3` M2 fit has not started. Evaluation itself must report zero fits.
 
 ## Execution order and authorization boundary
 
@@ -118,9 +117,9 @@ Before `fit` or `evaluate`, the runner requires all of the following:
 - a private, ignored authorization record naming one comparison and the same
   pre-result commit.
 
-The authorization record is intentionally absent now. Creating it requires a
-new explicit instruction from Narayan. Therefore the frozen runner cannot open
-2023–24 merely because its code has been committed.
+The first two comparison-specific authorizations were created privately under
+separate explicit instructions. No authorization exists for `development_3`;
+the frozen runner cannot open 2025-26 merely because its code has been committed.
 
 ## Metrics and decision
 
@@ -219,9 +218,41 @@ empty ignored `development_1` evaluation lock directory behind. It is preserved
 as execution evidence and must be handled as an operational recovery issue
 before a later outcome-free audit; it does not invalidate the atomic result.
 
+## Measured `development_2` result
+
+The first attempt stopped before outcome access because the grouped-row check
+did not parenthesize its existing inline `if`/`else` expression. R therefore
+absorbed the later Boolean checks into the M2 `else` branch and falsely rejected
+matching metadata. Repair commit `528d65538e909a18e629f7aa2f3fb6e2daa8c02f`
+added only those parentheses and a focused regression test, then was pushed
+before 2024-25 was opened. The preserved M2 artifact retained SHA-256
+`f004bf912ef292c8fd1f263ab9766249af6b4b4d3928356e3c889ec078985a8c`;
+neither M1 nor M2 was refit.
+
+The runner opened 2024-25 once and evaluated 219,527 shots from 1,230 games and
+566 players. M1 log loss was `0.6509035230`; M2 log loss was `0.6431333748`.
+The registered M2-minus-M1 difference was `-0.0077701483`, with bootstrap
+standard error `0.0003353791` and 95% interval
+`[-0.0084216476, -0.0071371329]`. The improvement exceeded one standard error.
+
+M1 and M2 absolute calibration errors were `0.0004293000` and `0.0039214602`;
+their ten-bin ECE values were `0.0047571077` and `0.0121388468`. The paired
+M2-minus-M1 intervals were `[0.0001311615, 0.0043478717]` for absolute error and
+`[0.0043734351, 0.0091782846]` for ECE. Because neither lower bound exceeded
+`0.005`, the registered material-calibration gate passed, although M2 was
+descriptively less calibrated. M2 improved expected-points RMSE by
+`0.0066289507`, while its whole-game points MAE and RMSE were worse by
+`0.7826944368` and `1.1124742577`; these remain diagnostics only.
+
+Evaluation took `310.5869` wall seconds and `304.9110` recorded CPU seconds.
+The post-evaluation RSS sample was 1,139,916,800 bytes. The private prediction
+checkpoint is 2.3 MB, its payload hash is
+`6950f6172b9cdd2f4683f8a1ed5188993ad71a6af2cbdf137a72c6ced3635ac0`,
+and the private and tracked aggregate result directories are each 44 KB. The
+frozen verification mode passed without reopening canonical outcomes.
+
 ## Next authorization boundary
 
-Stop here. The next action requires Narayan to authorize `development_2`. That
-stage must first preserve and resolve the stale private `development_1` lock,
-then fit the frozen second-window M2 component once before opening 2024-25.
-The 2025-26 and 2026-27 outcomes must remain sealed.
+Stop here. The next action requires Narayan to authorize `development_3`. That
+stage must fit the frozen third-window M2 component exactly once before opening
+2025-26. The 2026-27 outcome must remain sealed.

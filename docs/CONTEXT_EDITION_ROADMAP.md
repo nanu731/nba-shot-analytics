@@ -137,15 +137,27 @@ Current execution state at this update:
   verification without reopening the canonical outcome. The successful process
   left an empty ignored evaluation lock directory, which is preserved for an
   operational recovery decision before the next audit.
-- The validation-access flag for 2023-24 is now true. The 2024-25 and 2025-26
-  flags remain false. The hard 2026-27 guard remains false and rejects access in
-  every runner mode.
+- `development_2` reused the verified M1 fit and the once-fitted M2 artifact,
+  opened 2024-25 once, and fit no model during evaluation. Its 1,230 games
+  contained 219,527 shots from 566 players.
+- M1 log loss was `0.6509035230`; M2 log loss was `0.6431333748`. The registered
+  M2-minus-M1 difference was `-0.0077701483`, with a paired whole-game bootstrap
+  standard error of `0.0003353791` and 95% interval
+  `[-0.0084216476, -0.0071371329]`. The second development window therefore
+  favors M2 on the primary metric by more than one bootstrap standard error.
+- M2's ten-bin ECE was worse by `0.0073817391`, with a paired 95% interval of
+  `[0.0043734351, 0.0091782846]`. Its absolute calibration error was worse by
+  `0.0034921603`, with interval `[0.0001311615, 0.0043478717]`. Neither lower
+  bound exceeded the registered `0.005` material-worsening threshold, so the
+  frozen calibration gate passed despite the descriptive calibration loss.
+- The 2023-24 and 2024-25 validation-access flags are now true. The 2025-26 flag
+  remains false. The hard 2026-27 guard remains false and rejects access in every
+  runner mode.
 - Reuse requires exact split, formula, factor, engine, configuration, manifest,
   and artifact hashes; a merely similar fit is rejected.
-- The next gated action is separate authorization for `development_2`. It must
-  preserve and resolve the stale private first-window lock, fit the registered
-  second-window M2 component exactly once, and open only 2024-25 after all
-  frozen checks pass.
+- The next gated action is separate authorization for `development_3`. It must
+  fit the registered third-window M2 component exactly once and open only
+  2025-26 after all frozen checks pass.
 
 ## Model ladder and stage gates
 
@@ -308,12 +320,10 @@ refit.
 
 ## Foreseeable execution order
 
-1. Obtain explicit authorization for the frozen `development_2` execution and
-   the operational handling of the preserved stale `development_1` lock.
-2. Reverify its inputs, pushed implementation, prior result, exact M1 reuse,
-   and private authorization marker before fitting M2 once and opening 2024-25.
-3. Complete `development_2` and `development_3` unchanged, with separate
-   authorization boundaries and atomic recovery.
+1. Obtain explicit authorization for the frozen `development_3` execution.
+2. Reverify its inputs, pushed implementation, prior results, exact M1 reuse,
+   and private authorization marker before fitting M2 once and opening 2025-26.
+3. Complete `development_3` unchanged with atomic recovery.
 4. Apply the frozen M2 advancement rule.
 5. Preregister and audit M3 game-context fields.
 6. Decide whether a valid direct-defense data source exists. Omit defense if it
