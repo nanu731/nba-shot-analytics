@@ -2,7 +2,8 @@
 
 ## Purpose
 
-This repository contains two related projects:
+This repository contains two related but analytically separate projects that
+share infrastructure but not models, results, scores, or claims:
 
 - The completed **Location Edition**, which asks:
 
@@ -19,6 +20,10 @@ and code briefly in plain language, and follow Occam's razor.
 
 ## Current authority
 
+- For every Location or Context Edition task, read
+  `docs/NBA_SHOT_SELECTION_PROJECT_ARCHITECTURE.md` first. It defines the
+  project boundary, shared-repository policy, website separation, and
+  foreseeable work order.
 - For Context Edition work, read `docs/CONTEXT_EDITION_ROADMAP.md` first, then
   read the preregistration and execution document for the active stage.
 - For Location Edition work, read `docs/SPATIAL_MODEL_PLAN.md` before changing
@@ -32,6 +37,11 @@ and code briefly in plain language, and follow Occam's razor.
 The Location Edition is protected historical work. Do not change its models,
 exports, score, relocation rules, or website while developing the Context
 Edition unless Narayan separately authorizes that change.
+
+Keep both projects in this repository for now, but preserve independent
+questions, models, scores, results, exports, claims, limitations, and eventual
+portfolio pages. Do not move existing files or create a replacement repository
+without separate approval.
 
 ## Location Edition settled direction
 
