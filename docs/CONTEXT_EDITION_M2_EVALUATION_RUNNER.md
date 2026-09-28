@@ -1,8 +1,7 @@
 # Context Edition M2 historical evaluation runner
 
-Status: `development_1` and `development_2` complete; `development_3` training
-verified, evaluation blocked before outcome access; 2025-26 and prospective
-2026-27 outcomes remain sealed for this stage
+Status: all three development windows complete; pooled historical decision in
+progress. The prospective 2026-27 outcome remains sealed.
 
 Protocol: `context_m2_protocol_v0.1.0`
 
@@ -24,7 +23,7 @@ a model or override the formal comparison.
 |---|---|---|---|
 | `development_1` | 2021–22 and 2022–23 | 2023–24 | opened once; aggregate result complete |
 | `development_2` | 2021–22 through 2023–24 | 2024–25 | opened once; aggregate result complete |
-| `development_3` | 2021–22 through 2024–25 | 2025–26 | sealed |
+| `development_3` | 2021–22 through 2024–25 | 2025–26 | opened once; aggregate result complete |
 
 The 2026–27 season is not a runner window. A hard season guard rejects it in
 every mode. It remains reserved for one prospective confirmation after the
@@ -121,10 +120,10 @@ Before `fit` or `evaluate`, the runner requires all of the following:
   pre-result commit.
 
 The comparison-specific authorizations remain private. Narayan's attached
-repair request authorized `development_3` training and evaluation. The third
-authorization record now exists, but the execution approval system rejected
-the evaluation before launch and requires approval in a direct chat message.
-The record alone does not bypass that block.
+repair request authorized `development_3` training and evaluation. After the
+execution approval system rejected the first evaluation launch, Narayan supplied
+direct chat authorization and confirmed the corrected 64-character M2 hash.
+The runner then completed the third-window evaluation under the unchanged rules.
 
 ## Metrics and decision
 
@@ -292,14 +291,15 @@ checkpoint is 2.3 MB, its payload hash is
 and the private and tracked aggregate result directories are each 44 KB. The
 frozen verification mode passed without reopening canonical outcomes.
 
-## Next authorization boundary
+## Resolved authorization boundary before evaluation
 
-Narayan must directly authorize executing the frozen `development_3` evaluation
-with both preserved fits, opening only 2025-26 once, completing the registered
-three-window decision, and publishing aggregate results. Do not fit M2 again.
-Do not begin M3 or prospective confirmation. The 2026-27 outcome remains sealed.
+Narayan directly authorized using both preserved fits, opening only 2025-26 once,
+completing the registered three-window decision, and publishing aggregate
+results. A subsequent confirmation corrected an extra trailing character in the
+authorized M2 hash. Neither model was refitted. This authorization does not
+permit M3 or prospective confirmation; 2026-27 remains sealed.
 
-## Verified `development_3` training and safe stop
+## Verified `development_3` training and earlier safe stop
 
 Repair commit `da1dfd3a584acca2a65ad6334ec46fc670c9e74c` was pushed and checked
 against HEAD, upstream, remote tracking, and GitHub before training. It moved
@@ -362,6 +362,73 @@ checkpoint, result checkpoint, or pooled decision exists. The completed M2
 artifact and empty inactive fit lock remain ignored and preserved. No model
 process remains. The next task must reuse the fit and must not repeat training.
 
-The full historical M2 decision remains incomplete. M1 remains the selected
-baseline; the first two windows alone cannot promote M2. No prospective claim
-or 2026-27 access is authorized by these training checks.
+At that earlier stop, the full historical M2 decision was incomplete. M1
+remained the selected baseline. The following execution reused the saved fit
+after the direct authorization and hash correction; it did not repeat training.
+
+## Measured `development_3` result
+
+Execution commit `0c0a721d77274ca4e92334e6aa882378c8808af7` was identical to
+upstream and GitHub before execution. Both supplied fit hashes matched their
+manifests. The saved M2 QA passed again; the runner verified both saved models,
+configuration, private authorization, prior results, and predictor support
+before opening the 2025-26 canonical outcome partition once at
+`2026-09-28 21:26:58 UTC`. M1 and M2 refit counts were zero.
+
+The comparison covered 219,160 shots, 1,230 games, and 582 players. M1 log loss
+was `0.6499648681705721`; M2 was `0.6433467898036227`. The M2-minus-M1 difference
+was `-0.006618078366949387`, paired whole-game bootstrap SE
+`0.00029939542742234593`, and percentile 95% interval
+`[-0.007179753302567796, -0.00603636076125792]`. The improvement exceeded one SE.
+The frozen 2,000 samples and deterministic repeat both used seed `20260914`.
+
+| Diagnostic | M1 | M2 |
+|---|---:|---:|
+| Observed minus predicted make rate | 0.0072727454 | 0.0076211228 |
+| Calibration intercept | 0.0316559163 | 0.0336300983 |
+| Calibration slope | 1.0090994970 | 1.0093017411 |
+| Ten-bin ECE | 0.0078681887 | 0.0114306283 |
+| Brier score | 0.2298219824 | 0.2267310351 |
+| ROC AUC | 0.6431525770 | 0.6534720226 |
+| Shot expected-points RMSE | 1.1818826105 | 1.1764054722 |
+| Whole-game field-goal-points MAE | 13.0958943845 | 13.6339987938 |
+| Whole-game field-goal-points RMSE | 16.2827090480 | 17.0298469088 |
+| Observed minus predicted points per 100 attempts | 1.5887231995 | 1.5973639159 |
+
+Each equal-count calibration bin contains 21,916 shots. The M2-minus-M1
+absolute-bias difference was `0.0003483773`, with paired 95% interval
+`[-0.0004859651, 0.0011916652]`. ECE worsened by `0.0035624396`, with interval
+`[0.0010894907, 0.0054678177]`. Neither lower bound exceeded `0.005`, so this
+window passed the registered material-calibration gate. M2's lower shot-level
+log loss and expected-points RMSE do not erase its worse ECE or game-total errors.
+
+Training-volume Q1/Q2/Q3/Q4/unseen groups contained
+4,360/21,137/44,397/127,705/21,561 validation shots. M2 had smaller absolute
+calibration gaps in Q3 and unseen players, and larger gaps in Q1, Q2, and Q4.
+The 197,599 returning-player shots had signed gaps of 0.008664503 for M1 and
+0.008902246 for M2; unseen-player absolute gaps were 0.005482223 and 0.004119926.
+No validation volume entered quartile assignment.
+
+M2 reduced absolute calibration gaps in four of five distance bands, including
+30-plus-foot shots (0.0693614 to 0.0089769), but worsened the 10-to-under-22-foot
+gap (0.0014075 to 0.0290917). It improved the three-point gap but worsened the
+two-point gap. Finish and creation diagnostics were mixed; `other_or_unknown`
+remained explicit with 107,628 shots. All reported groups exceeded 200 shots.
+These diagnostics cannot override the pooled selection rule.
+
+Outcome reading took 0.0883 seconds, one prediction pass per model took 4.1241
+seconds in total, point metrics took 0.6732 seconds, and the bootstrap plus
+deterministic repeat took 289.8714 seconds. Total measured evaluation wall time
+was 295.2772 seconds; CPU was 279.194 user plus 8.744 system seconds. Post-run
+RSS was 1,394,737,152 bytes (a sample, not peak), with 106,248,286,208 bytes of
+available disk. The private prediction payload is 2,395,084 bytes, SHA-256
+`3556892daaeec4d72b5f72cc34568a007528ea7ad30e76f42f9632aaf980f375`.
+Private and tracked aggregate result directories each occupy 44 KiB on disk.
+
+All 14 execution checks passed. The frozen recovery verifier rechecked the
+atomic result without reopening outcomes or predicting again. Models,
+predictions, authorization, access records, and inactive locks remain ignored;
+only aggregate tables and documentation are published. The existing Arrow
+build-version notice was the only warning reported by evaluation and recovery.
+The runtime and dependencies remained frozen. Location Edition, portfolio,
+2026-27, and M3 were untouched.
