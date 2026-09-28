@@ -105,6 +105,19 @@ record("exact_reuse_hash_accepts_and_rejects", {
   context_m2_evaluation_verify_hash(path, hash, function(value) strsplit(system2("shasum", c("-a", "256", value), stdout = TRUE)[[1]], " ", fixed = TRUE)[[1]][[1]])
   expect_error(context_m2_evaluation_verify_hash(path, paste(rep("0", 64L), collapse = ""), function(value) hash), "hash mismatch")
 })
+record("m2_grouped_row_verifier_precedence", {
+  grouped_row_expression <-
+    'metadata$grouped_rows != (if (model_id == "M1") row$m1_grouped_rows else row$m2_grouped_rows) ||'
+  expect_true(grepl(grouped_row_expression, runner, fixed = TRUE), "M2 grouped-row comparison is not parenthesized")
+  metadata <- tibble(grouped_rows = 69649L, converged = TRUE, validation_outcomes_accessed = FALSE)
+  row <- tibble(m1_grouped_rows = 10852L, m2_grouped_rows = 69649L)
+  model_id <- "M2"
+  rejected <- metadata$grouped_rows !=
+    (if (model_id == "M1") row$m1_grouped_rows else row$m2_grouped_rows) ||
+    ("converged" %in% names(metadata) && !isTRUE(metadata$converged)) ||
+    ("validation_outcomes_accessed" %in% names(metadata) && isTRUE(metadata$validation_outcomes_accessed))
+  expect_true(!rejected, "matching M2 grouped-row metadata was falsely rejected")
+})
 record("interruption_recovery_is_nonduplicating", {
   expect_true(context_m2_evaluation_recovery_action(TRUE, TRUE, TRUE) == "verify_completed_result", "completed result would rerun")
   expect_true(context_m2_evaluation_recovery_action(FALSE, TRUE, TRUE) == "resume_from_predictions", "prediction checkpoint would rerun")

@@ -150,7 +150,7 @@ verify_fit <- function(row, model_id) {
     if (nrow(metadata) != 1L || metadata$model_id != model_id ||
         metadata$training_seasons != row$training_seasons ||
         metadata$training_shots != row$training_shots ||
-        metadata$grouped_rows != if (model_id == "M1") row$m1_grouped_rows else row$m2_grouped_rows ||
+        metadata$grouped_rows != (if (model_id == "M1") row$m1_grouped_rows else row$m2_grouped_rows) ||
         ("converged" %in% names(metadata) && !isTRUE(metadata$converged)) ||
         ("validation_outcomes_accessed" %in% names(metadata) && isTRUE(metadata$validation_outcomes_accessed))) {
       stop(model_id, " fit metadata does not match the required split", call. = FALSE)
