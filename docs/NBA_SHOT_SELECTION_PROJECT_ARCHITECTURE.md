@@ -170,7 +170,13 @@ unless a later preregistration gives it a defensible new meaning.
   Predictive mean matching does not advance because the missing values represent
   unavailable joins rather than ordinary unobserved numeric measurements.
 - Shot clock and direct defense remain blocked without a verified same-attempt
-  source. Next Context work requires a separate M3 model preregistration.
+  source. The separate M3 preregistration now freezes additive period, linear
+  period time, home/away/unknown and linear verified margin plus its missingness
+  indicator. The outcome-free runner passed predictor checks; no M3 fit or new
+  outcome access occurred. See `docs/CONTEXT_EDITION_M3_PREREGISTRATION.md` and
+  `docs/CONTEXT_EDITION_M3_RUNNER.md`. First-window training requires separate
+  authorization; later windows face an explicit memory-headroom gate. No M2
+  distance term, imputation study or prospective access is added.
 - Do not treat this architecture document as outcome-access authorization.
 - Preserve the 2026–27 prospective season as sealed confirmation data.
 

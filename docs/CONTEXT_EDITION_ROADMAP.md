@@ -2,7 +2,7 @@
 
 Status: living project context for Codex
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 ## How Codex must use this file
 
@@ -213,6 +213,27 @@ in `docs/CONTEXT_EDITION_M3_DATA_AUDIT_RESULTS.md`.
 - No outcome column was read, no model was fit, and 2026-27 remained sealed.
 
 ## Model ladder and stage gates
+
+### Active next stage: frozen M3 preregistration, no execution
+
+Audit result `ce042f3` preserves the interrupted aggregate audit publication.
+`docs/CONTEXT_EDITION_M3_PREREGISTRATION.md` freezes M1 plus period (1–4/OT),
+linear period time, home/away/unknown, linear verified score margin with neutral
+zero fill and its missingness indicator. PMM does not advance. The complete-case
+diagnostic uses the same saved predictions, without another model fit.
+
+`docs/CONTEXT_EDITION_M3_RUNNER.md` records the outcome-free implementation,
+predictor dimensions and resource estimates. All predictor-side gates passed.
+M3 has not been fit; no validation outcome was read in this stage. The runner
+has no validation execution mode. It reuses unchanged M2 evaluation helpers and
+freezes the same rolling windows, primary metric, bootstrap and selection gates
+for M3 versus retained M1. Distance is excluded from the model.
+
+The first fit needs separate training-only authorization. Exact grouping leaves
+430,698 first-window rows; the conservative working-memory estimate is 10.2 GiB.
+Later windows exceed the current 16 GiB machine's registered memory-headroom
+gate. No engine or statistical change is authorized to address that limitation.
+2026–27 remains sealed. Location Edition, portfolio and M1/M2 results are protected.
 
 ### M0: pooled player baseline — complete
 
