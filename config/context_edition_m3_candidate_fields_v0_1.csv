@@ -1,0 +1,13 @@
+field,source,availability,timing_rule,missing_treatment_audit,status
+period,ShotChartDetail,complete,known before release,none required,candidate
+minutes_remaining,ShotChartDetail,complete,known before release,none required,audit component only
+seconds_remaining,ShotChartDetail,complete,known before release,none required,audit component only
+period_seconds_remaining,derived from ShotChartDetail clock,complete,known before release,none required,candidate
+shooter_home_away,exact matched play-by-play event,incomplete,event team must identify shooter side,explicit unknown level,candidate
+score_margin_before,lagged matched play-by-play score,incomplete,retain only when score change independently agrees,compare complete case with neutral fill plus missingness indicator,candidate
+pre_shot_score_verified,canonical quality flag,complete,must be true before score margin is exposed,not a basketball predictor,audit only
+linkage_status,canonical join quality,complete,derived without outcome prediction,not a basketball predictor,audit only
+shot_clock_remaining,unavailable,unavailable,no verified same-attempt source,no imputation,blocked
+defender_distance,unavailable,unavailable,no verified same-attempt source,no imputation,blocked
+raw_pbp_description,matched play-by-play,partial,contains result and later context,no imputation,blocked
+field_goal_made,canonical outcome,complete,known after release,no imputation,target only
