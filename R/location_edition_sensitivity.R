@@ -5,6 +5,7 @@ source("R/location_edition_sensitivity_reporting.R")
 LS_CACHE <- "data/cache/location_edition_sensitivity_v0_1"
 LS_OUTPUT <- "data/processed/location_edition_sensitivity_v0_1"
 LS_CONFIG <- "config/location_edition_sensitivity_execution_v0_1.json"
+LS_REPORTING_LOCK <- "config/location_edition_sensitivity_reporting_correction.json"
 LS_GRID <- "config/location_edition_sensitivity_grid_v0_1.csv"
 LS_PREREG <- "docs/LOCATION_EDITION_SENSITIVITY_PREREGISTRATION.md"
 LS_CODE <- c("R/location_edition_sensitivity.R","R/location_edition_sensitivity_helpers.R",
@@ -23,6 +24,28 @@ ls_hashes <- function(paths) setNames(vapply(paths,ls_hash,character(1)),names(p
 ls_git <- function(args) {
   x<-system2("git",args,stdout=TRUE,stderr=TRUE)
   ls_check(is.null(attr(x,"status")),paste("git",paste(args,collapse=" ")));x
+}
+ls_reporting_lock <- function() {
+  x<-fromJSON(LS_REPORTING_LOCK)
+  ls_check(identical(x$original_calculation_commit,"52bc0b45d4809a96e743c12976bdf728fe478ac6"),
+    "original calculation provenance")
+  sha<-x$reporting_correction_commit
+  ls_check(grepl("^[a-f0-9]{40}$",sha),"reporting correction must be pushed and locked")
+  ls_git(c("merge-base","--is-ancestor",sha,"HEAD"))
+  paths<-c(LS_CODE,"R/location_edition_sensitivity_reporting_tests.R",
+    "R/location_edition_sensitivity_summary_check.R")
+  ls_check(length(ls_git(c("diff","--name-only",sha,"--",paths)))==0L,"locked correction code")
+  original<-fromJSON(paste(ls_git(c("show",paste0(sha,":",LS_REPORTING_LOCK))),collapse="\n"))
+  original$reporting_correction_commit<-sha
+  ls_check(identical(original,x),"only correction hash changed in lock record")
+  x
+}
+ls_original_code_hashes <- function(sha) {
+  setNames(vapply(LS_CODE,function(p) {
+    line<-system(paste("git show",shQuote(paste0(sha,":",p)),"| shasum -a 256"),intern=TRUE)
+    ls_check(length(line)==1L && is.null(attr(line,"status")),"original code hash")
+    strsplit(line,"[[:space:]]+")[[1]][1]
+  },character(1)),LS_CODE)
 }
 ls_config <- function(locked=FALSE) {
   x<-fromJSON(LS_CONFIG)
@@ -45,8 +68,7 @@ ls_config <- function(locked=FALSE) {
     sha<-x$pre_result_implementation_commit
     ls_check(grepl("^[a-f0-9]{40}$",sha),"pushed implementation lock missing")
     ls_git(c("merge-base","--is-ancestor",sha,"HEAD"))
-    ls_check(length(ls_git(c("diff","--name-only",sha,"--",LS_CODE)))==0L,
-      "implementation changed after freeze")
+    ls_reporting_lock()
     original<-fromJSON(paste(ls_git(c("show",paste0(sha,":",LS_CONFIG))),collapse="\n"))
     original$pre_result_implementation_commit<-sha
     ls_check(identical(original,x),"only registered hash changed in lock commit")
@@ -286,7 +308,9 @@ ls_execute <- function(mode) {
   head<-ls_synced()
   context<-list(protocol_id=LS_ID,implementation_commit=cfg$pre_result_implementation_commit,
     configuration_sha256=ls_hash(LS_CONFIG),grid_sha256=ls_hash(LS_GRID),preregistration_sha256=ls_hash(LS_PREREG),
-    code_sha256=ls_hashes(setNames(LS_CODE,LS_CODE)))
+    # Analytical checkpoint context remains immutable; corrected execution provenance
+    # is recorded separately, never substituted into existing manifests.
+    code_sha256=ls_original_code_hashes(cfg$pre_result_implementation_commit))
   auth_path<-file.path(LS_CACHE,"authorization.rds")
   if(mode=="authorize") {
     ls_check(!file.exists(auth_path),"preserve existing authorization")
@@ -312,6 +336,24 @@ ls_execute <- function(mode) {
     cat("Verified complete aggregate result; no model, draw, or raw outcome loaded.\n");return(invisible(TRUE))
   }
   if(dir.exists(file.path(LS_CACHE,"published")))stop("Completed result exists; use verify, not run.")
+  correction<-ls_reporting_lock()
+  correction_start<-file.path(LS_CACHE,"corrected-resume-started.rds")
+  ls_check(!file.exists(correction_start),"one corrected resume only; preserve prior execution")
+  checks<-list.files(file.path(LS_CACHE,"operations"),pattern="^summary-equivalence-",full.names=TRUE)
+  verified<-list()
+  for(season in cfg$seasons) {
+    matches<-checks[grepl(paste0("summary-equivalence-",season,"-"),basename(checks),fixed=TRUE)]
+    ls_check(length(matches)==1L,"one preserved equivalence check per season")
+    p<-matches[1];v<-readRDS(file.path(p,"verification.rds"))
+    ls_check(isTRUE(v$complete)&&identical(v$season,season)&&
+      identical(v$reporting_sha256,ls_hash("R/location_edition_sensitivity_reporting.R")),"summary equivalence provenance")
+    h<-ls_inventory(p);h<-h[names(h)!="verification.rds"]
+    ref<-ls_verify(file.path(LS_CACHE,"build_one",season,"summary"),context)
+    ls_check(identical(h,v$hashes)&&identical(h,ref$hashes),"five-season byte-equivalence gate")
+    ls_check(dir.exists(file.path(LS_CACHE,"draws",season))&&
+      dir.exists(file.path(LS_CACHE,"baseline",season)),"reuse draws and baseline only")
+    verified[[season]]<-ls_hash(file.path(p,"verification.rds"))
+  }
   ls_check(!length(list.files(LS_CACHE,pattern="^failure-")),"preserved failure needs separate authorization")
   lock<-file.path(LS_CACHE,"run.lock")
   if(dir.exists(lock)) {
@@ -322,6 +364,9 @@ ls_execute <- function(mode) {
   }
   ls_check(dir.create(lock),"exclusive study lock")
   saveRDS(list(pid=Sys.getpid(),context=context,started=Sys.time()),file.path(lock,"owner.rds"))
+  saveRDS(list(correction=correction,execution_commit=head,pid=Sys.getpid(),started=Sys.time(),
+    summary_verification_sha256=verified,prior_atomic_paths=dirname(list.files(LS_CACHE,
+      pattern="^complete.rds$",recursive=TRUE,full.names=TRUE))),correction_start)
   tryCatch({
     ls_note("source_verification")
     protected<-ls_inventory("export/spatial-shot-selection")
@@ -374,6 +419,10 @@ ls_execute <- function(mode) {
         seasons=5L,player_seasons=1507L,conditions=27L,shares=6L,
         player_condition_rows=40689L,player_slider_rows=244134L,model_refits=0L,
         prospective_access=FALSE),file.path(p,"study_audit.parquet"))
+      ls_write_parquet(data.frame(protocol_id=LS_ID,
+        original_calculation_commit=correction$original_calculation_commit,
+        reporting_correction_commit=correction$reporting_correction_commit,
+        corrected_resume_count=1L),file.path(p,"reporting_correction_audit.parquet"))
     },context)
     ls_check(!dir.exists(LS_OUTPUT),"preserve prior aggregate outputs")
     output_stage<-tempfile("aggregate-publication-",LS_CACHE)

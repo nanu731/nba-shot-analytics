@@ -101,3 +101,53 @@ This study measures sensitivity to evidence and capacity rules. It cannot
 select a more accurate production threshold or establish causal improvement.
 Production v1-v4, the Context M1 decision, 2026-27, M3 and the portfolio remain
 outside the calculation. Any later production-default change needs a new decision.
+
+## Reporting-memory correction and one corrected resume
+
+Narayan authorized this recovery after one unchanged resume reproduced severe
+memory pressure during season reporting. Both interrupted runs ended by an
+authorized SIGINT, not by a statistical or baseline failure. The private active
+recovery records preserve the original logs, locks and checkpoint inventories.
+
+The original calculation revision remains
+`52bc0b45d4809a96e743c12976bdf728fe478ac6`, with implementation `b0659c8`.
+Only `ls_stability()` changes its reporting construction: preallocated columns
+replace retained one-row tables. Its calculations, loop order and final table
+contracts remain unchanged. No other reporting function changes.
+
+Before execution, an isolated checker regenerated all six summary tables for
+each season from preserved condition tables. Exact R-object and Parquet SHA-256
+comparisons passed for schemas, types, keys, order, values and null positions.
+The checker has a 600-second per-season bound and does not load models, draws
+or raw shots. Its temporary files and resource logs remain private.
+
+| Season | Verification wall seconds | Peak footprint bytes |
+|---|---:|---:|
+| 2025-26 | 56.52 | 1097320200 |
+| 2024-25 | 55.28 | 1090570016 |
+| 2023-24 | 51.70 | 973145768 |
+| 2022-23 | 53.05 | 1028753112 |
+| 2021-22 | 55.66 | 1060718344 |
+
+These are summary-verification measurements, not full-study runtime estimates.
+The unchanged interrupted resume reached 17096177008 bytes peak footprint.
+
+`config/location_edition_sensitivity_reporting_correction.json` records the
+original calculation revision and the separately pushed reporting-correction
+commit. The original execution configuration, authorization and checkpoint
+contexts remain untouched. Those contexts identify the original analytical
+contract; the separate correction audit identifies subsequent execution code.
+Do not relabel an old checkpoint as produced by the correction.
+
+The runner requires all five byte-equivalence records, a pushed correction
+lock, and existing draw/baseline caches. It preserves a private single-use
+`corrected-resume-started.rds` containing execution provenance and the inventory
+of prior atomic paths. This blocks another corrected resume without a new
+decision. A separate aggregate `reporting_correction_audit.parquet` records the
+two revisions without altering existing analytical output schemas.
+
+Recovery starts from 135 first-build conditions, five first-build summaries,
+27 second-build conditions, five draw caches and five baselines. Only missing
+second-build work may be calculated. Full byte determinism and source/privacy
+checks remain publication gates. Stop gracefully if severe memory pressure
+recurs; no repeated restart or broader optimization is authorized.

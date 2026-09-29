@@ -85,6 +85,10 @@ ls_endpoints <- function(z,request) {
 }
 ls_stability <- function(pc,ps,grid) {
   x <- ls_join(pc,ps); rows <- contrasts <- list(); ri <- ci <- 0L
+  # Same records and order, stored by column rather than as retained tiny tables.
+  nr <- as.integer(length(unique(x$player_id))*sum(vapply(LS_SHARES,function(request)
+    length(ls_endpoints(x[0,],request)),integer(1))))
+  nc <- as.integer(nr*27L)
   baseline <- which(grid$is_baseline)
   factors <- names(grid)[2:4]
   for(id in unique(x$player_id)) for(request in LS_SHARES) {
@@ -106,14 +110,16 @@ ls_stability <- function(pc,ps,grid) {
       q <- if(!categorical && count) c(min(v),median(v),max(v))else rep(NA_real_,3)
       d <- delta[!is.na(delta)]; dq <- if(length(d))c(min(d),median(d),max(d))else rep(NA_real_,3)
       ri <- ri+1L
-      row <- data.frame(season=z$season[1],player_id=id,requested_share=request,endpoint,
+      row <- list(season=z$season[1],player_id=id,requested_share=request,endpoint=endpoint,
         baseline_value=as.character(values[baseline]),modal_count=mode_count,
         baseline_agreement_count=agreement,valid_condition_count=as.integer(count),
         unavailable_condition_count=as.integer(if(categorical)sum(values=="unavailable")else sum(!valid)),
         all_27_agree=same,value_min=q[1],value_median=q[2],value_max=q[3],
         paired_baseline_delta_min=dq[1],paired_baseline_delta_median=dq[2],paired_baseline_delta_max=dq[3],
         availability_or_sign_mixed=mixed)
-      row$modal_categories <- list(mode_categories); rows[[ri]] <- row
+      row$modal_categories <- list(mode_categories)
+      if(ri==1L) rows <- lapply(row,function(v)rep(v,length.out=nr))
+      for(name in names(row)) rows[[name]][ri] <- row[[name]]
       for(factor in factors) {
         other <- setdiff(factors,factor)
         low <- which(grid[[factor]]==min(grid[[factor]]))
@@ -123,17 +129,23 @@ ls_stability <- function(pc,ps,grid) {
           ls_check(length(h)==1L,"unique matched factor pair")
           pa <- valid[l] && valid[h]
           ci <- ci+1L
-          contrasts[[ci]] <- data.frame(season=z$season[1],player_id=id,requested_share=request,endpoint,factor,
+          contrast <- list(season=z$season[1],player_id=id,requested_share=request,endpoint=endpoint,factor=factor,
             fixed_other_levels=paste(other[1],grid[[other[1]]][l],other[2],grid[[other[2]]][l],sep="="),
             low_condition_id=grid$condition_id[l],high_condition_id=grid$condition_id[h],paired_available=pa,
             category_changed=if(categorical)values[l]!=values[h]else FALSE,
             availability_transition=ls_transition(z$availability[h],z$availability[l]),
             signed_difference=if(pa && !categorical)values[h]-values[l]else NA_real_,categorical=categorical)
+          if(ci==1L) contrasts <- lapply(contrast,function(v)rep(v,length.out=nc))
+          for(name in names(contrast)) contrasts[[name]][ci] <- contrast[[name]]
         }
       }
     }
   }
-  list(player_stability=dplyr::bind_rows(rows),factor_contrasts=dplyr::bind_rows(contrasts))
+  ls_check(ri==nr && ci==nc,"preallocated stability record counts")
+  if(!nr) return(list(player_stability=dplyr::bind_rows(list()),
+    factor_contrasts=dplyr::bind_rows(list())))
+  list(player_stability=structure(rows,class="data.frame",row.names=.set_row_names(nr)),
+    factor_contrasts=structure(contrasts,class="data.frame",row.names=.set_row_names(nc)))
 }
 ls_stability_aggregate <- function(st,pc) {
   s <- dplyr::left_join(st$player_stability,pc[pc$condition_id=="A10_E90_C50",
