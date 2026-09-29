@@ -62,8 +62,11 @@ Location sensitivity is complete under
 verification are in `docs/LOCATION_EDITION_SENSITIVITY_RESULTS.md`. Both complete
 27-condition builds match byte for byte. Evidence and capacity assumptions
 affect coverage and feasible movement; production defaults remain unchanged.
-The next Location feature needs separate authorization. The completed Context
-decision and artifacts stay protected.
+The aggregate flow analytics contract now reuses verified v4 data without a
+new export; see `docs/LOCATION_RELOCATION_FLOW_CONTRACT.md`. Separate source and
+destination totals do not imply modeled cell-to-cell routes. Portfolio
+integration still needs separate authorization. The completed Context decision
+and artifacts stay protected.
 
 These are separate Location Edition improvements. They do not change the
 Context Edition model and require their own preregistration or implementation
