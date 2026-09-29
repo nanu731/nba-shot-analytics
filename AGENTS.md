@@ -85,6 +85,37 @@ without separate approval.
 - Preserve the working zone pipeline until the spatial replacement passes.
   Remove superseded code only as a separate reviewed change.
 
+## Efficiency and Occam's razor
+
+- Solve only the current authorized question. Use the simplest change that
+  satisfies the frozen requirements; add complexity only after the simple
+  approach demonstrably fails.
+- Do not add adjacent refactors, abstractions, metrics, dependencies, or cleanup
+  to a focused repair.
+- Recover before recreating: inspect Git state, the latest handoff, active
+  processes, locks, checkpoints, hashes, and existing artifacts before doing
+  work.
+- Read the mandatory authority files above, then only the active stage's
+  documents. Search supporting history surgically instead of loading unrelated
+  completed-project material.
+- Treat committed plans, roadmaps, manifests, and verified hashes as durable
+  context. Prompts and handoffs should reference them instead of repeating
+  settled history.
+- Reuse verified models, draws, checkpoints, outputs, and test evidence when
+  their inputs and implementation are unchanged. Never repeat expensive work
+  merely for reassurance.
+- Run cheap structural and synthetic checks before expensive computation. Fail
+  at the earliest safe boundary.
+- Parallelize only independent deterministic work with adequate resource
+  headroom. Do not trade memory safety or reproducibility for speed.
+- Keep tool output bounded: prefer targeted searches, selected line ranges,
+  summaries, and changed-state updates over full logs or unchanged polling.
+- Use delta-based handoffs: lead with the outcome, record only new changes,
+  evidence, blockers, protected scope, commits, and the exact next
+  authorization. Reference canonical documents for unchanged history.
+- Efficiency never overrides privacy, outcome seals, preregistration, required
+  tests, deterministic verification, or preservation of user work.
+
 ## Working method
 
 - Make one logical change at a time and verify it.
