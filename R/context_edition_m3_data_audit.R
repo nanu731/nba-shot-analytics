@@ -74,11 +74,18 @@ build_tables <- function(data, input_manifest, field_register) {
   prepared <- prepare_predictors(data)
   total_by_season <- prepared |> count(season, name = "rows")
 
+  missing_fields <- c(
+    "period", "period_seconds_remaining", "shooter_home_away",
+    "score_margin_before"
+  )
   missingness <- prepared |>
-    select(season, period, period_seconds_remaining, shooter_home_away, score_margin_before) |>
-    pivot_longer(-season, names_to = "field", values_to = "value") |>
-    group_by(season, field) |>
-    summarise(rows = n(), missing_rows = sum(is.na(value)), .groups = "drop") |>
+    group_by(season) |>
+    summarise(
+      rows = n(),
+      across(all_of(missing_fields), ~ sum(is.na(.x))),
+      .groups = "drop"
+    ) |>
+    pivot_longer(all_of(missing_fields), names_to = "field", values_to = "missing_rows") |>
     mutate(missing_share = missing_rows / rows) |>
     arrange(season, field)
 
@@ -195,6 +202,12 @@ run_synthetic_tests <- function() {
   )
   prepared <- prepare_predictors(sample)
   stopifnot(identical(prepared$period_seconds_remaining[1:2], c(719L, 660L)))
+  synthetic_tables <- build_tables(
+    sample,
+    tibble(source = "synthetic"),
+    tibble(field = "synthetic")
+  )
+  stopifnot(nrow(synthetic_tables$missingness_by_season.csv) == 20L)
   bad_season <- sample
   bad_season$season[[1]] <- "2026-27"
   stopifnot(inherits(try(guard_predictor_frame(bad_season), silent = TRUE), "try-error"))
