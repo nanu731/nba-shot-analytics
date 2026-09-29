@@ -1,7 +1,7 @@
 # NBA Shot Selection Project Architecture
 
 **Status:** Living project-boundary document
-**Last updated:** 2026-09-28
+**Last updated:** 2026-09-29
 
 ## Purpose
 
@@ -57,11 +57,13 @@ injuries, or strategic responses.
 
 ### Approved future expansion themes
 
-Active Location stage: sensitivity preregistration only, under
-`docs/LOCATION_EDITION_SENSITIVITY_PREREGISTRATION.md`. The 27-condition grid
-preserves the production baseline and requires separate authorization before
-calculation. No sensitivity result or production-default change is approved by
-this planning stage. The completed Context decision and artifacts stay protected.
+Location sensitivity is complete under
+`docs/LOCATION_EDITION_SENSITIVITY_PREREGISTRATION.md`; measured findings and
+verification are in `docs/LOCATION_EDITION_SENSITIVITY_RESULTS.md`. Both complete
+27-condition builds match byte for byte. Evidence and capacity assumptions
+affect coverage and feasible movement; production defaults remain unchanged.
+The next Location feature needs separate authorization. The completed Context
+decision and artifacts stay protected.
 
 These are separate Location Edition improvements. They do not change the
 Context Edition model and require their own preregistration or implementation
@@ -268,7 +270,8 @@ Unless a later approved preregistration changes the sequence:
    the one-time outcome-access evidence. Do not repeat model fitting.
 3. Preserve the frozen historical decision to retain M1. Steps 1-3 are complete;
    the following work requires new authorization.
-4. Preregister and run the Location Edition sensitivity audit.
+4. Preregister and run the Location Edition sensitivity audit (complete; see
+   `docs/LOCATION_EDITION_SENSITIVITY_RESULTS.md`).
 5. Add the Location Edition aggregate relocation-flow view.
 6. Add the Location Edition two-player comparison.
 7. Audit Context M3 data availability, missingness, joins, timing, and leakage

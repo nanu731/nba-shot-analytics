@@ -151,3 +151,9 @@ Recovery starts from 135 first-build conditions, five first-build summaries,
 second-build work may be calculated. Full byte determinism and source/privacy
 checks remain publication gates. Stop gracefully if severe memory pressure
 recurs; no repeated restart or broader optimization is authorized.
+
+The one corrected resume completed with exit code 0 and passed full two-build
+byte equality. See [measured results](LOCATION_EDITION_SENSITIVITY_RESULTS.md)
+for completion, resource measurements, aggregate findings and limitations.
+The single-use record prevents another run; use `verify` for completed-output
+recovery. Keep the private checks and old locks intact.
