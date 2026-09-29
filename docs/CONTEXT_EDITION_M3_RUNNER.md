@@ -1,6 +1,7 @@
 # Context M3 outcome-free runner and training boundary
 
-Status: preregistration implementation; no M3 fit or validation execution.
+Status: first-window training preflight checked; fit deferred for current memory
+pressure. No M3 fit or validation execution.
 Exact model and evaluation rules: `CONTEXT_EDITION_M3_PREREGISTRATION.md`.
 
 ## Modes and scope
@@ -77,10 +78,46 @@ observed-minus-predicted diagnostic sign and labels it explicitly; this is not
 a selection metric. Distance bands remain inherited diagnostic-only reporting,
 not model inputs. Predictor-side checks do not establish outcome-linearity.
 
-## Next authorization
+## Authorized preflight, 2026-09-29: stopped before fitting
 
-Authorize only a monitored `development_1` training feasibility run: reuse the
-hash-verified M1, fit frozen M3 once on 2021–22/2022–23, verify and preserve the
-atomic checkpoint, and publish aggregate training QA. This does not authorize
-historical validation outcomes, later-window fits or 2026–27. Later windows need
-a resource plan on sufficient hardware without changing the frozen model.
+Narayan authorized one monitored `development_1` training-only fit. Recovery
+confirmed local HEAD, upstream and GitHub at
+`7c0bb9f1bdac7b37e5e8b066a31da38bd3e0311a`, with implementation lock
+`832fc4437ce7fd3430b81d50c28d80ba2e9d18ac` unchanged. No model process or M3
+attempt directory existed; only the preserved `skill-observations/` directory
+was untracked.
+
+The 45 M3 tests and 63 inherited structural/synthetic tests passed. Parsing,
+frozen configuration/dependency hashes, the pushed implementation lock, M1
+artifact/manifest hashes, and the predictor-only audit passed. Regenerated
+in-memory dimensions matched the saved three-window table. The first window
+remains 433,942 shots, 700 players, 430,698 grouped rows and 720 coefficients.
+No audit bundle was replaced. Arrow emitted its existing R build-version notice.
+
+At 23:24:11 UTC, macOS reported memory-pressure level 2 (warning), 11,071.69 MiB
+of swap used out of 12,288 MiB, 16 GiB physical RAM, and 95,533,200 KiB free disk
+(about 91.1 GiB). An earlier snapshot also showed warning-level pressure. The
+Mac was on AC power. These are machine measurements before fitting, not model
+resource measurements. The registered first-window working estimate remains
+10.2 GiB; current pressure was unsafe for starting that allocation.
+
+The task stopped before creating a private authorization, attempt lock, or
+fit-start marker. M3 fit count and M1 refit count remain zero; no checkpoint,
+prediction output, or performance result exists from this task. Training and
+validation make/miss columns were not loaded. Historical validation predictors
+were read only through the registered column allowlist; 2026–27 was untouched.
+Fit timing, convergence, covariance, gradients and real-fit prediction checks
+remain unmeasured. No process was stopped and no frozen setting changed.
+
+The dependent portfolio/Impeccable phase did not begin because the training
+phase remains incomplete. Resume only after current memory pressure is safe;
+repeat the recovery and resource checks before using the single authorized fit.
+
+## Next operational decision
+
+Free memory by closing other applications, then request resumption of the
+already-authorized single `development_1` fit. No fit allowance has been used.
+Reuse the hash-verified M1 and frozen M3 specification; do not change the engine
+or grouping to bypass the resource constraint. Historical validation outcomes,
+later-window fits and 2026–27 remain unauthorized. Later windows need a resource
+plan on sufficient hardware without changing the frozen model.
