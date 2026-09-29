@@ -1,0 +1,5 @@
+strategy,status_after_audit,reason
+complete_case,retain_as_diagnostic,honest observed context but discards every failed or unavailable join and changes the evaluation sample
+neutral_fill_plus_missingness_indicator,preferred_simple_candidate_for_preregistration,predicts every shot while separating unavailable context from a real tied score; filled values are not interpreted as recovered states
+predictive_mean_matching,do_not_advance_without_separate_evidence,join failure is not an ordinary missing numeric measurement; added complexity needs a future-season benefit before use
+silent_mean_or_median_fill,reject,without a missingness indicator the model would treat fabricated margins as observed game state

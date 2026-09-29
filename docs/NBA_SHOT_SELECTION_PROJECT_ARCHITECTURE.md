@@ -160,10 +160,17 @@ unless a later preregistration gives it a defensible new meaning.
   gate. The frozen decision is **retain M1**. No formula or rule changed.
 - Historical M2 development is complete. M1 remains the selected baseline;
   M2 does not advance to prospective confirmation. This is not a causal or
-  prospectively confirmed conclusion. No M3 work has begun.
-- Next work requires separate authorization. The current work order places
-  Location Edition sensitivity preregistration next; do not change the deployed
-  Location Edition or start a Context stage under this completed authorization.
+  prospectively confirmed conclusion.
+- The outcome-free M3 predictor-data audit is complete. Period and period clock
+  are complete; home/away and verified score margin are missing for 10.77% and
+  11.03% of attempts, chiefly because events did not receive unique exact
+  play-by-play matches. No M3 model has been fit.
+- The audit retains an explicit unknown home/away level and recommends neutral
+  score-margin fill plus a missingness indicator for later preregistration.
+  Predictive mean matching does not advance because the missing values represent
+  unavailable joins rather than ordinary unobserved numeric measurements.
+- Shot clock and direct defense remain blocked without a verified same-attempt
+  source. Next Context work requires a separate M3 model preregistration.
 - Do not treat this architecture document as outcome-access authorization.
 - Preserve the 2026–27 prospective season as sealed confirmation data.
 
@@ -277,9 +284,10 @@ Unless a later approved preregistration changes the sequence:
    `docs/LOCATION_EDITION_SENSITIVITY_RESULTS.md`).
 5. Add the Location Edition aggregate relocation-flow view.
 6. Add the Location Edition two-player comparison.
-7. Audit Context M3 data availability, missingness, joins, timing, and leakage
-   before choosing any imputation approach.
-8. Revisit archetypes after the relevant location and context predictors are
+7. Preserve the completed Context M3 data-availability, missingness, timing, and
+   leakage audit.
+8. Freeze and evaluate the smallest defensible M3 candidate against M1.
+9. Revisit archetypes after the relevant location and context predictors are
    stable.
 
 ## Working rule for future Codex tasks

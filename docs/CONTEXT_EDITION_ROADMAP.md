@@ -190,7 +190,27 @@ Current execution state at this update:
 - This completes historical development selection, not prospective
   confirmation. M2 does not advance and cannot use 2026-27 as a rescue test.
   M1 remains the immutable Context baseline. Future work requires separate
-  authorization; no M3 or prospective analysis has begun.
+  authorization; no M3 model or prospective analysis has begun.
+
+### Completed stage: M3 predictor-data audit
+
+The predictor-only audit is complete under
+`docs/CONTEXT_EDITION_M3_DATA_AUDIT_PREREGISTRATION.md`, with measured results
+in `docs/CONTEXT_EDITION_M3_DATA_AUDIT_RESULTS.md`.
+
+- Period and period clock are complete across 1,091,329 historical attempts.
+- Home/away is unavailable for 10.77% of attempts; verified score margin is
+  unavailable for 11.03%.
+- Missingness is concentrated in ambiguous and unmatched play-by-play joins.
+  All unique exact matches have home/away status, and 99.71% have verified score
+  margin.
+- The simplest defensible model candidate uses explicit unknown home/away,
+  neutral score-margin fill plus a missingness indicator, and a complete-case
+  diagnostic. Predictive mean matching does not advance because join failure is
+  not an ordinary unobserved numeric measurement.
+- Shot clock and direct defense remain blocked without a verified same-attempt
+  source.
+- No outcome column was read, no model was fit, and 2026-27 remained sealed.
 
 ## Model ladder and stage gates
 
@@ -230,7 +250,7 @@ log loss but failed the material-calibration gate, so the frozen rule retains
 M1. These are development results because their outcomes were already viewed
 during M0/M1, not prospective confirmation.
 
-### M3: verified pre-shot game context — planned
+### M3: verified pre-shot game context — data audit complete
 
 Candidate fields must be available before release and pass a timing and linkage
 audit. Likely candidates include period, time remaining, score before the shot,
@@ -357,10 +377,11 @@ refit.
 
 1. Preserve the completed three-window M2 evaluation and retained-M1 decision.
 2. Keep 2026-27 sealed; historical selection does not authorize confirmation.
-3. Follow the project architecture's next separately approved Location Edition
-   sensitivity-planning task before starting later Context work.
-4. Obtain separate authorization before any M3 data audit or model work.
-5. Preregister and audit M3 game-context fields using M1 as the current baseline.
+3. Preserve the completed Location sensitivity, relocation-flow, and two-player
+   comparison work.
+4. Preserve the completed M3 predictor-data audit and its aggregate outputs.
+5. Preregister the smallest M3 formula and its M3-versus-M1 historical decision
+   rule before fitting either model.
 6. Decide whether a valid direct-defense data source exists. Omit defense if it
    does not pass the source and join gates.
 7. Preregister and evaluate M4 player Shot Fit.
