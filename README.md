@@ -1,279 +1,210 @@
-# NBA Shot Selection
+# NSL Analytics
 
-**Do NBA players take most of their shots from the spots where they score the most?**
+Narayan Lekhi's sports analytics portfolio. Each project starts with a sports
+question and gives readers the data, method, interactive results, and analysis
+code needed to examine it.
 
-Last season Stephen Curry scored 1.65 points for every shot he took from the left corner.
-From the right wing behind the arc he scored 1.07. He took 33 shots from the corner and 171
-from the wing.
+**[Visit the website](https://www.nslanalytics.com/)** ·
+**[Explore NBA shot selection](https://www.nslanalytics.com/projects/nba-shot-selection-analytics/)** ·
+**[Compare two players](https://www.nslanalytics.com/projects/nba-player-comparison/)**
 
-That gap is the whole idea. Curry shoots better from one place than another, and he takes
-five times more shots from the worse one. Some of that is defenses chasing him off the
-corner. Some of it is choice.
+This repository contains the website and its public presentation data. The R
+models, source-data audits, and research live in
+[nba-shot-analytics](https://github.com/nanu731/nba-shot-analytics).
 
-This project measures that gap for 318 players a season, across five seasons and 1.09
-million shots.
+## Available now
 
----
+### NBA Shot Selection: Location Edition
 
-## Points per shot
+How could a player's expected scoring change if some attempts moved toward
+stronger supported areas of the court?
 
-Points per shot divides what a player scored from a spot by how many shots he took there.
-A made three counts 3, a made two counts 2, a miss counts 0. Curry's 1.65 in the left corner
-means 33 attempts turned into 54 points.
+The explorer covers **2021–22 through 2025–26**, with a separate fitted model
+for each season. It opens with LeBron James in 2025–26 and unchanged historical
+shots. Choose a player and season, then request movement from 0% to 25% in 5%
+steps. The display distinguishes the requested share from the amount the model
+can achieve.
 
-Most shooting stats answer a different question: what fraction went in. That works fine
-until you compare a three to a layup, where the same percentage means different value.
-Points per shot puts every spot on one scale, and the scale is the thing the game is scored
-in.
+Three views show different parts of the same scenario:
 
-The floor splits into 14 zones. The NBA already labels every shot with the zone it came
-from, so this project uses those labels rather than drawing its own boundaries. The zones
-match what you see on an NBA.com shot chart.
+| View | What you see |
+| --- | --- |
+| **Shot locations** | Recorded makes and misses at 0%; cyan hypothetical attempts and origin rings when shots move. |
+| **Make-chance map** | Estimated shooting probability across court areas, with a fixed color scale and area inspection. |
+| **Shot movement** | Aggregate attempts removed from areas and added to supported areas, using a shared bubble scale. These totals do not trace individual shot routes. |
 
-| Zone | Worth | 2025-26 shots |
-|---|---|---|
-| Restricted area | 2 | 62,253 |
-| Paint, outside the restricted area (left / center / right) | 2 | 2,253 / 39,141 / 2,514 |
-| Mid-range (5 zones, left to right) | 2 | 5,819 / 2,861 / 4,718 / 2,806 / 5,813 |
-| Left corner three | 3 | 12,210 |
-| Above the break (left / center / right) | 3 | 26,511 / 17,219 / 23,624 |
-| Right corner three | 3 | 11,360 |
+Search accepts names with or without accents and punctuation, opens a scrollable
+player list, and labels relocation evidence. A selected player persists across
+seasons. If that player lacks an analysis, the page explains why and offers a
+reset to LeBron and 2025–26.
 
----
+Results include estimated extra points over the season, extra points per 100
+attempts, a shot-selection score, and 90% model ranges. Contextual help links to
+the Definitions, How the model works, and Formulas sections.
 
-## The score
+### Two-player comparison
 
-Take a player's shooting from each of the 14 zones and hold it fixed. Then ask what he
-would average if he shot the same mix as a typical NBA player, and compare that to what he
-actually averaged.
+The [comparison page](https://www.nslanalytics.com/projects/nba-player-comparison/)
+places two players side by side on desktop and stacks them on mobile. Both use
+one season, movement slider, and court-view selector. The first slot opens with
+LeBron; the second waits for a selection. Duplicate selections are blocked.
 
-The difference is the score. Skill sits on both sides of the comparison and cancels out.
-What survives is the choice of where to shoot.
+Each player has current and relocated expected points per 100 attempts,
+potential improvement, score, uncertainty, and evidence status. The comparison
+uses each player's own historical shot mix; it does not rank overall talent,
+name a winner, or calculate a head-to-head probability. Missing estimates stay
+unavailable rather than becoming zero.
 
-A score of +0.06 means his shot selection is worth six extra points per hundred attempts,
-given how well he shoots from each spot. A negative score means the reverse.
+### Interpreting the estimates
 
-The score runs from roughly -0.12 to +0.29. League-wide, one standard deviation is 0.061.
+The Location Edition uses a Bayesian spatial model that shares information
+between neighboring court areas. Receiving areas need at least 10 attempts and
+90% model probability of beating the player's current expected points per shot.
+Each receiving area has a 50% final-volume cap. A single supported area can
+produce an estimate when it has receiving capacity.
 
----
+The score compares the historical mix with feasible movement at the fixed 25%
+request. A higher score means less modeled room to improve that player's mix.
+The 90% ranges describe uncertainty within the fitted model.
 
-## What the numbers say
+These are historical, hypothetical scenarios. The model holds shooting ability
+fixed while attempts move and excludes defense, game situation, shot creation,
+fatigue, and opponents' reactions. The estimates do not establish causal gains,
+forecast real games, or supply coaching or betting advice. The project page
+provides the full limitations and formulas.
 
-### Who allocates well, 2025-26
+## Data and repository boundaries
 
-| | Player | Score | Points per shot |
-|---|---|---|---|
-| 1 | Ryan Kalkbrenner | +0.286 | 1.50 |
-| 2 | Rudy Gobert | +0.262 | 1.36 |
-| 3 | Jaxson Hayes | +0.251 | 1.52 |
-| ... | | | |
-| 316 | T.J. McConnell | -0.093 | 1.11 |
-| 317 | DeMar DeRozan | -0.117 | 1.04 |
-| 318 | Kevin Durant | -0.118 | 1.18 |
+The website consumes the deterministic **v4** Location export under
+`public/data/spatial-shot-selection/v4/`. It contains 1,507 analyzed
+player-seasons across the five seasons, based on recorded NBA field-goal
+attempts. Eligibility and relocation evidence are separate checks.
 
-Big men fill the top. Their job puts them at the rim, which is the most valuable spot on
-the floor outside the corners. That much is unsurprising.
+The browser loads the availability catalog, active-season index, and selected
+player files as needed. Typing, changing court views, and moving the slider do
+not download additional player files. Shot movement reuses the loaded payload;
+comparison converts existing per-attempt summaries to per-100 units.
 
-### The interesting part is inside each position
+Research and data refreshes belong in the analytics repository. The website
+renders its verified exports instead of fitting models. Historical files are
+versioned snapshots, not a live NBA feed. Preserve unavailable values and export
+contracts when integrating a new verified release.
 
-Position accounts for 18% of the variation in score. The other 82% separates players who
-share a position.
+## Direction and planned expansion
 
-Centers spread wider than the league does. Their standard deviation is 0.0848 against a
-league figure of 0.061, running from -0.053 to +0.286. The metric tells centers apart more
-sharply than it tells the league apart.
+The Location Edition will remain available as its own project. **Context
+Edition** will have a separate question, model, results, and website presentation:
+does shot type and verified pre-shot situation improve expected scoring
+prediction? Both research projects currently share the analytics repository.
 
-| Position | Best three | Worst three |
-|---|---|---|
-| Center | Kalkbrenner, Gobert, Hayes | Vučević, Adebayo, Embiid |
-| Forward | Gafford, Antetokounmpo, Diabaté | Dončić, Murray, Durant |
-| Guard | Payton II, Champagnie, Braun | Nembhard, McConnell, DeRozan |
+Current priorities and conditional ideas, as of 13 October 2026:
 
-Every row runs rim-finishers against players who drift out to mid-range. Compare players
-to others at their position, not to the league.
+- **UI and usability:** continue the Impeccable workflow and reader testing.
+  The reviewed chart, search, comparison-layout, and unavailable-state repairs
+  are already released. Physical-device and spoken screen-reader checks remain
+  follow-up work.
+- **Context research, paused:** the broad finish/creation model (M1) remains the
+  selected baseline. Adding distance (M2) improved predictive log loss but failed
+  the registered calibration gate. The game-context model (M3) is preregistered
+  and unfitted; memory constraints stopped its training preflight. Analytics
+  remains paused while UI work takes priority.
+- **Further Location research:** sensitivity testing is complete in the
+  analytics repository, with production defaults unchanged. Location-based
+  archetype analysis is a possible later extension, not a current site feature.
+- **Conditional Context extensions:** player-specific shot-family effects,
+  verified field-goal/free-throw trip value, and historical volume limits need
+  their own data and validation checks. Direct defense remains unavailable from
+  the verified sources. Player-specific volume-efficiency curves are not
+  supported by the current five-season evidence.
 
-### Scores fall as volume rises
+The research reserves 2026–27 for prospective confirmation. Planned work has no
+promised release date. The [analytics repository](https://github.com/nanu731/nba-shot-analytics)
+holds the research code and public methodological reports.
 
-Players taking 250 to 400 shots average +0.046. Above 900 shots they average -0.022. The
-pattern holds in all five seasons and inside every position group.
+## Run locally
 
-Two explanations fit. A high-usage player creates late in the clock against a set defense
-and takes what he can get. A role player shoots when he is open at the rim and passes
-otherwise. Or the score is picking up usage rather than allocation. The shot log cannot
-separate those, so the pattern is reported rather than corrected.
+Use **Node.js 22.12.0 or newer** and npm. From the repository root:
 
----
-
-## How the numbers get built
-
-### Handling small samples
-
-Among 318 qualifying players there are 4,184 zone cells with at least one shot. 228 hold a
-single attempt. A one-shot cell scores either 0.00 or 2.00 depending on whether the ball
-went in, and neither number says anything about the player.
-
-The fix pulls thin cells toward the league average for that zone, in proportion to how thin
-they are. One attempt lands almost entirely on the league value. Two hundred attempts keep
-almost all of the player's own. Statisticians call this shrinkage, and the version here
-fits a beta-binomial prior per zone:
-
-```
-FG%_shrunk[p,z] = (makes[p,z] + a[z]) / (attempts[p,z] + a[z] + b[z])
-PPS_shrunk[p,z] = point_value[z] * FG%_shrunk[p,z]
-```
-
-Priors get fitted per zone and per season. Three-point zones need far more evidence before
-the estimate stabilizes (fitted weights of 237 to 560) than paint zones do (31 to 96),
-which matches published work finding that three-point percentage takes around 750 attempts
-to settle.
-
-Zones where a player never shot return the league average, so empty cells need no special
-case.
-
-### The formula
-
-```
-S[p] = sum over zones of ( f[p,z] - f_league[z] ) * PPS_shrunk[p,z]
+```sh
+npm ci
+npm run dev -- --background
 ```
 
-`f[p,z]` is the share of a player's shots from zone `z`. `f_league[z]` is the league's
-share. Economists use this structure to separate composition effects from rate effects.
+The development server normally opens at `http://localhost:4321`. Check or stop
+the background server with `npm run astro -- dev status` and
+`npm run astro -- dev stop`.
 
-An earlier version used `sum of f[p,z] * PPS[p,z]`. That one collapses to total points over
-total attempts, which is just overall points per shot. It would have ranked players by
-scoring efficiency instead of shot selection. On this data it correlates 1.000 with raw
-points per shot. The version above correlates 0.58.
-
-Each zone's contribution gets stored, so any player's score breaks into which spots helped
-and which hurt.
-
-### Zone rules
-
-Every zone holds shots of one point value, which means
-
-```
-PPS[player, zone] = point_value[zone] * FG%[player, zone]
+```sh
+npm run build
+npm run preview
 ```
 
-and shrinking points per shot reduces to shrinking a percentage. That keeps the statistics
-on solved ground.
+The build writes static output to `dist/`. Preview serves that production build.
+Fonts may require network access on the first build; visitors receive them from
+the site's own origin.
 
-Two sets of shots come out. Backcourt heaves (38 in 2025-26) are buzzer attempts, and the
-NBA's own charts drop them too. And 20 shots carry a point value that contradicts their
-zone label, sitting at 21 to 24 feet where the coordinate-derived zone and the scored
-value disagree. Dropping them keeps the rule above exact. 219,102 attempts remain.
+Verify the public data contracts from the repository root:
 
-No zone gets filtered for low volume. A player who rarely shoots from somewhere is exactly
-what the metric measures, so cutting thin cells would throw away the relevant data.
-Shrinkage handles the noise.
-
-### Who qualifies
-
-20 games and 250 shots in a season. That is 318 players out of 582 in 2025-26.
-
-250 is the 25th percentile of attempts among players clearing the games gate. A
-shots-per-game requirement got tested and dropped: the 23 players it cut were mostly
-rim-running big men playing real minutes, so it would have deleted a position rather than
-low-impact players. Several of them ended up near the top of the leaderboard.
-
-One caveat. Games counts appearances where a player took a shot, so someone who played
-without shooting is undercounted.
-
----
-
-## What this cannot tell you
-
-**Free throws are missing.** Points per shot counts field goal attempts. A drive that draws
-a shooting foul often records no attempt at all, so rim scoring gets undercounted and
-players who draw fouls get penalized. Shot logs carry no free-throw records, so there is no
-way to test the size of the effect from this data. A proxy test got designed and then
-withdrawn: overweighting the restricted area is close to the largest positive term in the
-formula, so a correlation there is what the math guarantees rather than evidence about
-fouls.
-
-**Volume and score move together.** Covered above. Both explanations predict the same
-correlation, and the shot log cannot pick between them. Testing inside volume quartiles
-narrowed it: the top quartile is negative in all five seasons, but the lower three flip
-sign year to year, so the effect lives among high-volume players rather than running
-through the whole range. Eight of the top 20 sit within 100 shots of the 250 cutoff, which
-raises a question about that threshold, though the effect sitting at the other end of the
-distribution argues against a pure cutoff artifact.
-
-**Ability and frequency are not independent.** The formula treats zone shooting as fixed
-skill. Research using marked spatial point processes finds players shoot better where they
-shoot more, for around 80% of players studied. Whether that is selection or cause remains
-unsettled.
-
-**Concentration says nearly the same thing as the score.** A Herfindahl index of how
-concentrated a player's shot diet is correlates 0.833 with the score, rising to 0.913
-inside centers. That is a result on its own: players reach good allocation by leaning on
-their best zone, not by being broadly good everywhere. It also rules out plotting score
-against concentration, which would draw a diagonal line.
-
-**The shrinkage weight is not pinned down, though the rankings are.** Three methods got
-compared per zone: the beta-binomial fit, split-half reliability, and cross-validation. The
-first and third agree (rank correlation 0.838). Split-half agrees with neither on levels.
-All three diverge most in three-point zones, and those are not the thinnest zones, which
-was the prediction and it failed.
-
-The cross-validated loss surface there is flat. Extending the search to 20,000 found a
-nominal minimum in every zone, but held-out loss stays within 0.01% of it across a range
-spanning 450 to 20,000 for the center above-the-break zone. Cross-validation does not
-contradict the beta-binomial fit so much as fail to distinguish it from anything else.
-
-Rebuilding every score under all three weightings gives rank correlations of 0.995 to
-0.9985. No player moves more than one league standard deviation. The largest shift is
-0.015, a quarter of an SD. Between 20 and 52 players move more than ten rank places, all
-of them in the crowded middle. The top five and bottom five hold under all three.
-
-That happens because a score sums 14 zones, and each zone's weight is how far the player's
-frequency sits from the league's. Where the shrinkage weight is least certain, that
-frequency gap is smallest. Uncertainty in a cell does not reach the player.
-
-**Positions come in three buckets.** The NBA publishes guard, forward, and center, not five
-positions. Three qualifying players in 2025-26 appear on no end-of-season roster and show
-as Unknown rather than getting dropped or guessed at. Position colors the charts and never
-enters the math.
-
-**The league baseline includes the players being measured.** High-volume players help
-define the average they get compared to.
-
----
-
-## Running it
-
-Collection runs in Python, since `nba_api` is the client that reaches the NBA stats
-endpoints reliably. Cleaning, shrinkage, scoring, charts, and export all run in R.
-
-```bash
-# Collection. Slow, and only needed the first time a season is pulled.
-conda activate nba-analytics
-python src/collect.py --seasons 2025-26
-
-# Analysis. One season, several, or everything collected.
-Rscript R/run_pipeline.R 2025-26
-Rscript R/run_pipeline.R
-
-# Diagnostics. Run once, not part of the pipeline.
-Rscript R/validation.R
-Rscript R/k_comparison.R
+```sh
+node --experimental-strip-types scripts/verify-relocation-flow.mjs
+node --experimental-strip-types scripts/verify-player-comparison.mjs
 ```
 
-Shots come one team at a time with `player_id=0`, which returns a full team season in one
-call. That is 30 calls a season instead of 550. Passing `team_id=0` looks like a
-whole-league pull but truncates at 102,400 rows without saying so, and never gets used.
+The flag supports the helpers' TypeScript imports on Node 22. These checks cover
+payload integrity, movement totals, fractional attempts,
+per-100 conversions, null handling, and comparison-loader behavior. They do not
+replace browser checks or the analytics repository's statistical validation.
+Saved browser checks and their review evidence are documented in
+[UI refinement verification](docs/ui-refinement-verification.md).
 
-### Layout
+## Stack and project guide
 
-```
-R/                Analysis, numbered by pipeline order
-src/              Python ingestion
-data/raw/         Shot logs and rosters, partitioned by season
-data/processed/   zone_stats, player_scores, zone_priors
-export/charts/    SVG
-export/data/      JSON for the site, regenerated by R/05
-```
+- **Astro 7**, static output, MDX project pages, Markdown blog posts, sitemap,
+  and blog RSS.
+- **Plain CSS** and browser JavaScript/TypeScript for interaction; SVG courts
+  and versioned JSON power the NBA tools.
+- **Fraunces, Source Serif 4, and IBM Plex Mono**, served from the site, with
+  cream/green/rust/cyan chart and interface colors.
+- **Vercel** at `www.nslanalytics.com`; the apex redirects to www. The site also
+  serves through [Netlify](https://nlekhi.netlify.app/).
 
-Three tables come out. `zone_stats` holds one row per player-zone, 14 per player including
-the empty ones. `player_scores` holds one row per player. `zone_priors` holds one row per
-zone.
+| Location | Purpose |
+| --- | --- |
+| `src/content/projects/` | Project write-ups and frontmatter. |
+| `src/content/blog/` | Dated writing; the collection currently has no published posts. |
+| `src/pages/` | Site routes, including the comparison page. |
+| `src/components/`, `src/lib/` | Shared interface components and browser helpers. |
+| `src/styles/global.css` | Shared color, spacing, and typography tokens. |
+| `public/data/`, `public/plots/` | Public exports and static plot assets. |
+| `scripts/` | Data-contract and browser verification helpers. |
+
+The shared CSS tokens define the visual system. The
+[UI verification record](docs/ui-refinement-verification.md) documents the
+released refinements and remaining checks. The unlinked `/styleguide/` is a
+design reference, excluded from the sitemap; it is not access-controlled.
+
+Project frontmatter must follow `src/content.config.ts`. Set `draft: true` for
+work that should appear in development but stay out of production. Publish
+verified findings and explicit limitations; use TODO markers for missing author
+content instead of inventing results or biography.
+
+## Hosting and maintenance
+
+The existing hosting connections deploy `main` using `npm run build` and
+`dist/`. Review feature branches before release; a push to production can
+trigger both hosts. `astro.config.mjs` defines the canonical www address.
+`vercel.json` and `netlify.toml` contain the host security headers; Astro adds
+per-page script/style hashes during the build.
+
+Keep verified data and factual results intact during interface work. Run checks
+appropriate to the change and inspect browser behavior when controls, charts,
+or security policies change. The [security checklist](docs/security-checklist.md)
+distinguishes released browser protections from account settings that still need
+review. Keep credentials, environment files, private analytics artifacts, and
+local tooling state out of Git and published output.
+
+## Licence and credits
+
+Site content and writing are © Narayan Lekhi. Fraunces uses the SIL Open Font
+License; see [OFL.txt](src/assets/fonts/OFL.txt). This repository does not declare
+a blanket open-source licence for the website or its analytical data.
